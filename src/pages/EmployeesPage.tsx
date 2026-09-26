@@ -10,7 +10,6 @@ import {
   Building2,
   MoreVertical,
   X,
-  CheckCircle2,
   Download,
   Trash2,
   Eye,
@@ -177,15 +176,15 @@ export const EmployeesPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-7xl mx-auto">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
             <Users className="w-6 h-6 text-emerald-600" />
             <span>Employee Directory</span>
           </h1>
-          <p className="text-sm text-slate-500 mt-1">Manage employee master records, profiles, and employment lifecycle</p>
+          <p className="text-sm text-slate-500 mt-1 font-normal">Manage employee master records, profiles, and employment lifecycle</p>
         </div>
         <button
           onClick={() => { setIsAddModalOpen(true); setFormError(null); }}
@@ -197,7 +196,7 @@ export const EmployeesPage: React.FC = () => {
       </div>
 
       {/* Filter and Search Toolbar */}
-      <div className="glass-panel rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="bg-white rounded-2xl p-4 border border-slate-200/90 shadow-xs flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="relative w-full md:w-96">
           <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
@@ -205,7 +204,7 @@ export const EmployeesPage: React.FC = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search by name, code, email..."
-            className="w-full bg-slate-100 text-sm text-slate-900 placeholder-slate-400 rounded-xl pl-10 pr-4 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition"
+            className="w-full bg-slate-50 text-sm text-slate-900 placeholder-slate-400 rounded-xl pl-10 pr-4 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition"
           />
         </div>
 
@@ -215,7 +214,7 @@ export const EmployeesPage: React.FC = () => {
             <select
               value={selectedDept}
               onChange={(e) => setSelectedDept(e.target.value)}
-              className="px-4 py-2.5 rounded-xl bg-slate-100 text-slate-800 text-xs font-semibold border border-slate-200 focus:outline-none focus:border-emerald-500 appearance-none pr-8 cursor-pointer"
+              className="px-4 py-2.5 rounded-xl bg-slate-50 text-slate-800 text-xs font-semibold border border-slate-200 focus:outline-none focus:border-emerald-500 appearance-none pr-8 cursor-pointer"
             >
               <option value="ALL">All Departments</option>
               {departments.map((d) => (
@@ -229,7 +228,7 @@ export const EmployeesPage: React.FC = () => {
 
           <button
             onClick={handleExportCsv}
-            className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold border border-slate-200 transition flex items-center gap-2 cursor-pointer"
+            className="px-4 py-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200 transition flex items-center gap-2 cursor-pointer shadow-xs"
           >
             <Download className="w-3.5 h-3.5 text-emerald-600" />
             <span>Export CSV</span>
@@ -238,63 +237,63 @@ export const EmployeesPage: React.FC = () => {
       </div>
 
       {/* Employees Table */}
-      <div className="glass-panel rounded-3xl overflow-hidden border border-slate-200">
+      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-800">
-            <thead className="bg-slate-100/90 text-xs uppercase tracking-wider text-slate-500 font-bold border-b border-slate-200">
-              <tr>
-                <th className="px-6 py-4">Employee</th>
-                <th className="px-6 py-4">Department & Role</th>
-                <th className="px-6 py-4">Contact</th>
-                <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4">Joined Date</th>
-                <th className="px-6 py-4 text-right">Actions</th>
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-slate-50/80 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500 font-semibold">
+                <th className="py-3.5 px-5">Employee</th>
+                <th className="py-3.5 px-5">Department & Role</th>
+                <th className="py-3.5 px-5">Contact</th>
+                <th className="py-3.5 px-5">Status</th>
+                <th className="py-3.5 px-5">Joined Date</th>
+                <th className="py-3.5 px-5 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200">
+            <tbody className="divide-y divide-slate-100 text-sm">
               {isLoading ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-8 text-center text-slate-500">
+                  <td colSpan={6} className="py-8 px-5 text-center text-slate-500">
                     <div className="inline-block w-6 h-6 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
-                    <p className="mt-2 text-xs">Loading employee records from API...</p>
+                    <p className="mt-2 text-xs font-medium">Loading employee records from API...</p>
                   </td>
                 </tr>
               ) : employees.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-8 text-center text-slate-500 text-sm">
+                  <td colSpan={6} className="py-8 px-5 text-center text-slate-500 text-sm">
                     No employees found matching query.
                   </td>
                 </tr>
               ) : (
                 employees.map((emp) => (
-                  <tr key={emp.id} className="hover:bg-slate-50 transition">
-                    <td className="px-6 py-4">
+                  <tr key={emp.id} className="hover:bg-emerald-50/30 transition-colors">
+                    <td className="py-3.5 px-5">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-600 flex items-center justify-center text-white font-bold shadow-xs">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-600 flex items-center justify-center text-white font-bold text-sm shadow-xs">
                           {emp.firstName ? emp.firstName.charAt(0) : 'E'}
                         </div>
                         <div className="flex flex-col">
-                          <span className="font-bold text-slate-900">{emp.firstName} {emp.lastName}</span>
-                          <span className="text-xs text-emerald-700 font-mono font-semibold">{emp.employeeCode}</span>
+                          <span className="font-semibold text-slate-900">{emp.firstName} {emp.lastName}</span>
+                          <span className="text-xs text-emerald-800 font-mono font-semibold">{emp.employeeCode}</span>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="py-3.5 px-5">
                       <div className="flex flex-col">
                         <span className="font-semibold text-slate-800">{emp.designationName || 'Software Engineer'}</span>
                         <span className="text-xs text-slate-500 flex items-center gap-1 mt-0.5 font-medium">
-                          <Building2 className="w-3 h-3 text-slate-400" />
+                          <Building2 className="w-3.5 h-3.5 text-slate-400" />
                           {emp.departmentName || 'General'}
                         </span>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="py-3.5 px-5">
                       <div className="flex flex-col text-xs text-slate-600 space-y-1">
-                        <span className="flex items-center gap-1.5"><Mail className="w-3 h-3 text-slate-400" /> {emp.workEmail}</span>
-                        {emp.personalPhone && <span className="flex items-center gap-1.5"><Phone className="w-3 h-3 text-slate-400" /> {emp.personalPhone}</span>}
+                        <span className="flex items-center gap-1.5"><Mail className="w-3.5 h-3.5 text-slate-400" /> {emp.workEmail}</span>
+                        {emp.personalPhone && <span className="flex items-center gap-1.5"><Phone className="w-3.5 h-3.5 text-slate-400" /> {emp.personalPhone}</span>}
                       </div>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="py-3.5 px-5">
                       <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${
                         emp.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
                         emp.status === 'ON_LEAVE' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
@@ -303,10 +302,10 @@ export const EmployeesPage: React.FC = () => {
                         {emp.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-xs font-mono font-medium text-slate-600">
+                    <td className="py-3.5 px-5 text-xs font-mono font-medium text-slate-600">
                       {emp.joiningDate || '2024-01-15'}
                     </td>
-                    <td className="px-6 py-4 text-right relative">
+                    <td className="py-3.5 px-5 text-right relative">
                       <button
                         onClick={() => setActiveMenuId(activeMenuId === emp.id ? null : emp.id)}
                         className="p-1.5 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition cursor-pointer"
@@ -319,13 +318,13 @@ export const EmployeesPage: React.FC = () => {
                         <div className="absolute right-6 top-12 w-44 bg-white border border-slate-200 rounded-xl shadow-xl z-20 py-1.5 text-xs text-left">
                           <button
                             onClick={() => { setViewEmployee(emp); setActiveMenuId(null); }}
-                            className="w-full px-3 py-2 text-slate-700 hover:bg-slate-100 flex items-center gap-2 font-medium"
+                            className="w-full px-3 py-2 text-slate-700 hover:bg-slate-50 flex items-center gap-2 font-medium cursor-pointer"
                           >
                             <Eye className="w-3.5 h-3.5 text-emerald-600" /> View Profile
                           </button>
                           <button
                             onClick={() => handleDelete(emp.id)}
-                            className="w-full px-3 py-2 text-rose-600 hover:bg-rose-50 flex items-center gap-2 font-medium"
+                            className="w-full px-3 py-2 text-rose-600 hover:bg-rose-50 flex items-center gap-2 font-medium cursor-pointer"
                           >
                             <Trash2 className="w-3.5 h-3.5 text-rose-600" /> Deactivate
                           </button>
@@ -345,11 +344,11 @@ export const EmployeesPage: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs">
           <div className="w-full max-w-lg bg-white border border-slate-200 rounded-3xl p-6 shadow-2xl relative text-slate-900">
             <div className="flex items-center justify-between pb-4 border-b border-slate-200">
-              <h2 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+              <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
                 <UserPlus className="w-5 h-5 text-emerald-600" />
                 <span>Onboard New Employee</span>
               </h2>
-              <button onClick={() => setIsAddModalOpen(false)} className="text-slate-400 hover:text-slate-700">
+              <button onClick={() => setIsAddModalOpen(false)} className="text-slate-400 hover:text-slate-700 cursor-pointer">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -371,7 +370,7 @@ export const EmployeesPage: React.FC = () => {
                     value={formData.firstName}
                     onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
                     placeholder="Rajesh"
-                    className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-slate-50 text-slate-900 rounded-xl px-3.5 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-emerald-500"
                   />
                 </div>
                 <div>
@@ -382,7 +381,7 @@ export const EmployeesPage: React.FC = () => {
                     value={formData.lastName}
                     onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
                     placeholder="Kumar"
-                    className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-slate-50 text-slate-900 rounded-xl px-3.5 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-emerald-500"
                   />
                 </div>
               </div>
@@ -395,7 +394,7 @@ export const EmployeesPage: React.FC = () => {
                   value={formData.workEmail}
                   onChange={(e) => setFormData({ ...formData, workEmail: e.target.value })}
                   placeholder="rajesh.kumar@priyex.com"
-                  className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-emerald-500"
+                  className="w-full bg-slate-50 text-slate-900 rounded-xl px-3.5 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-emerald-500"
                 />
               </div>
 
@@ -407,7 +406,7 @@ export const EmployeesPage: React.FC = () => {
                     value={formData.personalPhone}
                     onChange={(e) => setFormData({ ...formData, personalPhone: e.target.value })}
                     placeholder="+91 9876543210"
-                    className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-slate-50 text-slate-900 rounded-xl px-3.5 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-emerald-500"
                   />
                 </div>
                 <div>
@@ -415,7 +414,7 @@ export const EmployeesPage: React.FC = () => {
                   <select
                     value={formData.departmentId}
                     onChange={(e) => setFormData({ ...formData, departmentId: e.target.value })}
-                    className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-slate-50 text-slate-900 rounded-xl px-3.5 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-emerald-500"
                   >
                     <option value="">Select Department</option>
                     {departments.map((d) => (
@@ -431,7 +430,7 @@ export const EmployeesPage: React.FC = () => {
                   <select
                     value={formData.employmentType}
                     onChange={(e) => setFormData({ ...formData, employmentType: e.target.value })}
-                    className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-slate-50 text-slate-900 rounded-xl px-3.5 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-emerald-500"
                   >
                     <option value="FULL_TIME">Full Time</option>
                     <option value="PART_TIME">Part Time</option>
@@ -446,7 +445,7 @@ export const EmployeesPage: React.FC = () => {
                     required
                     value={formData.joiningDate}
                     onChange={(e) => setFormData({ ...formData, joiningDate: e.target.value })}
-                    className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-slate-50 text-slate-900 rounded-xl px-3.5 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-emerald-500"
                   />
                 </div>
               </div>
@@ -455,14 +454,14 @@ export const EmployeesPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold"
+                  className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-semibold flex items-center gap-2 shadow-md shadow-emerald-600/20"
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-semibold flex items-center gap-2 shadow-md shadow-emerald-600/20 cursor-pointer"
                 >
                   {isSubmitting ? 'Onboarding...' : 'Save & Create Employee'}
                 </button>
@@ -477,13 +476,13 @@ export const EmployeesPage: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs">
           <div className="w-full max-w-md bg-white border border-slate-200 rounded-3xl p-6 shadow-2xl relative space-y-4">
             <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-              <h2 className="text-base font-extrabold text-slate-900">Employee Profile</h2>
-              <button onClick={() => setViewEmployee(null)} className="text-slate-400 hover:text-slate-700">
+              <h2 className="text-base font-bold text-slate-900">Employee Profile</h2>
+              <button onClick={() => setViewEmployee(null)} className="text-slate-400 hover:text-slate-700 cursor-pointer">
                 <X className="w-5 h-5" />
               </button>
             </div>
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-full bg-emerald-600 flex items-center justify-center text-white text-xl font-bold shadow-sm">
+              <div className="w-14 h-14 rounded-full bg-emerald-600 flex items-center justify-center text-white text-xl font-bold shadow-xs">
                 {viewEmployee.firstName.charAt(0)}
               </div>
               <div>
