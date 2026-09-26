@@ -116,18 +116,21 @@ export const AttendancePage: React.FC = () => {
   const pendingCount = leaveRequests.filter(r => r.status === 'PENDING').length;
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-6 max-w-7xl mx-auto">
+      {/* Page Header Aligned Across All Modules */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
             <CalendarCheck className="w-6 h-6 text-emerald-600" />
             <span>Attendance & Leave Management</span>
           </h1>
-          <p className="text-sm text-slate-500 mt-1">Track daily biometric punches, shift rotas, and leave applications</p>
+          <p className="text-sm text-slate-500 mt-1 font-normal">
+            Track daily biometric punches, shift rotas, and leave applications
+          </p>
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-sm font-semibold shadow-md shadow-emerald-600/20 transition flex items-center gap-2 cursor-pointer"
+          className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-sm font-semibold shadow-md shadow-emerald-600/20 transition flex items-center gap-2 cursor-pointer self-start sm:self-auto"
         >
           <PlusCircle className="w-4 h-4" />
           <span>Apply Leave / Regularize</span>
