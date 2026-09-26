@@ -9,9 +9,9 @@ export const AppLayout: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="h-screen w-screen bg-slate-950 flex flex-col items-center justify-center gap-4 text-slate-400">
-        <div className="w-10 h-10 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin"></div>
-        <p className="text-sm font-medium animate-pulse">Initializing Priyex HRMS Enterprise Portal...</p>
+      <div className="h-screen w-screen bg-slate-50 flex flex-col items-center justify-center gap-4 text-slate-600">
+        <div className="w-10 h-10 border-4 border-emerald-500/30 border-t-emerald-600 rounded-full animate-spin"></div>
+        <p className="text-sm font-semibold animate-pulse">Initializing Priyex HRMS Enterprise Portal...</p>
       </div>
     );
   }
@@ -21,7 +21,7 @@ export const AppLayout: React.FC = () => {
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-950 text-slate-100">
+    <div className="flex min-h-screen bg-slate-50 text-slate-900">
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0">
         <Header />

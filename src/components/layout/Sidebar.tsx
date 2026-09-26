@@ -21,20 +21,20 @@ const navigationItems = [
 
 export const Sidebar: React.FC = () => {
   return (
-    <aside className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between shrink-0 h-screen sticky top-0">
+    <aside className="w-64 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 h-screen sticky top-0 z-20 shadow-sm">
       <div>
         {/* Brand Logo Header */}
-        <div className="h-16 px-6 flex items-center gap-3 border-b border-slate-800">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-400 via-teal-500 to-cyan-400 p-0.5 shadow-lg shadow-emerald-500/20">
-            <div className="w-full h-full bg-slate-900 rounded-[10px] flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-emerald-400" />
+        <div className="h-16 px-6 flex items-center gap-3 border-b border-slate-200">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-500 via-teal-500 to-cyan-500 p-0.5 shadow-md shadow-emerald-500/20">
+            <div className="w-full h-full bg-white rounded-[10px] flex items-center justify-center">
+              <Sparkles className="w-5 h-5 text-emerald-600" />
             </div>
           </div>
           <div className="flex flex-col">
-            <span className="font-extrabold text-base tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-300">
+            <span className="font-extrabold text-base tracking-tight text-slate-900">
               PRIYEX HRMS
             </span>
-            <span className="text-[10px] uppercase tracking-widest text-slate-400 font-semibold">
+            <span className="text-[10px] uppercase tracking-widest text-emerald-600 font-bold">
               Enterprise Suite v1.0
             </span>
           </div>
@@ -54,8 +54,8 @@ export const Sidebar: React.FC = () => {
                 className={({ isActive }) =>
                   `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all group ${
                     isActive
-                      ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-500/25 font-semibold'
-                      : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/80'
+                      ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md shadow-emerald-600/20 font-semibold'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
                   }`
                 }
               >
@@ -68,12 +68,12 @@ export const Sidebar: React.FC = () => {
       </div>
 
       {/* Footer System Status */}
-      <div className="p-4 border-t border-slate-800 m-3 rounded-2xl bg-slate-950/60 border-slate-800/80">
+      <div className="p-4 border-t border-slate-200 m-3 rounded-2xl bg-slate-50 border-slate-200">
         <div className="flex items-center gap-3">
-          <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></div>
+          <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
           <div className="flex flex-col">
-            <span className="text-xs font-semibold text-slate-200">Isolated DB Connected</span>
-            <span className="text-[10px] text-slate-400">PostgreSQL (hrms_db)</span>
+            <span className="text-xs font-semibold text-slate-800">Isolated DB Connected</span>
+            <span className="text-[10px] text-slate-500 font-mono">PostgreSQL (hrms_db)</span>
           </div>
         </div>
       </div>

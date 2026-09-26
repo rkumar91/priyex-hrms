@@ -13,7 +13,6 @@ import {
   CheckCircle2,
   Download,
   Trash2,
-  Edit,
   Eye,
   AlertCircle
 } from 'lucide-react';
@@ -182,15 +181,15 @@ export const EmployeesPage: React.FC = () => {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-            <Users className="w-6 h-6 text-emerald-400" />
+          <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
+            <Users className="w-6 h-6 text-emerald-600" />
             <span>Employee Directory</span>
           </h1>
-          <p className="text-sm text-slate-400 mt-1">Manage employee master records, profiles, and employment lifecycle</p>
+          <p className="text-sm text-slate-500 mt-1">Manage employee master records, profiles, and employment lifecycle</p>
         </div>
         <button
           onClick={() => { setIsAddModalOpen(true); setFormError(null); }}
-          className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-sm font-semibold shadow-lg shadow-emerald-500/20 transition flex items-center gap-2 self-start sm:self-auto cursor-pointer"
+          className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-sm font-semibold shadow-md shadow-emerald-600/20 transition flex items-center gap-2 self-start sm:self-auto cursor-pointer"
         >
           <UserPlus className="w-4 h-4" />
           <span>Onboard New Employee</span>
@@ -206,7 +205,7 @@ export const EmployeesPage: React.FC = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search by name, code, email..."
-            className="w-full bg-slate-950 text-sm text-slate-200 placeholder-slate-500 rounded-xl pl-10 pr-4 py-2.5 border border-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
+            className="w-full bg-slate-100 text-sm text-slate-900 placeholder-slate-400 rounded-xl pl-10 pr-4 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition"
           />
         </div>
 
@@ -216,7 +215,7 @@ export const EmployeesPage: React.FC = () => {
             <select
               value={selectedDept}
               onChange={(e) => setSelectedDept(e.target.value)}
-              className="px-4 py-2.5 rounded-xl bg-slate-900 text-slate-200 text-xs font-semibold border border-slate-800 focus:outline-none focus:border-indigo-500 appearance-none pr-8 cursor-pointer"
+              className="px-4 py-2.5 rounded-xl bg-slate-100 text-slate-800 text-xs font-semibold border border-slate-200 focus:outline-none focus:border-emerald-500 appearance-none pr-8 cursor-pointer"
             >
               <option value="ALL">All Departments</option>
               {departments.map((d) => (
@@ -225,24 +224,24 @@ export const EmployeesPage: React.FC = () => {
                 </option>
               ))}
             </select>
-            <Filter className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Filter className="w-3.5 h-3.5 text-slate-500 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
 
           <button
             onClick={handleExportCsv}
-            className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs font-semibold border border-slate-800 transition flex items-center gap-2 cursor-pointer"
+            className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold border border-slate-200 transition flex items-center gap-2 cursor-pointer"
           >
-            <Download className="w-3.5 h-3.5 text-indigo-400" />
+            <Download className="w-3.5 h-3.5 text-emerald-600" />
             <span>Export CSV</span>
           </button>
         </div>
       </div>
 
       {/* Employees Table */}
-      <div className="glass-panel rounded-3xl overflow-hidden border border-slate-800">
+      <div className="glass-panel rounded-3xl overflow-hidden border border-slate-200">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-300">
-            <thead className="bg-slate-900/90 text-xs uppercase tracking-wider text-slate-400 font-semibold border-b border-slate-800">
+          <table className="w-full text-left text-sm text-slate-800">
+            <thead className="bg-slate-100/90 text-xs uppercase tracking-wider text-slate-500 font-bold border-b border-slate-200">
               <tr>
                 <th className="px-6 py-4">Employee</th>
                 <th className="px-6 py-4">Department & Role</th>
@@ -252,83 +251,83 @@ export const EmployeesPage: React.FC = () => {
                 <th className="px-6 py-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody className="divide-y divide-slate-200">
               {isLoading ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-8 text-center text-slate-400">
-                    <div className="inline-block w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                  <td colSpan={6} className="px-6 py-8 text-center text-slate-500">
+                    <div className="inline-block w-6 h-6 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
                     <p className="mt-2 text-xs">Loading employee records from API...</p>
                   </td>
                 </tr>
               ) : employees.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-8 text-center text-slate-400 text-sm">
+                  <td colSpan={6} className="px-6 py-8 text-center text-slate-500 text-sm">
                     No employees found matching query.
                   </td>
                 </tr>
               ) : (
                 employees.map((emp) => (
-                  <tr key={emp.id} className="hover:bg-slate-900/40 transition">
+                  <tr key={emp.id} className="hover:bg-slate-50 transition">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-white font-bold shadow">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-600 flex items-center justify-center text-white font-bold shadow-xs">
                           {emp.firstName ? emp.firstName.charAt(0) : 'E'}
                         </div>
                         <div className="flex flex-col">
-                          <span className="font-semibold text-slate-100">{emp.firstName} {emp.lastName}</span>
-                          <span className="text-xs text-indigo-400 font-mono">{emp.employeeCode}</span>
+                          <span className="font-bold text-slate-900">{emp.firstName} {emp.lastName}</span>
+                          <span className="text-xs text-emerald-700 font-mono font-semibold">{emp.employeeCode}</span>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex flex-col">
-                        <span className="font-medium text-slate-200">{emp.designationName || 'Software Engineer'}</span>
-                        <span className="text-xs text-slate-400 flex items-center gap-1 mt-0.5">
-                          <Building2 className="w-3 h-3 text-slate-500" />
+                        <span className="font-semibold text-slate-800">{emp.designationName || 'Software Engineer'}</span>
+                        <span className="text-xs text-slate-500 flex items-center gap-1 mt-0.5 font-medium">
+                          <Building2 className="w-3 h-3 text-slate-400" />
                           {emp.departmentName || 'General'}
                         </span>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex flex-col text-xs text-slate-300 space-y-1">
-                        <span className="flex items-center gap-1.5"><Mail className="w-3 h-3 text-slate-500" /> {emp.workEmail}</span>
-                        {emp.personalPhone && <span className="flex items-center gap-1.5"><Phone className="w-3 h-3 text-slate-500" /> {emp.personalPhone}</span>}
+                      <div className="flex flex-col text-xs text-slate-600 space-y-1">
+                        <span className="flex items-center gap-1.5"><Mail className="w-3 h-3 text-slate-400" /> {emp.workEmail}</span>
+                        {emp.personalPhone && <span className="flex items-center gap-1.5"><Phone className="w-3 h-3 text-slate-400" /> {emp.personalPhone}</span>}
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${
-                        emp.status === 'ACTIVE' ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-800/60' :
-                        emp.status === 'ON_LEAVE' ? 'bg-amber-950/80 text-amber-300 border border-amber-800/60' :
-                        'bg-rose-950/80 text-rose-300 border border-rose-800/60'
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${
+                        emp.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
+                        emp.status === 'ON_LEAVE' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
+                        'bg-rose-50 text-rose-700 border border-rose-200'
                       }`}>
                         {emp.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-xs font-mono text-slate-400">
+                    <td className="px-6 py-4 text-xs font-mono font-medium text-slate-600">
                       {emp.joiningDate || '2024-01-15'}
                     </td>
                     <td className="px-6 py-4 text-right relative">
                       <button
                         onClick={() => setActiveMenuId(activeMenuId === emp.id ? null : emp.id)}
-                        className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition"
+                        className="p-1.5 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition cursor-pointer"
                       >
                         <MoreVertical className="w-4 h-4" />
                       </button>
 
                       {/* Dropdown Menu */}
                       {activeMenuId === emp.id && (
-                        <div className="absolute right-6 top-12 w-44 bg-slate-900 border border-slate-800 rounded-xl shadow-xl z-20 py-1.5 text-xs text-left">
+                        <div className="absolute right-6 top-12 w-44 bg-white border border-slate-200 rounded-xl shadow-xl z-20 py-1.5 text-xs text-left">
                           <button
                             onClick={() => { setViewEmployee(emp); setActiveMenuId(null); }}
-                            className="w-full px-3 py-2 text-slate-300 hover:bg-slate-800 hover:text-white flex items-center gap-2"
+                            className="w-full px-3 py-2 text-slate-700 hover:bg-slate-100 flex items-center gap-2 font-medium"
                           >
-                            <Eye className="w-3.5 h-3.5 text-indigo-400" /> View Profile
+                            <Eye className="w-3.5 h-3.5 text-emerald-600" /> View Profile
                           </button>
                           <button
                             onClick={() => handleDelete(emp.id)}
-                            className="w-full px-3 py-2 text-rose-400 hover:bg-rose-950/40 flex items-center gap-2"
+                            className="w-full px-3 py-2 text-rose-600 hover:bg-rose-50 flex items-center gap-2 font-medium"
                           >
-                            <Trash2 className="w-3.5 h-3.5 text-rose-400" /> Deactivate
+                            <Trash2 className="w-3.5 h-3.5 text-rose-600" /> Deactivate
                           </button>
                         </div>
                       )}
@@ -343,21 +342,21 @@ export const EmployeesPage: React.FC = () => {
 
       {/* Onboard New Employee Modal */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
-          <div className="w-full max-w-lg bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl relative">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-800">
-              <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                <UserPlus className="w-5 h-5 text-indigo-400" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs">
+          <div className="w-full max-w-lg bg-white border border-slate-200 rounded-3xl p-6 shadow-2xl relative text-slate-900">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-200">
+              <h2 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                <UserPlus className="w-5 h-5 text-emerald-600" />
                 <span>Onboard New Employee</span>
               </h2>
-              <button onClick={() => setIsAddModalOpen(false)} className="text-slate-400 hover:text-white">
+              <button onClick={() => setIsAddModalOpen(false)} className="text-slate-400 hover:text-slate-700">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {formError && (
-              <div className="mt-4 p-3 rounded-xl bg-red-950/60 border border-red-800/60 text-red-200 text-xs flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+              <div className="mt-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2 font-medium">
+                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
                 <span>{formError}</span>
               </div>
             )}
@@ -365,58 +364,58 @@ export const EmployeesPage: React.FC = () => {
             <form onSubmit={handleCreateSubmit} className="space-y-4 mt-4 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-300 font-semibold mb-1">First Name *</label>
+                  <label className="block text-slate-700 font-bold mb-1">First Name *</label>
                   <input
                     type="text"
                     required
                     value={formData.firstName}
                     onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
                     placeholder="Rajesh"
-                    className="w-full bg-slate-950 text-slate-100 rounded-xl px-3 py-2.5 border border-slate-800 focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-emerald-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-300 font-semibold mb-1">Last Name *</label>
+                  <label className="block text-slate-700 font-bold mb-1">Last Name *</label>
                   <input
                     type="text"
                     required
                     value={formData.lastName}
                     onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
                     placeholder="Kumar"
-                    className="w-full bg-slate-950 text-slate-100 rounded-xl px-3 py-2.5 border border-slate-800 focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-emerald-500"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-slate-300 font-semibold mb-1">Work Email *</label>
+                <label className="block text-slate-700 font-bold mb-1">Work Email *</label>
                 <input
                   type="email"
                   required
                   value={formData.workEmail}
                   onChange={(e) => setFormData({ ...formData, workEmail: e.target.value })}
                   placeholder="rajesh.kumar@priyex.com"
-                  className="w-full bg-slate-950 text-slate-100 rounded-xl px-3 py-2.5 border border-slate-800 focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-emerald-500"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-300 font-semibold mb-1">Phone Number</label>
+                  <label className="block text-slate-700 font-bold mb-1">Phone Number</label>
                   <input
                     type="text"
                     value={formData.personalPhone}
                     onChange={(e) => setFormData({ ...formData, personalPhone: e.target.value })}
                     placeholder="+91 9876543210"
-                    className="w-full bg-slate-950 text-slate-100 rounded-xl px-3 py-2.5 border border-slate-800 focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-emerald-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-300 font-semibold mb-1">Department</label>
+                  <label className="block text-slate-700 font-bold mb-1">Department</label>
                   <select
                     value={formData.departmentId}
                     onChange={(e) => setFormData({ ...formData, departmentId: e.target.value })}
-                    className="w-full bg-slate-950 text-slate-100 rounded-xl px-3 py-2.5 border border-slate-800 focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-emerald-500"
                   >
                     <option value="">Select Department</option>
                     {departments.map((d) => (
@@ -428,11 +427,11 @@ export const EmployeesPage: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-300 font-semibold mb-1">Employment Type</label>
+                  <label className="block text-slate-700 font-bold mb-1">Employment Type</label>
                   <select
                     value={formData.employmentType}
                     onChange={(e) => setFormData({ ...formData, employmentType: e.target.value })}
-                    className="w-full bg-slate-950 text-slate-100 rounded-xl px-3 py-2.5 border border-slate-800 focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-emerald-500"
                   >
                     <option value="FULL_TIME">Full Time</option>
                     <option value="PART_TIME">Part Time</option>
@@ -441,29 +440,29 @@ export const EmployeesPage: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-slate-300 font-semibold mb-1">Joining Date *</label>
+                  <label className="block text-slate-700 font-bold mb-1">Joining Date *</label>
                   <input
                     type="date"
                     required
                     value={formData.joiningDate}
                     onChange={(e) => setFormData({ ...formData, joiningDate: e.target.value })}
-                    className="w-full bg-slate-950 text-slate-100 rounded-xl px-3 py-2.5 border border-slate-800 focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-emerald-500"
                   />
                 </div>
               </div>
 
-              <div className="pt-4 flex items-center justify-end gap-3 border-t border-slate-800">
+              <div className="pt-4 flex items-center justify-end gap-3 border-t border-slate-200">
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold"
+                  className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold flex items-center gap-2 shadow-lg shadow-indigo-600/30"
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-semibold flex items-center gap-2 shadow-md shadow-emerald-600/20"
                 >
                   {isSubmitting ? 'Onboarding...' : 'Save & Create Employee'}
                 </button>
@@ -475,39 +474,39 @@ export const EmployeesPage: React.FC = () => {
 
       {/* View Employee Profile Modal */}
       {viewEmployee && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
-          <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl relative space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h2 className="text-base font-bold text-white">Employee Profile</h2>
-              <button onClick={() => setViewEmployee(null)} className="text-slate-400 hover:text-white">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs">
+          <div className="w-full max-w-md bg-white border border-slate-200 rounded-3xl p-6 shadow-2xl relative space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <h2 className="text-base font-extrabold text-slate-900">Employee Profile</h2>
+              <button onClick={() => setViewEmployee(null)} className="text-slate-400 hover:text-slate-700">
                 <X className="w-5 h-5" />
               </button>
             </div>
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-full bg-indigo-600 flex items-center justify-center text-white text-xl font-bold">
+              <div className="w-14 h-14 rounded-full bg-emerald-600 flex items-center justify-center text-white text-xl font-bold shadow-sm">
                 {viewEmployee.firstName.charAt(0)}
               </div>
               <div>
-                <h3 className="text-lg font-bold text-white">{viewEmployee.firstName} {viewEmployee.lastName}</h3>
-                <p className="text-xs text-indigo-400 font-mono">{viewEmployee.employeeCode}</p>
+                <h3 className="text-lg font-bold text-slate-900">{viewEmployee.firstName} {viewEmployee.lastName}</h3>
+                <p className="text-xs text-emerald-700 font-mono font-semibold">{viewEmployee.employeeCode}</p>
               </div>
             </div>
-            <div className="space-y-2 text-xs text-slate-300 bg-slate-950 p-4 rounded-2xl border border-slate-800">
-              <div className="flex justify-between py-1 border-b border-slate-800">
-                <span className="text-slate-400">Email:</span>
-                <span className="font-semibold text-white">{viewEmployee.workEmail}</span>
+            <div className="space-y-2 text-xs text-slate-700 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+              <div className="flex justify-between py-1 border-b border-slate-200">
+                <span className="text-slate-500">Email:</span>
+                <span className="font-semibold text-slate-900">{viewEmployee.workEmail}</span>
               </div>
-              <div className="flex justify-between py-1 border-b border-slate-800">
-                <span className="text-slate-400">Department:</span>
-                <span className="font-semibold text-white">{viewEmployee.departmentName || 'Engineering'}</span>
+              <div className="flex justify-between py-1 border-b border-slate-200">
+                <span className="text-slate-500">Department:</span>
+                <span className="font-semibold text-slate-900">{viewEmployee.departmentName || 'Engineering'}</span>
               </div>
-              <div className="flex justify-between py-1 border-b border-slate-800">
-                <span className="text-slate-400">Status:</span>
-                <span className="font-semibold text-emerald-400">{viewEmployee.status}</span>
+              <div className="flex justify-between py-1 border-b border-slate-200">
+                <span className="text-slate-500">Status:</span>
+                <span className="font-bold text-emerald-700">{viewEmployee.status}</span>
               </div>
               <div className="flex justify-between py-1">
-                <span className="text-slate-400">Joining Date:</span>
-                <span className="font-semibold text-white">{viewEmployee.joiningDate || '2024-01-15'}</span>
+                <span className="text-slate-500">Joining Date:</span>
+                <span className="font-semibold text-slate-900">{viewEmployee.joiningDate || '2024-01-15'}</span>
               </div>
             </div>
           </div>
