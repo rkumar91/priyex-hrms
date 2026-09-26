@@ -183,14 +183,14 @@ export const EmployeesPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-            <Users className="w-6 h-6 text-indigo-400" />
+            <Users className="w-6 h-6 text-emerald-400" />
             <span>Employee Directory</span>
           </h1>
           <p className="text-sm text-slate-400 mt-1">Manage employee master records, profiles, and employment lifecycle</p>
         </div>
         <button
           onClick={() => { setIsAddModalOpen(true); setFormError(null); }}
-          className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-sm font-semibold shadow-lg shadow-indigo-600/30 transition flex items-center gap-2 self-start sm:self-auto cursor-pointer"
+          className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-sm font-semibold shadow-lg shadow-emerald-500/20 transition flex items-center gap-2 self-start sm:self-auto cursor-pointer"
         >
           <UserPlus className="w-4 h-4" />
           <span>Onboard New Employee</span>
