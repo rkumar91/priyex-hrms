@@ -4,8 +4,8 @@ import { useAuth } from '../context/AuthContext';
 import { Shield, Sparkles, Lock, Mail, ArrowRight, AlertCircle } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
-  const [usernameOrEmail, setUsernameOrEmail] = useState('superadmin@priyex.com');
-  const [password, setPassword] = useState('Admin@123456');
+  const [email, setEmail] = useState('admin@priyex.com');
+  const [password, setPassword] = useState('Admin@123');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { login } = useAuth();
@@ -16,7 +16,7 @@ export const LoginPage: React.FC = () => {
     setError(null);
     setIsSubmitting(true);
     try {
-      await login({ usernameOrEmail, password });
+      await login({ email, password });
       navigate('/');
     } catch (err: any) {
       setError(err?.message || err || 'Invalid credentials or connection error');
@@ -59,11 +59,11 @@ export const LoginPage: React.FC = () => {
             <div className="relative">
               <Mail className="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
-                type="text"
+                type="email"
                 required
-                value={usernameOrEmail}
-                onChange={(e) => setUsernameOrEmail(e.target.value)}
-                placeholder="superadmin@priyex.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="admin@priyex.com"
                 className="w-full bg-slate-950 text-slate-100 rounded-xl pl-11 pr-4 py-3 border border-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition text-sm"
               />
             </div>
@@ -119,8 +119,8 @@ export const LoginPage: React.FC = () => {
             <Shield className="w-3.5 h-3.5 text-indigo-400" />
             <span>Development Admin Account</span>
           </div>
-          <div><span className="text-slate-500">User:</span> <code className="text-indigo-300 bg-slate-900 px-1.5 py-0.5 rounded">superadmin@priyex.com</code></div>
-          <div><span className="text-slate-500">Pass:</span> <code className="text-indigo-300 bg-slate-900 px-1.5 py-0.5 rounded">Admin@123456</code></div>
+          <div><span className="text-slate-500">User:</span> <code className="text-indigo-300 bg-slate-900 px-1.5 py-0.5 rounded">admin@priyex.com</code></div>
+          <div><span className="text-slate-500">Pass:</span> <code className="text-indigo-300 bg-slate-900 px-1.5 py-0.5 rounded">Admin@123</code></div>
         </div>
       </div>
     </div>
