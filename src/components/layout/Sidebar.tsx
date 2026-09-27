@@ -2,6 +2,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { canViewAuditLogs, canManageOrganization, canManageUserRoles } from '../../utils/rbac';
+import { BrandLogo } from '../common/BrandLogo';
 import {
   LayoutDashboard,
   Users,
@@ -9,7 +10,6 @@ import {
   CircleDollarSign,
   Building,
   ShieldAlert,
-  Sparkles,
   ClipboardCheck,
   UserCog
 } from 'lucide-react';
@@ -31,21 +31,9 @@ export const Sidebar: React.FC = () => {
   return (
     <aside className="w-64 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 h-screen sticky top-0 z-20 shadow-sm">
       <div>
-        {/* Brand Logo Header */}
-        <div className="h-16 px-6 flex items-center gap-3 border-b border-slate-200">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-500 via-teal-500 to-cyan-500 p-0.5 shadow-md shadow-emerald-500/20">
-            <div className="w-full h-full bg-white rounded-[10px] flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-emerald-600" />
-            </div>
-          </div>
-          <div className="flex flex-col">
-            <span className="font-extrabold text-base tracking-tight text-slate-900">
-              PRIYEX HRMS
-            </span>
-            <span className="text-[10px] uppercase tracking-widest text-emerald-600 font-bold">
-              Enterprise Suite v1.0
-            </span>
-          </div>
+        {/* Brand Logo Header (h-16 matches Header h-16) */}
+        <div className="h-16 px-5 flex items-center border-b border-slate-200">
+          <BrandLogo size="sm" layout="row" />
         </div>
 
         {/* Navigation Menu */}
@@ -60,10 +48,9 @@ export const Sidebar: React.FC = () => {
                 key={item.path}
                 to={item.path}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all group ${
-                    isActive
-                      ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md shadow-emerald-600/20 font-semibold'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
+                  `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all group ${isActive
+                    ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md shadow-emerald-600/20 font-semibold'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
                   }`
                 }
               >
