@@ -22,7 +22,9 @@ import {
   Briefcase,
   Lock,
   ChevronRight,
-  Sparkles
+  Sparkles,
+  Edit3,
+  Calculator
 } from 'lucide-react';
 
 export interface PayrollRun {
@@ -129,9 +131,9 @@ export const PayrollPage: React.FC = () => {
   const { user } = useAuth();
   const canManage = isHrAdmin(user);
 
-  // Tab: HR/Admin can toggle between 'OPERATIONS' and 'MY_CTC_PAYSLIPS'
+  // Tab: HR/Admin can toggle between 'OPERATIONS', 'COMPENSATION_REGISTER', and 'MY_CTC_PAYSLIPS'
   // Regular employees ONLY see 'MY_CTC_PAYSLIPS'
-  const [activeTab, setActiveTab] = useState<'OPERATIONS' | 'MY_CTC_PAYSLIPS'>(
+  const [activeTab, setActiveTab] = useState<'OPERATIONS' | 'COMPENSATION_REGISTER' | 'MY_CTC_PAYSLIPS'>(
     canManage ? 'OPERATIONS' : 'MY_CTC_PAYSLIPS'
   );
 
@@ -140,9 +142,16 @@ export const PayrollPage: React.FC = () => {
   const [selectedRunDetails, setSelectedRunDetails] = useState<PayrollRun | null>(null);
   const [selectedPayslip, setSelectedPayslip] = useState<EmployeePayslip | null>(null);
 
+  // CTC Edit Modal state
+  const [isCtcModalOpen, setIsCtcModalOpen] = useState(false);
+  const [selectedEmpCtc, setSelectedEmpCtc] = useState<CtcBreakdown | null>(null);
+  const [editCtcValue, setEditCtcValue] = useState<number>(1800000);
+  const [isUpdatingCtc, setIsUpdatingCtc] = useState(false);
+
   // Data states
   const [payrollRuns, setPayrollRuns] = useState<PayrollRun[]>(fallbackDemoRuns);
   const [runPayslips, setRunPayslips] = useState<EmployeePayslip[]>(fallbackDemoPayslips);
+  const [employeesCtc, setEmployeesCtc] = useState<CtcBreakdown[]>(fallbackDemoCtcList);
   const [myCtc, setMyCtc] = useState<CtcBreakdown>(fallbackDemoCtc);
   const [myPayslips, setMyPayslips] = useState<EmployeePayslip[]>(fallbackDemoPayslips);
   const [isLoading, setIsLoading] = useState(false);
@@ -166,6 +175,12 @@ export const PayrollPage: React.FC = () => {
         const runsRes: any = await api.get('/payroll/runs');
         if (runsRes.success && Array.isArray(runsRes.data) && runsRes.data.length > 0) {
           setPayrollRuns(runsRes.data);
+        }
+
+        // Fetch employee CTC structures for HR/Admin
+        const ctcListRes: any = await api.get('/payroll/employees-ctc');
+        if (ctcListRes.success && Array.isArray(ctcListRes.data) && ctcListRes.data.length > 0) {
+          setEmployeesCtc(ctcListRes.data);
         }
       }
 
@@ -224,6 +239,53 @@ export const PayrollPage: React.FC = () => {
       alert(err?.message || 'Failed to execute payroll run');
     } finally {
       setIsExecuting(false);
+    }
+  };
+
+  // Open CTC Edit Modal
+  const handleOpenEditCtc = (emp: CtcBreakdown) => {
+    setSelectedEmpCtc(emp);
+    setEditCtcValue(Number(emp.annualCtc) || 1200000);
+    setIsCtcModalOpen(true);
+  };
+
+  // Save Updated CTC
+  const handleSaveCtc = async (reRunCurrentMonth: boolean = false) => {
+    if (!selectedEmpCtc) return;
+    setIsUpdatingCtc(true);
+    try {
+      const res: any = await api.put(`/payroll/employees/${selectedEmpCtc.employeeId}/ctc`, {
+        annualCtc: editCtcValue
+      });
+
+      const updatedCtc: CtcBreakdown = (res.success && res.data) ? res.data : {
+        ...selectedEmpCtc,
+        annualCtc: editCtcValue,
+        monthlyGross: Math.round(editCtcValue / 12),
+        basicSalary: Math.round((editCtcValue / 12) * 0.45),
+        hra: Math.round((editCtcValue / 12) * 0.45 * 0.5),
+        monthlyNetSalary: Math.round((editCtcValue / 12) - ((editCtcValue / 12) * 0.45 * 0.12 + 200 + (editCtcValue / 12) * 0.08))
+      };
+
+      setEmployeesCtc(prev => prev.map(e => e.employeeId === selectedEmpCtc.employeeId ? updatedCtc : e));
+
+      if (myCtc.employeeId === selectedEmpCtc.employeeId) {
+        setMyCtc(updatedCtc);
+      }
+
+      if (reRunCurrentMonth) {
+        await api.post('/payroll/execute', executeForm);
+        setFeedbackMsg(`Annual CTC for ${selectedEmpCtc.employeeName} updated to ${formatINR(editCtcValue)} & ${MONTH_NAMES[executeForm.payrollMonth]} ${executeForm.payrollYear} Payroll re-executed! Updated payslips are now live.`);
+      } else {
+        setFeedbackMsg(`Annual CTC for ${selectedEmpCtc.employeeName} updated to ${formatINR(editCtcValue)}. Future payroll runs and re-runs will use this updated package.`);
+      }
+
+      setIsCtcModalOpen(false);
+      fetchData();
+    } catch (err: any) {
+      alert(err?.message || 'Failed to update CTC');
+    } finally {
+      setIsUpdatingCtc(false);
     }
   };
 
@@ -327,7 +389,7 @@ export const PayrollPage: React.FC = () => {
         </div>
       )}
 
-      {/* Role Navigation Switcher (HR & Admin can toggle between Company Operations and My CTC/Payslips) */}
+      {/* Role Navigation Switcher (HR & Admin can toggle between Company Operations, Compensation Register and My CTC/Payslips) */}
       {canManage && (
         <div className="flex items-center gap-2 border-b border-slate-200 pb-1">
           <button
@@ -340,6 +402,18 @@ export const PayrollPage: React.FC = () => {
           >
             <Building2 className="w-4 h-4" />
             <span>Company Payroll & Operations</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('COMPENSATION_REGISTER')}
+            className={`px-4 py-2.5 text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-2 ${
+              activeTab === 'COMPENSATION_REGISTER'
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+            }`}
+          >
+            <CircleDollarSign className="w-4 h-4" />
+            <span>Employee CTC & Compensation Register</span>
           </button>
 
           <button
@@ -530,7 +604,158 @@ export const PayrollPage: React.FC = () => {
       )}
 
       {/* ═════════════════════════════════════════════════════════════════════════ */}
-      {/* VIEW 2: My Personal Compensation, CTC Breakdown & Payslips               */}
+      {/* VIEW 2: HR/Admin Employee CTC & Compensation Register                    */}
+      {/* ═════════════════════════════════════════════════════════════════════════ */}
+      {canManage && activeTab === 'COMPENSATION_REGISTER' && (
+        <div className="space-y-6">
+          {/* Quick Metrics Bar */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs">
+              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Total Company Payroll</span>
+              <div className="flex items-baseline gap-2 mt-2">
+                <span className="text-2xl font-black text-slate-900 font-mono">
+                  {formatINR(employeesCtc.reduce((acc, curr) => acc + (Number(curr.annualCtc) || 0), 0))}
+                </span>
+                <span className="text-xs text-slate-400">/ year</span>
+              </div>
+              <p className="text-[11px] text-slate-500 mt-1">Across all active employees</p>
+            </div>
+
+            <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs">
+              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Monthly Gross Outflow</span>
+              <div className="flex items-baseline gap-2 mt-2">
+                <span className="text-2xl font-black text-emerald-700 font-mono">
+                  {formatINR(employeesCtc.reduce((acc, curr) => acc + (Number(curr.monthlyGross) || 0), 0))}
+                </span>
+                <span className="text-xs text-slate-400">/ month</span>
+              </div>
+              <p className="text-[11px] text-emerald-700 font-semibold mt-1">Estimated salary disbursement</p>
+            </div>
+
+            <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs">
+              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Average Annual Package</span>
+              <div className="flex items-baseline gap-2 mt-2">
+                <span className="text-2xl font-black text-slate-900 font-mono">
+                  {employeesCtc.length > 0 
+                    ? formatINR(Math.round(employeesCtc.reduce((acc, curr) => acc + (Number(curr.annualCtc) || 0), 0) / employeesCtc.length))
+                    : '₹ 0.00'}
+                </span>
+                <span className="text-xs text-slate-400">/ emp</span>
+              </div>
+              <p className="text-[11px] text-slate-500 mt-1">Mean package benchmark</p>
+            </div>
+
+            <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs">
+              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Configured Packages</span>
+              <div className="flex items-baseline gap-2 mt-2">
+                <span className="text-2xl font-black text-teal-700 font-mono">{employeesCtc.length}</span>
+                <span className="text-xs text-slate-400">Employees</span>
+              </div>
+              <p className="text-[11px] text-teal-700 font-semibold mt-1">100% Active salary structures</p>
+            </div>
+          </div>
+
+          {/* Explanation Banner */}
+          <div className="p-4 rounded-2xl bg-emerald-50/80 border border-emerald-200 text-xs text-emerald-950 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+            <div className="flex items-center gap-3">
+              <Sparkles className="w-5 h-5 text-emerald-600 shrink-0" />
+              <div>
+                <p className="font-bold">Dynamic Salary Formula Applied Automatically</p>
+                <p className="text-slate-600 mt-0.5">
+                  Updating an employee's Annual CTC recalculates their entire salary structure: Basic (45%), HRA (50%), EPF (12%), Professional Tax, and TDS. When you re-run monthly payroll, their payslip reflects the update immediately.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setIsExecuteModalOpen(true)}
+              className="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs shrink-0 transition cursor-pointer flex items-center gap-1.5 self-start sm:self-auto"
+            >
+              <Play className="w-3.5 h-3.5 fill-white" />
+              <span>Re-Run Payroll Now</span>
+            </button>
+          </div>
+
+          {/* Employee Compensation Master Table */}
+          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
+            <div className="p-5 border-b border-slate-200 flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-slate-900 text-base">Employee Compensation Register</h3>
+                <p className="text-xs text-slate-500 mt-0.5">Click "Edit CTC" on any employee to modify their package</p>
+              </div>
+              <span className="text-xs text-slate-500 font-mono font-semibold">{employeesCtc.length} records</span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr className="bg-slate-50 border-b border-slate-200 uppercase tracking-wider text-slate-500 font-semibold">
+                    <th className="py-3 px-5">Employee</th>
+                    <th className="py-3 px-5">Role & Dept</th>
+                    <th className="py-3 px-5 text-right">Annual CTC</th>
+                    <th className="py-3 px-5 text-right">Monthly Gross</th>
+                    <th className="py-3 px-5 text-right">Basic (45%)</th>
+                    <th className="py-3 px-5 text-right">Est. Net Take-Home</th>
+                    <th className="py-3 px-5 text-center">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 text-slate-800">
+                  {employeesCtc.map((emp) => (
+                    <tr key={emp.employeeId} className="hover:bg-slate-50/80 transition">
+                      <td className="py-4 px-5">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-800 font-bold flex items-center justify-center shrink-0">
+                            {emp.employeeName.charAt(0)}
+                          </div>
+                          <div>
+                            <span className="font-bold text-slate-900 block">{emp.employeeName}</span>
+                            <span className="font-mono text-[11px] text-slate-500">{emp.employeeCode}</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-4 px-5">
+                        <span className="font-semibold text-slate-900 block">{emp.designationName || 'Team Member'}</span>
+                        <span className="text-[11px] text-slate-500">{emp.departmentName || 'Operations'}</span>
+                      </td>
+                      <td className="py-4 px-5 text-right">
+                        <span className="font-mono font-bold text-slate-900 text-sm block">
+                          {formatINR(emp.annualCtc)}
+                        </span>
+                        <span className="text-[10px] text-emerald-700 font-semibold">
+                          ₹ {(Number(emp.annualCtc) / 100000).toFixed(1)} Lakhs/yr
+                        </span>
+                      </td>
+                      <td className="py-4 px-5 text-right font-mono font-semibold text-slate-800">
+                        {formatINR(emp.monthlyGross)}
+                      </td>
+                      <td className="py-4 px-5 text-right font-mono text-slate-600">
+                        {formatINR(emp.basicSalary)}
+                      </td>
+                      <td className="py-4 px-5 text-right">
+                        <span className="font-mono font-bold text-emerald-800 text-sm block">
+                          {formatINR(emp.monthlyNetSalary)}
+                        </span>
+                        <span className="text-[10px] text-slate-400">approx in-hand</span>
+                      </td>
+                      <td className="py-4 px-5 text-center">
+                        <button
+                          onClick={() => handleOpenEditCtc(emp)}
+                          className="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs border border-emerald-200 transition cursor-pointer flex items-center gap-1.5 mx-auto"
+                        >
+                          <Edit3 className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>Edit CTC</span>
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═════════════════════════════════════════════════════════════════════════ */}
+      {/* VIEW 3: My Personal Compensation, CTC Breakdown & Payslips               */}
       {/* (Accessible to ALL Users: Regular Employee, HR Manager, System Admin)    */}
       {/* ═════════════════════════════════════════════════════════════════════════ */}
       {activeTab === 'MY_CTC_PAYSLIPS' && (
@@ -1117,6 +1342,177 @@ export const PayrollPage: React.FC = () => {
       </div>,
       document.body
     )}
+
+    {/* ═════════════════════════════════════════════════════════════════════════ */}
+    {/* MODAL 4: Update Employee CTC with Live Real-Time Calculation Preview     */}
+    {/* ═════════════════════════════════════════════════════════════════════════ */}
+    {isCtcModalOpen && selectedEmpCtc && createPortal(
+      <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
+        <div className="w-full max-w-2xl bg-white border border-slate-200 rounded-3xl shadow-2xl relative text-slate-900 animate-in fade-in zoom-in-95 duration-150 overflow-hidden">
+          <div className="flex items-center justify-between p-5 border-b border-slate-200 bg-slate-50/50">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center font-bold">
+                <Calculator className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-slate-900">Update Employee CTC & Salary Structure</h3>
+                <p className="text-xs text-slate-500">
+                  {selectedEmpCtc.employeeName} ({selectedEmpCtc.employeeCode}) • {selectedEmpCtc.designationName || 'Team Member'}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setIsCtcModalOpen(false)}
+              className="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          <div className="p-6 space-y-5 text-xs max-h-[80vh] overflow-y-auto">
+            {/* Input for New CTC */}
+            <div className="bg-emerald-50/60 p-4 rounded-2xl border border-emerald-200">
+              <label className="block text-slate-700 font-bold mb-1.5 flex items-center justify-between text-xs">
+                <span>Enter New Annual CTC (₹ INR)</span>
+                <span className="text-[11px] text-emerald-800 font-mono font-semibold">
+                  Current: {formatINR(selectedEmpCtc.annualCtc)}
+                </span>
+              </label>
+              <div className="relative">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-sm">₹</span>
+                <input
+                  type="number"
+                  min="10000"
+                  step="10000"
+                  value={editCtcValue}
+                  onChange={(e) => setEditCtcValue(Number(e.target.value) || 0)}
+                  className="w-full bg-white text-slate-900 rounded-xl pl-8 pr-4 py-3 border border-emerald-300 focus:outline-none focus:border-emerald-500 font-mono font-black text-lg shadow-xs"
+                />
+              </div>
+              <div className="flex items-center justify-between mt-2 text-[11px]">
+                <span className="text-emerald-800 font-semibold">
+                  ₹ {(editCtcValue / 100000).toFixed(2)} Lakhs per annum
+                </span>
+                {editCtcValue !== Number(selectedEmpCtc.annualCtc) && (
+                  <span className={`font-bold font-mono px-2 py-0.5 rounded-md ${
+                    editCtcValue > Number(selectedEmpCtc.annualCtc)
+                      ? 'bg-emerald-100 text-emerald-800'
+                      : 'bg-amber-100 text-amber-800'
+                  }`}>
+                    {editCtcValue > Number(selectedEmpCtc.annualCtc) ? '+ ' : ''}
+                    {formatINR(editCtcValue - Number(selectedEmpCtc.annualCtc))} difference
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Dynamic Live Formula Breakdown Preview */}
+            <div>
+              <h4 className="font-bold text-slate-800 uppercase tracking-wider text-[11px] mb-2.5 flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Real-Time Recalculated Monthly Payslip Breakdown</span>
+              </h4>
+
+              {(() => {
+                const gross = Math.round(editCtcValue / 12);
+                const basic = Math.round(gross * 0.45);
+                const hra = Math.round(basic * 0.50);
+                const medical = 5000;
+                const conveyance = 5000;
+                const special = Math.max(0, gross - basic - hra - medical - conveyance);
+                const epf = Math.round(basic * 0.12);
+                const pt = 200;
+                const tds = Math.round(gross * 0.08);
+                const deductions = epf + pt + tds;
+                const net = gross - deductions;
+
+                return (
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
+                      <div>
+                        <span className="text-[10px] text-slate-500 uppercase font-semibold">Monthly Gross Earnings</span>
+                        <p className="text-base font-bold font-mono text-slate-900 mt-0.5">{formatINR(gross)}</p>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-slate-500 uppercase font-semibold">Estimated Net Take-Home</span>
+                        <p className="text-base font-bold font-mono text-emerald-800 mt-0.5">{formatINR(net)}</p>
+                      </div>
+                    </div>
+
+                    <div className="border border-slate-200 rounded-2xl overflow-hidden divide-y divide-slate-100">
+                      <div className="p-2.5 bg-slate-50/80 font-bold text-[11px] text-slate-700 flex justify-between">
+                        <span>Salary Component Breakdown</span>
+                        <span>Formula / Slabs</span>
+                      </div>
+                      <div className="p-2.5 flex justify-between">
+                        <span className="text-slate-600">Basic Salary:</span>
+                        <span className="font-mono font-semibold text-slate-900">{formatINR(basic)} (45% of Gross)</span>
+                      </div>
+                      <div className="p-2.5 flex justify-between">
+                        <span className="text-slate-600">House Rent Allowance (HRA):</span>
+                        <span className="font-mono font-semibold text-slate-900">{formatINR(hra)} (50% of Basic)</span>
+                      </div>
+                      <div className="p-2.5 flex justify-between">
+                        <span className="text-slate-600">Medical & Conveyance:</span>
+                        <span className="font-mono font-semibold text-slate-900">{formatINR(medical + conveyance)} (₹5k + ₹5k)</span>
+                      </div>
+                      <div className="p-2.5 flex justify-between">
+                        <span className="text-slate-600">Special Allowance:</span>
+                        <span className="font-mono font-semibold text-slate-900">{formatINR(special)} (Balance)</span>
+                      </div>
+                      <div className="p-2.5 flex justify-between bg-rose-50/40">
+                        <span className="text-slate-700 font-medium">Statutory Deductions (EPF + PT + TDS):</span>
+                        <span className="font-mono font-bold text-rose-700">- {formatINR(deductions)}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+
+            {/* Explanatory Notice */}
+            <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-amber-900 flex items-start gap-2.5">
+              <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+              <div className="text-[11px]">
+                <p className="font-bold">How will this change affect payslips?</p>
+                <p className="text-amber-800 mt-0.5">
+                  Clicking <strong>"Save & Re-Run Current Month"</strong> updates this employee's master package and immediately regenerates the current month's payslip with the new numbers. Clicking <strong>"Save CTC Only"</strong> applies to next month's run.
+                </p>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row items-center justify-end gap-2.5 pt-2 border-t border-slate-200">
+              <button
+                type="button"
+                onClick={() => setIsCtcModalOpen(false)}
+                className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold transition cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isUpdatingCtc || editCtcValue <= 0}
+                onClick={() => handleSaveCtc(false)}
+                className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold transition cursor-pointer disabled:opacity-50"
+              >
+                Save CTC Only
+              </button>
+              <button
+                type="button"
+                disabled={isUpdatingCtc || editCtcValue <= 0}
+                onClick={() => handleSaveCtc(true)}
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold transition cursor-pointer shadow-md shadow-emerald-600/20 flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                <Play className="w-3.5 h-3.5 fill-white" />
+                <span>{isUpdatingCtc ? 'Updating & Running...' : 'Save & Re-Run Current Month'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>,
+      document.body
+    )}
     </div>
   );
 };
@@ -1312,3 +1708,55 @@ const fallbackDemoCtc: CtcBreakdown = {
   esicEmployer: 0.00,
   gratuity: 4328.00,
 };
+
+const fallbackDemoCtcList: CtcBreakdown[] = [
+  fallbackDemoCtc,
+  {
+    employeeId: 2,
+    employeeCode: 'EMP-1002',
+    employeeName: 'Priya Sharma',
+    designationName: 'HR Manager',
+    departmentName: 'Human Resources',
+    annualCtc: 1800000.00,
+    monthlyGross: 150000.00,
+    monthlyNetSalary: 127500.00,
+    basicSalary: 67500.00,
+    hra: 33750.00,
+    specialAllowance: 38750.00,
+    medicalAllowance: 5000.00,
+    conveyanceAllowance: 5000.00,
+    performanceBonus: 0.00,
+    epfEmployee: 8100.00,
+    esicEmployee: 0.00,
+    professionalTax: 200.00,
+    tdsTax: 14200.00,
+    totalDeductions: 22500.00,
+    epfEmployer: 8100.00,
+    esicEmployer: 0.00,
+    gratuity: 3246.00
+  },
+  {
+    employeeId: 3,
+    employeeCode: 'EMP-1003',
+    employeeName: 'Amit Verma',
+    designationName: 'Product Manager',
+    departmentName: 'Product',
+    annualCtc: 1600000.00,
+    monthlyGross: 133333.00,
+    monthlyNetSalary: 115933.00,
+    basicSalary: 60000.00,
+    hra: 30000.00,
+    specialAllowance: 33333.00,
+    medicalAllowance: 5000.00,
+    conveyanceAllowance: 5000.00,
+    performanceBonus: 0.00,
+    epfEmployee: 7200.00,
+    esicEmployee: 0.00,
+    professionalTax: 200.00,
+    tdsTax: 10000.00,
+    totalDeductions: 17400.00,
+    epfEmployer: 7200.00,
+    esicEmployer: 0.00,
+    gratuity: 2885.00
+  }
+];

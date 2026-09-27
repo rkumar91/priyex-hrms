@@ -58,6 +58,7 @@ export interface Employee {
   employmentType?: string;
   status: string;
   joiningDate?: string;
+  annualCtc?: number;
   confirmationDate?: string;
   probationEndDate?: string;
   noticePeriodDays?: number;
@@ -269,6 +270,7 @@ export const EmployeesPage: React.FC = () => {
     emergencyContactName: '',
     emergencyContactRelationship: '',
     emergencyContactPhone: '',
+    annualCtc: 1200000,
   };
   const [formData, setFormData] = useState(initialEmployeeFormData);
 
@@ -583,6 +585,7 @@ export const EmployeesPage: React.FC = () => {
     try {
       const payload = {
         ...formData,
+        annualCtc: formData.annualCtc ? Number(formData.annualCtc) : 1200000,
         departmentId: formData.departmentId ? Number(formData.departmentId) : null,
         status: 'ACTIVE'
       };
@@ -982,6 +985,22 @@ export const EmployeesPage: React.FC = () => {
                       className="w-full bg-white text-slate-900 rounded-xl px-3 py-2 border border-slate-200 focus:outline-none focus:border-emerald-500 font-medium"
                     />
                   </div>
+                  <div>
+                    <label className="block text-slate-700 font-bold mb-1 flex items-center justify-between">
+                      <span>Annual CTC (₹) *</span>
+                      <span className="text-[10px] text-emerald-700 font-semibold">Base for Payslips</span>
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      min="10000"
+                      step="10000"
+                      value={formData.annualCtc}
+                      onChange={(e) => setFormData({ ...formData, annualCtc: Number(e.target.value) })}
+                      placeholder="e.g. 1800000"
+                      className="w-full bg-white text-slate-900 rounded-xl px-3 py-2 border border-slate-200 focus:outline-none focus:border-emerald-500 font-mono font-bold"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -1340,10 +1359,18 @@ export const EmployeesPage: React.FC = () => {
                           <span className="text-slate-500">Work Location:</span>
                           <span className="font-semibold text-slate-900">{viewEmployee.workLocation || 'Noida HQ (Tower A)'}</span>
                         </div>
-                        <div className="flex justify-between py-1">
+                        <div className="flex justify-between py-1 border-b border-slate-200">
                           <span className="text-slate-500">Joining Date:</span>
                           <span className="font-semibold text-slate-900">{viewEmployee.joiningDate || '2023-01-15'}</span>
                         </div>
+                        {canManage && (
+                          <div className="flex justify-between py-1 bg-emerald-50/80 -mx-2 px-2 rounded-lg">
+                            <span className="text-emerald-800 font-bold">Annual CTC:</span>
+                            <span className="font-mono font-bold text-emerald-900">
+                              ₹ {Number(viewEmployee.annualCtc || 1200000).toLocaleString('en-IN')}
+                            </span>
+                          </div>
+                        )}
                       </div>
 
                       <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2">
