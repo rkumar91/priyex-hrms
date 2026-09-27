@@ -934,10 +934,10 @@ export const PayrollPage: React.FC = () => {
       {/* MODAL 3: Rich, Realistic Printable Employee Payslip                      */}
       {/* ═════════════════════════════════════════════════════════════════════════ */}
       {selectedPayslip && createPortal(
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
-          <div className="w-full max-w-2xl bg-white border border-slate-200 rounded-3xl shadow-2xl p-6 relative text-slate-900 animate-in fade-in zoom-in-95 duration-150 space-y-4 my-8 print:border-none print:shadow-none print:p-0 print:m-0">
-            {/* Action Bar (hidden in print) */}
-            <div className="flex items-center justify-between border-b border-slate-200 pb-3 print:hidden">
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="w-full max-w-2xl max-h-[90vh] flex flex-col bg-white border border-slate-200 rounded-3xl shadow-2xl relative text-slate-900 animate-in fade-in zoom-in-95 duration-150 overflow-hidden print:border-none print:shadow-none print:p-0 print:m-0 print:max-h-none print:overflow-visible">
+            {/* Action Bar (hidden in print, fixed at modal top) */}
+            <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4 shrink-0 bg-white print:hidden">
               <span className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
                 <FileText className="w-4 h-4 text-emerald-600" /> Official Corporate Payslip
               </span>
@@ -957,8 +957,10 @@ export const PayrollPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Printable Payslip Container */}
-            <div className="border border-slate-200 rounded-2xl p-6 space-y-5 text-xs bg-white">
+            {/* Scrollable Payslip Body */}
+            <div className="p-4 sm:p-6 overflow-y-auto flex-1 print:p-0 print:overflow-visible">
+              {/* Printable Payslip Container */}
+              <div className="border border-slate-200 rounded-2xl p-6 space-y-5 text-xs bg-white print:border-none print:p-0">
               {/* Company Header */}
               <div className="text-center border-b border-slate-200 pb-4">
                 <h2 className="text-lg font-black text-slate-900 tracking-tight">PRIYEX TECHNOLOGIES PRIVATE LIMITED</h2>
@@ -1111,9 +1113,10 @@ export const PayrollPage: React.FC = () => {
               </div>
             </div>
           </div>
-        </div>,
-        document.body
-      )}
+        </div>
+      </div>,
+      document.body
+    )}
     </div>
   );
 };
