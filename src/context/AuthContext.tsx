@@ -3,14 +3,15 @@ import api from '../api/client';
 
 export interface UserProfile {
   id: string;
-  username: string;
+  username?: string;
   email: string;
-  fullName: string;
-  userType: string;
-  companyId: string;
-  employeeId: string;
+  fullName?: string;
+  displayName?: string;
+  userType?: string;
+  companyId?: string | number;
+  employeeId?: string | number;
   roles: string[];
-  permissions: string[];
+  permissions?: string[];
 }
 
 interface AuthContextType {
@@ -35,8 +36,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         const res: any = await api.get('/auth/me');
         if (res.success && res.data) {
-          setUser(res.data);
-          localStorage.setItem('user', JSON.stringify(res.data));
+          const profile: UserProfile = {
+            ...res.data,
+            fullName: res.data.displayName || res.data.fullName || res.data.email,
+            displayName: res.data.displayName || res.data.fullName || res.data.email,
+          };
+          setUser(profile);
+          localStorage.setItem('user', JSON.stringify(profile));
         }
       } catch (err) {
         // Not authenticated
@@ -60,7 +66,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (accessToken) {
         localStorage.setItem('accessToken', accessToken);
       }
-      const activeUser = userProfile || res.data;
+      const rawUser = userProfile || res.data;
+      const activeUser: UserProfile = {
+        ...rawUser,
+        fullName: rawUser.displayName || rawUser.fullName || rawUser.email,
+        displayName: rawUser.displayName || rawUser.fullName || rawUser.email,
+      };
       setUser(activeUser);
       localStorage.setItem('user', JSON.stringify(activeUser));
     }

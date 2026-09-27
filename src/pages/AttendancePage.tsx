@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useAuth } from '../context/AuthContext';
+import { canApproveLeaves } from '../utils/rbac';
 import api from '../api/client';
 import {
   CalendarCheck,
@@ -24,6 +26,9 @@ export interface LeaveRequestItem {
 }
 
 export const AttendancePage: React.FC = () => {
+  const { user } = useAuth();
+  const canApprove = canApproveLeaves(user);
+
   const [leaveRequests, setLeaveRequests] = useState<LeaveRequestItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -204,7 +209,7 @@ export const AttendancePage: React.FC = () => {
                 </div>
 
                 <div className="flex items-center gap-3">
-                  {req.status === 'PENDING' ? (
+                  {req.status === 'PENDING' && canApprove ? (
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleApprove(req.id)}
@@ -221,7 +226,9 @@ export const AttendancePage: React.FC = () => {
                     </div>
                   ) : (
                     <span className={`px-3 py-1 rounded-full text-xs font-bold border ${
-                      req.status === 'APPROVED' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'
+                      req.status === 'APPROVED' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                      req.status === 'PENDING' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                      'bg-rose-50 text-rose-700 border-rose-200'
                     }`}>
                       {req.status}
                     </span>
@@ -232,6 +239,7 @@ export const AttendancePage: React.FC = () => {
           </div>
         )}
       </div>
+
 
       {/* Apply Leave Modal */}
       {isModalOpen && createPortal(

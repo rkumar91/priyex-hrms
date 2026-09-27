@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { canManageEmployees } from '../utils/rbac';
 import api from '../api/client';
 import {
   Users,
@@ -28,10 +29,10 @@ export interface Department {
 export const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const isManagerOrAdmin = canManageEmployees(user);
 
   // Modals state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-
   const [departments, setDepartments] = useState<Department[]>([]);
   const [formError, setFormError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -139,34 +140,39 @@ export const DashboardPage: React.FC = () => {
           <div>
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-emerald-200 text-xs font-bold mb-3">
               <TrendingUp className="w-3.5 h-3.5" />
-              <span>Q3 2026 Enterprise Overview</span>
+              <span>{isManagerOrAdmin ? 'Q3 2026 Enterprise Overview' : 'Employee Self-Service Workspace'}</span>
             </div>
             <h1 className="text-3xl font-extrabold text-white tracking-tight">
-              Welcome back, {user?.fullName || 'Super Admin'} 👋
+              Welcome back, {user?.displayName || user?.fullName || (user?.roles?.includes('SUPER_ADMIN') ? 'Super Admin' : 'User')} 👋
             </h1>
             <p className="text-emerald-100/90 text-sm mt-2 max-w-xl">
-              All systems nominal. Isolated PostgreSQL database <code className="bg-emerald-800/60 px-1.5 py-0.5 rounded text-emerald-200 font-mono">hrms_db</code> active with multi-tenant company isolation.
+              {isManagerOrAdmin
+                ? 'All systems nominal. Isolated PostgreSQL database hrms_db active with multi-tenant company isolation.'
+                : 'Access your employee profile, attendance calendar, shift schedules, and apply for leave applications.'}
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={handleDownloadSummary}
-              className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm font-semibold border border-white/20 transition cursor-pointer"
-            >
-              Download Summary
-            </button>
-            <button
-              type="button"
-              onClick={() => { setIsAddModalOpen(true); setFormError(null); }}
-              className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm shadow-lg shadow-emerald-500/30 transition flex items-center gap-2 cursor-pointer"
-            >
-              <UserPlus className="w-4 h-4" />
-              <span>Add Employee</span>
-            </button>
-          </div>
+          {isManagerOrAdmin && (
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={handleDownloadSummary}
+                className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm font-semibold border border-white/20 transition cursor-pointer"
+              >
+                Download Summary
+              </button>
+              <button
+                type="button"
+                onClick={() => { setIsAddModalOpen(true); setFormError(null); }}
+                className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm shadow-lg shadow-emerald-500/30 transition flex items-center gap-2 cursor-pointer"
+              >
+                <UserPlus className="w-4 h-4" />
+                <span>Add Employee</span>
+              </button>
+            </div>
+          )}
         </div>
       </div>
+
 
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

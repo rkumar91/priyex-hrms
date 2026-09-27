@@ -1,5 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { canViewAuditLogs, canManageOrganization, canManageUserRoles } from '../../utils/rbac';
 import {
   LayoutDashboard,
   Users,
@@ -7,19 +9,25 @@ import {
   CircleDollarSign,
   Building,
   ShieldAlert,
-  Sparkles
+  Sparkles,
+  ClipboardCheck,
+  UserCog
 } from 'lucide-react';
 
-const navigationItems = [
-  { name: 'Dashboard', path: '/', icon: LayoutDashboard },
-  { name: 'Employees', path: '/employees', icon: Users },
-  { name: 'Attendance & Leave', path: '/attendance', icon: CalendarCheck },
-  { name: 'Payroll & Compensation', path: '/payroll', icon: CircleDollarSign },
-  { name: 'Organization', path: '/organization', icon: Building },
-  { name: 'Audit & Compliance', path: '/audit-logs', icon: ShieldAlert },
-];
-
 export const Sidebar: React.FC = () => {
+  const { user } = useAuth();
+
+  const navigationItems = [
+    { name: 'Dashboard', path: '/', icon: LayoutDashboard, show: true },
+    { name: 'Employees', path: '/employees', icon: Users, show: true },
+    { name: 'Requests & Approvals', path: '/requests', icon: ClipboardCheck, show: true },
+    { name: 'Attendance & Leave', path: '/attendance', icon: CalendarCheck, show: true },
+    { name: 'Payroll & Compensation', path: '/payroll', icon: CircleDollarSign, show: true },
+    { name: 'Organization', path: '/organization', icon: Building, show: canManageOrganization(user) },
+    { name: 'User & Roles', path: '/admin/users', icon: UserCog, show: canManageUserRoles(user) },
+    { name: 'Audit & Compliance', path: '/audit-logs', icon: ShieldAlert, show: canViewAuditLogs(user) },
+  ].filter(item => item.show);
+
   return (
     <aside className="w-64 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 h-screen sticky top-0 z-20 shadow-sm">
       <div>
@@ -80,3 +88,4 @@ export const Sidebar: React.FC = () => {
     </aside>
   );
 };
+

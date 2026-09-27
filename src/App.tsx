@@ -9,6 +9,8 @@ import { AttendancePage } from './pages/AttendancePage';
 import { PayrollPage } from './pages/PayrollPage';
 import { OrganizationPage } from './pages/OrganizationPage';
 import { AuditLogsPage } from './pages/AuditLogsPage';
+import { ProfileRequestsPage } from './pages/ProfileRequestsPage';
+import { UsersRolesPage } from './pages/UsersRolesPage';
 
 export const App: React.FC = () => {
   return (
@@ -19,9 +21,11 @@ export const App: React.FC = () => {
           <Route element={<AppLayout />}>
             <Route path="/" element={<DashboardPage />} />
             <Route path="/employees" element={<EmployeesPage />} />
+            <Route path="/requests" element={<ProfileRequestsPage />} />
             <Route path="/attendance" element={<AttendancePage />} />
             <Route path="/payroll" element={<PayrollPage />} />
             <Route path="/organization" element={<OrganizationPage />} />
+            <Route path="/admin/users" element={<UsersRolesPage />} />
             <Route path="/audit-logs" element={<AuditLogsPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
