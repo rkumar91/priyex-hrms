@@ -470,8 +470,8 @@ export const EmployeesPage: React.FC = () => {
       </div>
 
       {/* Employees Table */}
-      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
+      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm">
+        <div className="overflow-x-auto min-h-[260px] pb-10">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50/80 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500 font-semibold">
@@ -498,97 +498,115 @@ export const EmployeesPage: React.FC = () => {
                   </td>
                 </tr>
               ) : (
-                employees.map((emp) => (
-                  <tr key={emp.id} className="hover:bg-emerald-50/30 transition-colors">
-                    <td className="py-3.5 px-5">
-                      <div className="flex items-center gap-3">
-                        {emp.photoUrl ? (
-                          <img
-                            src={emp.photoUrl}
-                            alt={`${emp.firstName} ${emp.lastName}`}
-                            className="w-10 h-10 rounded-full object-cover shadow-xs border border-emerald-300"
-                            onError={(e) => {
-                              (e.target as HTMLElement).style.display = 'none';
-                            }}
-                          />
-                        ) : null}
-                        {(!emp.photoUrl) && (
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-600 flex items-center justify-center text-white font-bold text-sm shadow-xs">
-                            {emp.firstName ? emp.firstName.charAt(0) : 'E'}
-                          </div>
-                        )}
-                        <div className="flex flex-col">
-                          <span className="font-semibold text-slate-900">{emp.firstName} {emp.lastName}</span>
-                          <span className="text-xs text-emerald-800 font-mono font-semibold">{emp.employeeCode}</span>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-3.5 px-5">
-                      <div className="flex flex-col">
-                        <span className="font-semibold text-slate-800">{emp.designationName || 'Software Engineer'}</span>
-                        <span className="text-xs text-slate-500 flex items-center gap-1 mt-0.5 font-medium">
-                          <Building2 className="w-3.5 h-3.5 text-slate-400" />
-                          {emp.departmentName || 'General'}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="py-3.5 px-5">
-                      <div className="flex flex-col text-xs text-slate-600 space-y-1">
-                        <span className="flex items-center gap-1.5"><Mail className="w-3.5 h-3.5 text-slate-400" /> {emp.workEmail}</span>
-                        {/* Only display personal phone to HR/Admin or if viewing self */}
-                        {(canManage || String(user?.employeeId) === String(emp.id)) && emp.personalPhone && (
-                          <span className="flex items-center gap-1.5"><Phone className="w-3.5 h-3.5 text-slate-400" /> {emp.personalPhone}</span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="py-3.5 px-5">
-                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${
-                        emp.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
-                        emp.status === 'ON_LEAVE' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
-                        'bg-rose-50 text-rose-700 border border-rose-200'
-                      }`}>
-                        {emp.status}
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-5 text-xs font-mono font-medium text-slate-600">
-                      {emp.joiningDate || '2024-01-15'}
-                    </td>
-                    <td className="py-3.5 px-5 text-right relative">
-                      <button
-                        onClick={() => setActiveMenuId(activeMenuId === emp.id ? null : emp.id)}
-                        className="p-1.5 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition cursor-pointer"
-                      >
-                        <MoreVertical className="w-4 h-4" />
-                      </button>
+                employees.map((emp, index) => {
+                  const isSelf = String(user?.employeeId) === String(emp.id) ||
+                    (user?.email && emp.workEmail && user.email.toLowerCase() === emp.workEmail.toLowerCase());
+                  const isBottomRow = index >= Math.max(0, employees.length - 2);
 
-                      {/* Dropdown Menu */}
-                      {activeMenuId === emp.id && (
-                        <>
-                          <div
-                            className="fixed inset-0 z-10"
-                            onClick={() => setActiveMenuId(null)}
-                          />
-                          <div className="absolute right-6 top-12 w-44 bg-white border border-slate-200 rounded-xl shadow-xl z-20 py-1.5 text-xs text-left">
-                            <button
-                              onClick={() => { setViewEmployee(emp); setActiveMenuId(null); }}
-                              className="w-full px-3 py-2 text-slate-700 hover:bg-slate-50 flex items-center gap-2 font-medium cursor-pointer"
-                            >
-                              <Eye className="w-3.5 h-3.5 text-emerald-600" /> View Profile
-                            </button>
-                            {canDeactivate && (
-                              <button
-                                onClick={() => { setActiveMenuId(null); handleDelete(emp.id); }}
-                                className="w-full px-3 py-2 text-rose-600 hover:bg-rose-50 flex items-center gap-2 font-medium cursor-pointer"
-                              >
-                                <Trash2 className="w-3.5 h-3.5 text-rose-600" /> Deactivate
-                              </button>
-                            )}
+                  return (
+                    <tr key={emp.id} className="hover:bg-emerald-50/30 transition-colors">
+                      <td className="py-3.5 px-5">
+                        <div className="flex items-center gap-3">
+                          {emp.photoUrl ? (
+                            <img
+                              src={emp.photoUrl}
+                              alt={`${emp.firstName} ${emp.lastName}`}
+                              className="w-10 h-10 rounded-full object-cover shadow-xs border border-emerald-300"
+                              onError={(e) => {
+                                (e.target as HTMLElement).style.display = 'none';
+                              }}
+                            />
+                          ) : null}
+                          {(!emp.photoUrl) && (
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-600 flex items-center justify-center text-white font-bold text-sm shadow-xs">
+                              {emp.firstName ? emp.firstName.charAt(0) : 'E'}
+                            </div>
+                          )}
+                          <div className="flex flex-col">
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-semibold text-slate-900">{emp.firstName} {emp.lastName}</span>
+                              {isSelf && (
+                                <span className="px-1.5 py-0.5 text-[10px] font-bold bg-emerald-100 text-emerald-800 rounded">You</span>
+                              )}
+                            </div>
+                            <span className="text-xs text-emerald-800 font-mono font-semibold">{emp.employeeCode}</span>
                           </div>
-                        </>
-                      )}
-                    </td>
-                  </tr>
-                ))
+                        </div>
+                      </td>
+                      <td className="py-3.5 px-5">
+                        <div className="flex flex-col">
+                          <span className="font-semibold text-slate-800">{emp.designationName || 'Software Engineer'}</span>
+                          <span className="text-xs text-slate-500 flex items-center gap-1 mt-0.5 font-medium">
+                            <Building2 className="w-3.5 h-3.5 text-slate-400" />
+                            {emp.departmentName || 'General'}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="py-3.5 px-5">
+                        <div className="flex flex-col text-xs text-slate-600 space-y-1">
+                          <span className="flex items-center gap-1.5"><Mail className="w-3.5 h-3.5 text-slate-400" /> {emp.workEmail}</span>
+                          {(canManage || isSelf) && emp.personalPhone && (
+                            <span className="flex items-center gap-1.5"><Phone className="w-3.5 h-3.5 text-slate-400" /> {emp.personalPhone}</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="py-3.5 px-5">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${
+                          emp.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
+                          emp.status === 'ON_LEAVE' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
+                          'bg-rose-50 text-rose-700 border border-rose-200'
+                        }`}>
+                          {emp.status}
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-5 text-xs font-mono font-medium text-slate-600">
+                        {emp.joiningDate || '2024-01-15'}
+                      </td>
+                      <td className="py-3.5 px-5 text-right relative">
+                        <button
+                          onClick={() => setActiveMenuId(activeMenuId === emp.id ? null : emp.id)}
+                          className="p-1.5 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition cursor-pointer"
+                        >
+                          <MoreVertical className="w-4 h-4" />
+                        </button>
+
+                        {/* Dropdown Menu */}
+                        {activeMenuId === emp.id && (
+                          <>
+                            <div
+                              className="fixed inset-0 z-20"
+                              onClick={() => setActiveMenuId(null)}
+                            />
+                            <div className={`absolute right-4 ${isBottomRow ? 'bottom-10 mb-1 origin-bottom-right' : 'top-10 mt-1 origin-top-right'} w-52 bg-white border border-slate-200 rounded-xl shadow-xl z-30 py-1.5 text-xs text-left animate-in fade-in zoom-in-95 duration-100`}>
+                              {isSelf && (
+                                <button
+                                  onClick={() => { handleOpenMyProfile(); setActiveMenuId(null); }}
+                                  className="w-full px-3 py-2 text-emerald-800 hover:bg-emerald-50 flex items-center gap-2 font-semibold cursor-pointer border-b border-slate-100"
+                                >
+                                  <UserCheck className="w-3.5 h-3.5 text-emerald-600" /> Update My Information
+                                </button>
+                              )}
+                              <button
+                                onClick={() => { setViewEmployee(emp); setActiveMenuId(null); }}
+                                className="w-full px-3 py-2 text-slate-700 hover:bg-slate-50 flex items-center gap-2 font-medium cursor-pointer"
+                              >
+                                <Eye className="w-3.5 h-3.5 text-slate-500" /> View Profile
+                              </button>
+                              {canDeactivate && !isSelf && (
+                                <button
+                                  onClick={() => { setActiveMenuId(null); handleDelete(emp.id); }}
+                                  className="w-full px-3 py-2 text-rose-600 hover:bg-rose-50 flex items-center gap-2 font-medium cursor-pointer border-t border-slate-100"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5 text-rose-600" /> Deactivate
+                                </button>
+                              )}
+                            </div>
+                          </>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
