@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
+import { useTheme } from '../../context/ThemeContext';
 import api from '../../api/client';
 import {
   MessageSquare,
@@ -39,6 +41,8 @@ export interface ActiveQuery {
 
 export const LiveChatWidget: React.FC = () => {
   const { user } = useAuth();
+  const { t } = useLanguage();
+  const { currentThemeOption } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
   const [activeQuery, setActiveQuery] = useState<ActiveQuery | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -227,7 +231,8 @@ export const LiveChatWidget: React.FC = () => {
             setIsOpen(true);
             fetchActiveQuery();
           }}
-          className="relative group flex items-center gap-2.5 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-500 hover:to-teal-500 text-white px-4 sm:px-5 py-3 rounded-full shadow-xl shadow-emerald-700/30 hover:shadow-emerald-700/40 transition-all duration-200 active:scale-95 cursor-pointer"
+          style={{ background: currentThemeOption.primaryColor }}
+          className="relative group flex items-center gap-2.5 text-white px-4 sm:px-5 py-3 rounded-full shadow-xl hover:opacity-95 transition-all duration-200 active:scale-95 cursor-pointer"
         >
           <div className="relative">
             <Headphones className="w-5 h-5 transition-transform group-hover:scale-110" />
@@ -236,7 +241,7 @@ export const LiveChatWidget: React.FC = () => {
             )}
           </div>
           <span className="text-xs sm:text-sm font-bold tracking-wide">
-            {activeQuery ? (isConnectedWithHr ? 'Live with HR' : 'HR Pool (Waiting)') : 'Live HR Helpdesk'}
+            {activeQuery ? (isConnectedWithHr ? 'Live with HR' : 'HR Pool (Waiting)') : t('chat.liveHelpdesk', 'Live HR Helpdesk')}
           </span>
         </button>
       )}
@@ -246,16 +251,19 @@ export const LiveChatWidget: React.FC = () => {
         <div className="w-[360px] sm:w-[400px] h-[540px] max-h-[82vh] bg-white border border-slate-200/90 rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
           
           {/* Header */}
-          <div className="bg-gradient-to-r from-slate-900 via-teal-950 to-emerald-950 text-white p-4 flex items-center justify-between shadow-sm shrink-0">
+          <div
+            className="text-white p-4 flex items-center justify-between shadow-sm shrink-0"
+            style={{ background: currentThemeOption.gradientStyle }}
+          >
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-2xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center text-emerald-300">
+              <div className="w-9 h-9 rounded-2xl bg-white/20 border border-white/30 flex items-center justify-center text-white">
                 <Headphones className="w-5 h-5" />
               </div>
               <div className="flex flex-col">
                 <div className="flex items-center gap-1.5">
-                  <h3 className="text-sm font-bold text-white">HR Live Connect</h3>
-                  <span className="text-[10px] font-semibold bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-500/30">
-                    Live Desk
+                  <h3 className="text-sm font-bold text-white">{t('chat.liveHelpdesk', 'Live HR Helpdesk')}</h3>
+                  <span className="text-[10px] font-semibold bg-white/20 text-white px-2 py-0.5 rounded-full border border-white/30">
+                    {t('chat.online', 'Online')}
                   </span>
                 </div>
                 <div className="text-[11px] text-slate-300 flex items-center gap-1 mt-0.5 font-medium">

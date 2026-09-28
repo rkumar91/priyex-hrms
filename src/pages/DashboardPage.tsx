@@ -247,20 +247,23 @@ export const DashboardPage: React.FC = () => {
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
       {/* Top Banner */}
-      <div className={`relative rounded-2xl sm:rounded-3xl bg-gradient-to-r ${currentThemeOption.gradient} text-white p-5 sm:p-8 overflow-hidden shadow-xl transition-all duration-500`}>
+      <div
+        className="relative rounded-2xl sm:rounded-3xl text-white p-5 sm:p-8 overflow-hidden shadow-xl transition-all duration-500"
+        style={{ background: currentThemeOption.gradientStyle }}
+      >
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5 sm:gap-6">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white/90 text-xs font-bold mb-2.5">
               <TrendingUp className="w-3.5 h-3.5" />
-              <span>{isManagerOrAdmin ? 'Q3 2026 Enterprise Overview' : t('dash.enterprisePortal', 'Enterprise HR & Workforce Portal')}</span>
+              <span>{isManagerOrAdmin ? t('dash.q3Overview', 'Q3 2026 Enterprise Overview') : t('dash.enterprisePortal', 'Enterprise HR & Workforce Portal')}</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
               {t('dash.welcomeBack', 'Welcome back')}, {user?.displayName || user?.fullName || (user?.roles?.includes('SUPER_ADMIN') ? 'Super Admin' : 'User')} 👋
             </h1>
             <p className="text-white/80 text-xs sm:text-sm mt-2 max-w-xl">
               {isManagerOrAdmin
-                ? 'All systems nominal. Isolated PostgreSQL database hrms_db active with multi-tenant company isolation.'
-                : 'Access your employee profile, attendance calendar, shift schedules, and apply for leave applications.'}
+                ? t('dash.adminSubtitle', 'All systems nominal. Isolated PostgreSQL database hrms_db active with multi-tenant company isolation.')
+                : t('dash.empSubtitle', 'Access your employee profile, attendance calendar, shift schedules, and apply for leave applications.')}
             </p>
           </div>
           {isManagerOrAdmin ? (
@@ -275,7 +278,8 @@ export const DashboardPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => { setIsAddModalOpen(true); setFormError(null); }}
-                className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-brand-500 hover:bg-brand-400 text-slate-950 font-bold text-xs sm:text-sm shadow-lg shadow-brand-500/30 transition flex items-center gap-2 cursor-pointer"
+                style={{ background: currentThemeOption.primaryColor }}
+                className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl hover:opacity-90 text-white font-bold text-xs sm:text-sm shadow-lg transition flex items-center gap-2 cursor-pointer"
               >
                 <UserPlus className="w-4 h-4" />
                 <span>{t('dash.addEmployee', 'Add Employee')}</span>
@@ -294,7 +298,8 @@ export const DashboardPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => navigate('/payroll')}
-                className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-brand-500 hover:bg-brand-400 text-slate-950 font-bold text-xs sm:text-sm shadow-lg shadow-brand-500/30 transition flex items-center gap-2 cursor-pointer"
+                style={{ background: currentThemeOption.primaryColor }}
+                className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl hover:opacity-90 text-white font-bold text-xs sm:text-sm shadow-lg transition flex items-center gap-2 cursor-pointer"
               >
                 <FileText className="w-4 h-4" />
                 <span>{t('dash.viewPayslips', 'View Payslips')}</span>
@@ -313,10 +318,13 @@ export const DashboardPage: React.FC = () => {
             <div
               key={idx}
               onClick={() => navigate(stat.link)}
-              className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-xs hover:shadow-xl hover:border-emerald-500/40 hover:-translate-y-1 transition-all duration-300 relative group cursor-pointer flex flex-col justify-between overflow-hidden"
+              className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-xs hover:shadow-xl hover:border-slate-300 hover:-translate-y-1 transition-all duration-300 relative group cursor-pointer flex flex-col justify-between overflow-hidden"
             >
-              {/* Ambient Hover Glow */}
-              <div className={`absolute -right-8 -top-8 w-28 h-28 bg-gradient-to-br ${stat.color} opacity-5 group-hover:opacity-15 rounded-full blur-2xl transition-all duration-300 pointer-events-none`}></div>
+              {/* Ambient Hover Glow with theme color */}
+              <div
+                className="absolute -right-8 -top-8 w-28 h-28 opacity-10 group-hover:opacity-20 rounded-full blur-2xl transition-all duration-300 pointer-events-none"
+                style={{ background: currentThemeOption.primaryColor }}
+              ></div>
 
               {/* Card Header Row: Title & Styled Icon */}
               <div>
@@ -324,7 +332,10 @@ export const DashboardPage: React.FC = () => {
                   <span className="text-xs font-bold text-slate-500 uppercase tracking-wider truncate">
                     {stat.title}
                   </span>
-                  <div className={`w-10 h-10 rounded-2xl bg-gradient-to-tr ${stat.color} text-white flex items-center justify-center shadow-md shadow-slate-200 group-hover:scale-110 transition-transform duration-300 shrink-0`}>
+                  <div
+                    className="w-10 h-10 rounded-2xl text-white flex items-center justify-center shadow-md shadow-slate-200 group-hover:scale-110 transition-transform duration-300 shrink-0"
+                    style={{ background: currentThemeOption.primaryColor }}
+                  >
                     <Icon className="w-5 h-5" />
                   </div>
                 </div>
@@ -352,17 +363,26 @@ export const DashboardPage: React.FC = () => {
                 {stat.progress !== undefined && (
                   <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
                     <div
-                      className={`h-full rounded-full bg-gradient-to-r ${stat.color}`}
-                      style={{ width: `${stat.progress}%` }}
+                      className="h-full rounded-full transition-all duration-500"
+                      style={{
+                        width: `${stat.progress}%`,
+                        background: currentThemeOption.primaryColor
+                      }}
                     ></div>
                   </div>
                 )}
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-[11px] font-medium text-slate-500 truncate flex items-center gap-1.5">
-                    <span className={`w-1.5 h-1.5 rounded-full ${stat.dotColor || 'bg-emerald-500'} shrink-0`}></span>
+                    <span
+                      className="w-1.5 h-1.5 rounded-full shrink-0"
+                      style={{ background: currentThemeOption.primaryColor }}
+                    ></span>
                     <span className="truncate">{stat.footer}</span>
                   </span>
-                  <ArrowRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-emerald-600 group-hover:translate-x-0.5 transition-all shrink-0 ml-1" />
+                  <ArrowRight
+                    className="w-3.5 h-3.5 text-slate-300 group-hover:translate-x-0.5 transition-all shrink-0 ml-1"
+                    style={{ color: currentThemeOption.primaryColor }}
+                  />
                 </div>
               </div>
             </div>
@@ -376,18 +396,19 @@ export const DashboardPage: React.FC = () => {
         <div className="lg:col-span-2 glass-panel rounded-3xl p-6">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
-              <Clock className="w-5 h-5 text-emerald-600" />
+              <Clock className="w-5 h-5" style={{ color: currentThemeOption.primaryColor }} />
               <h2 className="text-lg font-bold text-slate-900">
-                {isManagerOrAdmin ? 'Live System Activity' : 'My Recent Activity & Timeline'}
+                {isManagerOrAdmin ? t('dash.liveActivity', 'Live System Activity') : t('dash.recentActivity', 'My Recent Activity & Timeline')}
               </h2>
             </div>
             {isManagerOrAdmin && (
               <button
                 type="button"
                 onClick={() => navigate('/audit-logs')}
-                className="text-xs font-bold text-emerald-600 hover:text-emerald-700 cursor-pointer"
+                className="text-xs font-bold hover:underline cursor-pointer"
+                style={{ color: currentThemeOption.primaryColor }}
               >
-                View All
+                {t('dash.viewAll', 'View All')}
               </button>
             )}
           </div>
@@ -396,13 +417,15 @@ export const DashboardPage: React.FC = () => {
             {recentActivities.map((act) => {
               const Icon = act.icon;
               return (
-                <div key={act.id} className="flex items-start gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-200/80 hover:border-emerald-300 transition">
+                <div key={act.id} className="flex items-start gap-4 p-4 rounded-2xl bg-white/80 border border-slate-200/80 hover:border-slate-300 transition">
                   <div className={`p-2.5 rounded-xl border border-slate-200 ${act.iconColor}`}>
                     <Icon className="w-5 h-5" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-emerald-700 uppercase tracking-wider">{act.type}</span>
+                      <span className="text-xs font-bold uppercase tracking-wider" style={{ color: currentThemeOption.primaryColor }}>
+                        {act.type}
+                      </span>
                       <span className="text-xs text-slate-400 font-medium">{act.time}</span>
                     </div>
                     <p className="text-sm font-semibold text-slate-800 mt-1">{act.title}</p>
@@ -418,24 +441,24 @@ export const DashboardPage: React.FC = () => {
           {isManagerOrAdmin ? (
             <div className="glass-panel rounded-3xl p-6">
               <h3 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
-                <Building className="w-5 h-5 text-emerald-600" />
-                <span>Company Scope</span>
+                <Building className="w-5 h-5" style={{ color: currentThemeOption.primaryColor }} />
+                <span>{t('dash.companyScope', 'Company Scope')}</span>
               </h3>
               <div className="space-y-3 text-xs text-slate-600">
                 <div className="flex justify-between py-2 border-b border-slate-200">
-                  <span className="text-slate-500 font-medium">Primary Entity</span>
+                  <span className="text-slate-500 font-medium">{t('dash.primaryEntity', 'Primary Entity')}</span>
                   <span className="font-bold text-slate-900">Priyex Software Pvt Ltd</span>
                 </div>
                 <div className="flex justify-between py-2 border-b border-slate-200">
-                  <span className="text-slate-500 font-medium">Active Branches</span>
-                  <span className="font-bold text-emerald-700">4 (Bengaluru, Mumbai, Delhi, Remote)</span>
+                  <span className="text-slate-500 font-medium">{t('dash.activeBranches', 'Active Branches')}</span>
+                  <span className="font-bold" style={{ color: currentThemeOption.primaryColor }}>4 (Bengaluru, Mumbai, Delhi, Remote)</span>
                 </div>
                 <div className="flex justify-between py-2 border-b border-slate-200">
-                  <span className="text-slate-500 font-medium">Database Schema</span>
-                  <span className="font-mono font-bold text-emerald-600">hrms_db (PostgreSQL 14+)</span>
+                  <span className="text-slate-500 font-medium">{t('dash.databaseSchema', 'Database Schema')}</span>
+                  <span className="font-mono font-bold" style={{ color: currentThemeOption.primaryColor }}>hrms_db (PostgreSQL 14+)</span>
                 </div>
                 <div className="flex justify-between py-2">
-                  <span className="text-slate-500 font-medium">Flyway Migrations</span>
+                  <span className="text-slate-500 font-medium">{t('dash.flywayMigrations', 'Flyway Migrations')}</span>
                   <span className="font-mono font-bold text-slate-800">V1 to V13 Applied</span>
                 </div>
               </div>
@@ -443,74 +466,74 @@ export const DashboardPage: React.FC = () => {
           ) : (
             <div className="glass-panel rounded-3xl p-6 space-y-4">
               <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-emerald-600" />
-                <span>Quick Self-Service Hub</span>
+                <Sparkles className="w-5 h-5" style={{ color: currentThemeOption.primaryColor }} />
+                <span>{t('dash.quickHub', 'Quick Self-Service Hub')}</span>
               </h3>
               <div className="space-y-2.5">
                 <button
                   type="button"
                   onClick={() => navigate('/attendance')}
-                  className="w-full text-left p-3 rounded-2xl bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 transition flex items-center justify-between group cursor-pointer"
+                  className="w-full text-left p-3 rounded-2xl bg-white/80 hover:bg-slate-50 border border-slate-200 hover:border-slate-300 transition flex items-center justify-between group cursor-pointer"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-xl bg-emerald-100 text-emerald-700">
+                    <div className="p-2 rounded-xl bg-slate-100" style={{ color: currentThemeOption.primaryColor }}>
                       <CalendarCheck className="w-4 h-4" />
                     </div>
                     <div>
-                      <h4 className="text-xs font-bold text-slate-900 group-hover:text-emerald-700 transition">Apply for Leave</h4>
-                      <p className="text-[11px] text-slate-500">Submit paid time off or casual leave</p>
+                      <h4 className="text-xs font-bold text-slate-900 transition">{t('dash.applyLeave', 'Apply for Leave')}</h4>
+                      <p className="text-[11px] text-slate-500">{t('dash.applyLeaveDesc', 'Submit paid time off or casual leave')}</p>
                     </div>
                   </div>
-                  <ArrowRight className="w-4 h-4 text-slate-400 group-hover:translate-x-1 group-hover:text-emerald-600 transition" />
+                  <ArrowRight className="w-4 h-4 text-slate-400 group-hover:translate-x-1 transition" style={{ color: currentThemeOption.primaryColor }} />
                 </button>
 
                 <button
                   type="button"
                   onClick={() => navigate('/payroll')}
-                  className="w-full text-left p-3 rounded-2xl bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 transition flex items-center justify-between group cursor-pointer"
+                  className="w-full text-left p-3 rounded-2xl bg-white/80 hover:bg-slate-50 border border-slate-200 hover:border-slate-300 transition flex items-center justify-between group cursor-pointer"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-xl bg-teal-100 text-teal-700">
+                    <div className="p-2 rounded-xl bg-slate-100" style={{ color: currentThemeOption.primaryColor }}>
                       <FileText className="w-4 h-4" />
                     </div>
                     <div>
-                      <h4 className="text-xs font-bold text-slate-900 group-hover:text-emerald-700 transition">View My Payslips</h4>
-                      <p className="text-[11px] text-slate-500">Download monthly salary breakdown & tax</p>
+                      <h4 className="text-xs font-bold text-slate-900 transition">{t('dash.viewPayslips', 'View My Payslips')}</h4>
+                      <p className="text-[11px] text-slate-500">{t('dash.viewPayslipsDesc', 'Download monthly salary breakdown & tax')}</p>
                     </div>
                   </div>
-                  <ArrowRight className="w-4 h-4 text-slate-400 group-hover:translate-x-1 group-hover:text-emerald-600 transition" />
+                  <ArrowRight className="w-4 h-4 text-slate-400 group-hover:translate-x-1 transition" style={{ color: currentThemeOption.primaryColor }} />
                 </button>
 
                 <button
                   type="button"
                   onClick={() => navigate('/requests')}
-                  className="w-full text-left p-3 rounded-2xl bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 transition flex items-center justify-between group cursor-pointer"
+                  className="w-full text-left p-3 rounded-2xl bg-white/80 hover:bg-slate-50 border border-slate-200 hover:border-slate-300 transition flex items-center justify-between group cursor-pointer"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-xl bg-cyan-100 text-cyan-700">
+                    <div className="p-2 rounded-xl bg-slate-100" style={{ color: currentThemeOption.primaryColor }}>
                       <ClipboardCheck className="w-4 h-4" />
                     </div>
                     <div>
-                      <h4 className="text-xs font-bold text-slate-900 group-hover:text-emerald-700 transition">Profile Update Requests</h4>
-                      <p className="text-[11px] text-slate-500">Request address, phone or bank updates</p>
+                      <h4 className="text-xs font-bold text-slate-900 transition">{t('dash.profileRequests', 'Profile Update Requests')}</h4>
+                      <p className="text-[11px] text-slate-500">{t('dash.profileRequestsDesc', 'Request address, phone or bank updates')}</p>
                     </div>
                   </div>
-                  <ArrowRight className="w-4 h-4 text-slate-400 group-hover:translate-x-1 group-hover:text-emerald-600 transition" />
+                  <ArrowRight className="w-4 h-4 text-slate-400 group-hover:translate-x-1 transition" style={{ color: currentThemeOption.primaryColor }} />
                 </button>
               </div>
 
               {/* Employee Account Summary */}
               <div className="pt-3 border-t border-slate-200/80 text-[11px] text-slate-600 space-y-1.5">
                 <div className="flex justify-between">
-                  <span className="text-slate-500 font-medium">Portal Account ID:</span>
+                  <span className="text-slate-500 font-medium">{t('dash.portalAccountId', 'Portal Account ID:')}</span>
                   <span className="font-mono font-bold text-slate-900">
                     {user?.id ? `USR-${1000 + Number(user.id)}` : 'EMP-1001'}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-500 font-medium">Verification Status:</span>
-                  <span className="font-semibold text-emerald-700 flex items-center gap-1">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Active • Biometric Linked
+                  <span className="text-slate-500 font-medium">{t('dash.verificationStatus', 'Verification Status:')}</span>
+                  <span className="font-semibold flex items-center gap-1" style={{ color: currentThemeOption.primaryColor }}>
+                    <CheckCircle2 className="w-3.5 h-3.5" style={{ color: currentThemeOption.primaryColor }} /> {t('dash.biometricLinked', 'Active • Biometric Linked')}
                   </span>
                 </div>
               </div>
@@ -525,8 +548,8 @@ export const DashboardPage: React.FC = () => {
           <div className="w-full max-w-lg bg-white border border-slate-200 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-2xl relative text-slate-900 animate-in fade-in zoom-in-95 duration-150 max-h-[88vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 sm:pb-4 border-b border-slate-200">
               <h2 className="text-base sm:text-lg font-extrabold text-slate-900 flex items-center gap-2">
-                <UserPlus className="w-5 h-5 text-emerald-600" />
-                <span>Onboard New Employee</span>
+                <UserPlus className="w-5 h-5" style={{ color: currentThemeOption.primaryColor }} />
+                <span>{t('modal.onboardEmployee', 'Onboard New Employee')}</span>
               </h2>
               <button
                 type="button"
@@ -547,60 +570,60 @@ export const DashboardPage: React.FC = () => {
             <form onSubmit={handleCreateSubmit} className="space-y-3.5 sm:space-y-4 mt-3 sm:mt-4 text-xs">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-700 font-bold mb-1">First Name *</label>
+                  <label className="block text-slate-700 font-bold mb-1">{t('modal.firstName', 'First Name')} *</label>
                   <input
                     type="text"
                     required
                     value={formData.firstName}
                     onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
                     placeholder="Rajesh"
-                    className="w-full bg-slate-50 text-slate-900 rounded-xl px-3.5 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-emerald-500 text-base sm:text-xs"
+                    className="w-full bg-slate-50 text-slate-900 rounded-xl px-3.5 py-2.5 border border-slate-200 focus:bg-white focus:outline-none text-base sm:text-xs"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-700 font-bold mb-1">Last Name *</label>
+                  <label className="block text-slate-700 font-bold mb-1">{t('modal.lastName', 'Last Name')} *</label>
                   <input
                     type="text"
                     required
                     value={formData.lastName}
                     onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
                     placeholder="Kumar"
-                    className="w-full bg-slate-50 text-slate-900 rounded-xl px-3.5 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-emerald-500 text-base sm:text-xs"
+                    className="w-full bg-slate-50 text-slate-900 rounded-xl px-3.5 py-2.5 border border-slate-200 focus:bg-white focus:outline-none text-base sm:text-xs"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-slate-700 font-bold mb-1">Work Email *</label>
+                <label className="block text-slate-700 font-bold mb-1">{t('modal.workEmail', 'Work Email')} *</label>
                 <input
                   type="email"
                   required
                   value={formData.workEmail}
                   onChange={(e) => setFormData({ ...formData, workEmail: e.target.value })}
                   placeholder="rajesh.kumar@priyex.com"
-                  className="w-full bg-slate-50 text-slate-900 rounded-xl px-3.5 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-emerald-500 text-base sm:text-xs"
+                  className="w-full bg-slate-50 text-slate-900 rounded-xl px-3.5 py-2.5 border border-slate-200 focus:bg-white focus:outline-none text-base sm:text-xs"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-700 font-bold mb-1">Phone Number</label>
+                  <label className="block text-slate-700 font-bold mb-1">{t('modal.phone', 'Phone Number')}</label>
                   <input
                     type="text"
                     value={formData.personalPhone}
                     onChange={(e) => setFormData({ ...formData, personalPhone: e.target.value })}
                     placeholder="+91 9876543210"
-                    className="w-full bg-slate-50 text-slate-900 rounded-xl px-3.5 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-emerald-500 text-base sm:text-xs"
+                    className="w-full bg-slate-50 text-slate-900 rounded-xl px-3.5 py-2.5 border border-slate-200 focus:bg-white focus:outline-none text-base sm:text-xs"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-700 font-bold mb-1">Department</label>
+                  <label className="block text-slate-700 font-bold mb-1">{t('modal.department', 'Department')}</label>
                   <select
                     value={formData.departmentId}
                     onChange={(e) => setFormData({ ...formData, departmentId: e.target.value })}
-                    className="w-full bg-slate-50 text-slate-900 rounded-xl px-3.5 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-emerald-500 text-base sm:text-xs"
+                    className="w-full bg-slate-50 text-slate-900 rounded-xl px-3.5 py-2.5 border border-slate-200 focus:bg-white focus:outline-none text-base sm:text-xs"
                   >
-                    <option value="">Select Department</option>
+                    <option value="">{t('modal.selectDept', 'Select Department')}</option>
                     {departments.map((d) => (
                       <option key={d.id} value={d.id}>{d.name}</option>
                     ))}
@@ -610,26 +633,26 @@ export const DashboardPage: React.FC = () => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-700 font-bold mb-1">Employment Type</label>
+                  <label className="block text-slate-700 font-bold mb-1">{t('modal.employmentType', 'Employment Type')}</label>
                   <select
                     value={formData.employmentType}
                     onChange={(e) => setFormData({ ...formData, employmentType: e.target.value })}
-                    className="w-full bg-slate-50 text-slate-900 rounded-xl px-3.5 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-emerald-500 text-base sm:text-xs"
+                    className="w-full bg-slate-50 text-slate-900 rounded-xl px-3.5 py-2.5 border border-slate-200 focus:bg-white focus:outline-none text-base sm:text-xs"
                   >
-                    <option value="FULL_TIME">Full Time</option>
-                    <option value="PART_TIME">Part Time</option>
-                    <option value="CONTRACT">Contract</option>
+                    <option value="FULL_TIME">{t('modal.fullTime', 'Full Time')}</option>
+                    <option value="PART_TIME">{t('modal.partTime', 'Part Time')}</option>
+                    <option value="CONTRACT">{t('modal.contract', 'Contract')}</option>
                     <option value="INTERN">Intern</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-slate-700 font-bold mb-1">Joining Date *</label>
+                  <label className="block text-slate-700 font-bold mb-1">{t('modal.joiningDate', 'Joining Date')} *</label>
                   <input
                     type="date"
                     required
                     value={formData.joiningDate}
                     onChange={(e) => setFormData({ ...formData, joiningDate: e.target.value })}
-                    className="w-full bg-slate-50 text-slate-900 rounded-xl px-3.5 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-emerald-500 text-base sm:text-xs"
+                    className="w-full bg-slate-50 text-slate-900 rounded-xl px-3.5 py-2.5 border border-slate-200 focus:bg-white focus:outline-none text-base sm:text-xs"
                   />
                 </div>
               </div>
@@ -640,14 +663,15 @@ export const DashboardPage: React.FC = () => {
                   onClick={() => setIsAddModalOpen(false)}
                   className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold cursor-pointer transition"
                 >
-                  Cancel
+                  {t('modal.cancel', 'Cancel')}
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-semibold flex items-center gap-2 shadow-md shadow-emerald-600/20 cursor-pointer transition"
+                  style={{ background: currentThemeOption.primaryColor }}
+                  className="px-5 py-2.5 rounded-xl hover:opacity-90 text-white font-semibold flex items-center gap-2 shadow-md cursor-pointer transition"
                 >
-                  {isSubmitting ? 'Onboarding...' : 'Save & Create Employee'}
+                  {isSubmitting ? 'Onboarding...' : t('modal.saveOnboard', 'Save & Onboard Employee')}
                 </button>
               </div>
             </form>

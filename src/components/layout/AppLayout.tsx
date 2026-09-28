@@ -24,7 +24,10 @@ export const AppLayout: React.FC = () => {
   }
 
   return (
-    <div className="flex min-h-screen min-h-[100dvh] bg-slate-50 text-slate-900 w-full overflow-x-hidden">
+    <div
+      className="flex min-h-screen min-h-[100dvh] text-slate-900 w-full overflow-x-hidden transition-colors duration-300"
+      style={{ background: 'var(--theme-page-bg, #f8fafc)' }}
+    >
       {/* Sidebar: Desktop Sticky + Mobile Slide Drawer */}
       <Sidebar
         mobileOpen={isMobileMenuOpen}

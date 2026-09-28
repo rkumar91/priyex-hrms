@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-export type ThemeId = 'emerald' | 'indigo' | 'violet' | 'teal' | 'rose' | 'amber' | 'blue';
+export type ThemeId = 'emerald' | 'indigo' | 'violet' | 'teal' | 'rose' | 'amber' | 'blue' | 'dark';
 
 export interface ThemeOption {
   id: ThemeId;
@@ -8,8 +8,13 @@ export interface ThemeOption {
   subtitle: string;
   previewColor: string; // hex
   badgeClass: string;
-  gradient: string;
+  gradientStyle: string;
+  pageBg: string;
+  cardBg: string;
+  textColor: string;
+  primaryColor: string;
   accentClass: string;
+  isDark?: boolean;
 }
 
 export const THEME_OPTIONS: ThemeOption[] = [
@@ -18,8 +23,12 @@ export const THEME_OPTIONS: ThemeOption[] = [
     name: 'Emerald Forest',
     subtitle: 'Classic enterprise green (Default)',
     previewColor: '#10b981',
+    primaryColor: '#059669',
     badgeClass: 'bg-emerald-500',
-    gradient: 'from-emerald-900 via-teal-900 to-slate-900',
+    gradientStyle: 'linear-gradient(135deg, #064e3b 0%, #047857 50%, #0f172a 100%)',
+    pageBg: 'linear-gradient(135deg, #f0fdf4 0%, #f8fafc 40%, #ecfdf5 100%)',
+    cardBg: '#ffffff',
+    textColor: '#0f172a',
     accentClass: 'text-emerald-600',
   },
   {
@@ -27,8 +36,12 @@ export const THEME_OPTIONS: ThemeOption[] = [
     name: 'Royal Indigo',
     subtitle: 'Modern corporate deep blue',
     previewColor: '#6366f1',
+    primaryColor: '#4f46e5',
     badgeClass: 'bg-indigo-500',
-    gradient: 'from-indigo-950 via-slate-900 to-blue-950',
+    gradientStyle: 'linear-gradient(135deg, #1e1b4b 0%, #3730a3 50%, #0f172a 100%)',
+    pageBg: 'linear-gradient(135deg, #eef2ff 0%, #f8faff 40%, #e0e7ff 100%)',
+    cardBg: '#ffffff',
+    textColor: '#0f172a',
     accentClass: 'text-indigo-600',
   },
   {
@@ -36,8 +49,12 @@ export const THEME_OPTIONS: ThemeOption[] = [
     name: 'Amethyst Violet',
     subtitle: 'Futuristic purple & lilac',
     previewColor: '#8b5cf6',
+    primaryColor: '#7c3aed',
     badgeClass: 'bg-violet-500',
-    gradient: 'from-purple-950 via-slate-900 to-violet-950',
+    gradientStyle: 'linear-gradient(135deg, #2e1065 0%, #5b21b6 50%, #0f172a 100%)',
+    pageBg: 'linear-gradient(135deg, #f5f3ff 0%, #faf8ff 40%, #ede9fe 100%)',
+    cardBg: '#ffffff',
+    textColor: '#0f172a',
     accentClass: 'text-violet-600',
   },
   {
@@ -45,8 +62,12 @@ export const THEME_OPTIONS: ThemeOption[] = [
     name: 'Ocean Teal',
     subtitle: 'Crisp cyan & coastal teal',
     previewColor: '#14b8a6',
+    primaryColor: '#0d9488',
     badgeClass: 'bg-teal-500',
-    gradient: 'from-teal-950 via-slate-900 to-cyan-950',
+    gradientStyle: 'linear-gradient(135deg, #042f2e 0%, #115e59 50%, #0f172a 100%)',
+    pageBg: 'linear-gradient(135deg, #f0fdfa 0%, #f6fcfa 40%, #ccfbf1 100%)',
+    cardBg: '#ffffff',
+    textColor: '#0f172a',
     accentClass: 'text-teal-600',
   },
   {
@@ -54,8 +75,12 @@ export const THEME_OPTIONS: ThemeOption[] = [
     name: 'Crimson Rose',
     subtitle: 'Bold ruby & energetic rose',
     previewColor: '#f43f5e',
+    primaryColor: '#e11d48',
     badgeClass: 'bg-rose-500',
-    gradient: 'from-rose-950 via-slate-900 to-pink-950',
+    gradientStyle: 'linear-gradient(135deg, #4c0519 0%, #9f1239 50%, #0f172a 100%)',
+    pageBg: 'linear-gradient(135deg, #fff1f2 0%, #fff8f8 40%, #ffe4e6 100%)',
+    cardBg: '#ffffff',
+    textColor: '#0f172a',
     accentClass: 'text-rose-600',
   },
   {
@@ -63,8 +88,12 @@ export const THEME_OPTIONS: ThemeOption[] = [
     name: 'Sunset Amber',
     subtitle: 'Warm golden honey & amber',
     previewColor: '#f59e0b',
+    primaryColor: '#d97706',
     badgeClass: 'bg-amber-500',
-    gradient: 'from-amber-950 via-slate-900 to-orange-950',
+    gradientStyle: 'linear-gradient(135deg, #451a03 0%, #92400e 50%, #0f172a 100%)',
+    pageBg: 'linear-gradient(135deg, #fffbeb 0%, #fffcf5 40%, #fef3c7 100%)',
+    cardBg: '#ffffff',
+    textColor: '#0f172a',
     accentClass: 'text-amber-600',
   },
   {
@@ -72,9 +101,27 @@ export const THEME_OPTIONS: ThemeOption[] = [
     name: 'Sapphire Blue',
     subtitle: 'High-trust executive cobalt',
     previewColor: '#3b82f6',
+    primaryColor: '#2563eb',
     badgeClass: 'bg-blue-500',
-    gradient: 'from-blue-950 via-slate-900 to-sky-950',
+    gradientStyle: 'linear-gradient(135deg, #172554 0%, #1e40af 50%, #0f172a 100%)',
+    pageBg: 'linear-gradient(135deg, #eff6ff 0%, #f8faff 40%, #dbeafe 100%)',
+    cardBg: '#ffffff',
+    textColor: '#0f172a',
     accentClass: 'text-blue-600',
+  },
+  {
+    id: 'dark',
+    name: 'Midnight Dark',
+    subtitle: 'Sleek obsidian & emerald glow',
+    previewColor: '#0f172a',
+    primaryColor: '#10b981',
+    badgeClass: 'bg-slate-800',
+    gradientStyle: 'linear-gradient(135deg, #020617 0%, #0f172a 50%, #1e293b 100%)',
+    pageBg: 'linear-gradient(135deg, #090d16 0%, #0f172a 50%, #131d31 100%)',
+    cardBg: '#1e293b',
+    textColor: '#f8fafc',
+    accentClass: 'text-emerald-400',
+    isDark: true,
   },
 ];
 
@@ -93,6 +140,7 @@ const THEME_SCALES: Record<ThemeId, Record<string, string>> = {
     '--brand-950': '#022c22',
     '--brand-primary': '#059669',
     '--brand-glow': 'rgba(16, 185, 129, 0.25)',
+    '--theme-page-bg': 'linear-gradient(135deg, #f0fdf4 0%, #f8fafc 40%, #ecfdf5 100%)',
   },
   indigo: {
     '--brand-50': '#eef2ff',
@@ -108,6 +156,7 @@ const THEME_SCALES: Record<ThemeId, Record<string, string>> = {
     '--brand-950': '#1e1b4b',
     '--brand-primary': '#4f46e5',
     '--brand-glow': 'rgba(99, 102, 241, 0.25)',
+    '--theme-page-bg': 'linear-gradient(135deg, #eef2ff 0%, #f8faff 40%, #e0e7ff 100%)',
   },
   violet: {
     '--brand-50': '#f5f3ff',
@@ -123,6 +172,7 @@ const THEME_SCALES: Record<ThemeId, Record<string, string>> = {
     '--brand-950': '#2e1065',
     '--brand-primary': '#7c3aed',
     '--brand-glow': 'rgba(139, 92, 246, 0.25)',
+    '--theme-page-bg': 'linear-gradient(135deg, #f5f3ff 0%, #faf8ff 40%, #ede9fe 100%)',
   },
   teal: {
     '--brand-50': '#f0fdfa',
@@ -138,6 +188,7 @@ const THEME_SCALES: Record<ThemeId, Record<string, string>> = {
     '--brand-950': '#042f2e',
     '--brand-primary': '#0d9488',
     '--brand-glow': 'rgba(20, 184, 166, 0.25)',
+    '--theme-page-bg': 'linear-gradient(135deg, #f0fdfa 0%, #f6fcfa 40%, #ccfbf1 100%)',
   },
   rose: {
     '--brand-50': '#fff1f2',
@@ -153,6 +204,7 @@ const THEME_SCALES: Record<ThemeId, Record<string, string>> = {
     '--brand-950': '#4c0519',
     '--brand-primary': '#e11d48',
     '--brand-glow': 'rgba(244, 63, 94, 0.25)',
+    '--theme-page-bg': 'linear-gradient(135deg, #fff1f2 0%, #fff8f8 40%, #ffe4e6 100%)',
   },
   amber: {
     '--brand-50': '#fffbeb',
@@ -168,6 +220,7 @@ const THEME_SCALES: Record<ThemeId, Record<string, string>> = {
     '--brand-950': '#451a03',
     '--brand-primary': '#d97706',
     '--brand-glow': 'rgba(245, 158, 11, 0.25)',
+    '--theme-page-bg': 'linear-gradient(135deg, #fffbeb 0%, #fffcf5 40%, #fef3c7 100%)',
   },
   blue: {
     '--brand-50': '#eff6ff',
@@ -183,6 +236,23 @@ const THEME_SCALES: Record<ThemeId, Record<string, string>> = {
     '--brand-950': '#172554',
     '--brand-primary': '#2563eb',
     '--brand-glow': 'rgba(59, 130, 246, 0.25)',
+    '--theme-page-bg': 'linear-gradient(135deg, #eff6ff 0%, #f8faff 40%, #dbeafe 100%)',
+  },
+  dark: {
+    '--brand-50': '#0f172a',
+    '--brand-100': '#1e293b',
+    '--brand-200': '#334155',
+    '--brand-300': '#475569',
+    '--brand-400': '#64748b',
+    '--brand-500': '#10b981',
+    '--brand-600': '#059669',
+    '--brand-700': '#047857',
+    '--brand-800': '#065f46',
+    '--brand-900': '#064e3b',
+    '--brand-950': '#022c22',
+    '--brand-primary': '#10b981',
+    '--brand-glow': 'rgba(16, 185, 129, 0.35)',
+    '--theme-page-bg': 'linear-gradient(135deg, #090d16 0%, #0f172a 50%, #131d31 100%)',
   },
 };
 
@@ -203,11 +273,19 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const applyThemeVariables = (themeId: ThemeId) => {
     const root = document.documentElement;
+    const currentOption = THEME_OPTIONS.find((t) => t.id === themeId) || THEME_OPTIONS[0];
     const scale = THEME_SCALES[themeId] || THEME_SCALES.emerald;
+
     Object.entries(scale).forEach(([prop, val]) => {
       root.style.setProperty(prop, val);
     });
+
     root.setAttribute('data-theme', themeId);
+    // Explicitly apply background to document body and root
+    root.style.setProperty('--theme-page-bg', currentOption.pageBg);
+    document.body.style.background = currentOption.pageBg;
+    document.body.style.minHeight = '100vh';
+    document.body.style.color = currentOption.textColor;
   };
 
   useEffect(() => {
