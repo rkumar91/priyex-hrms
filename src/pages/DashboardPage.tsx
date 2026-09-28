@@ -8,6 +8,8 @@ import {
   Users,
   UserCheck,
   Calendar,
+  CalendarCheck,
+  ClipboardCheck,
   CircleDollarSign,
   TrendingUp,
   Clock,
@@ -15,8 +17,12 @@ import {
   CheckCircle2,
   AlertTriangle,
   ArrowUpRight,
+  ArrowRight,
   UserPlus,
   FileCheck,
+  FileText,
+  Headphones,
+  Sparkles,
   X,
   AlertCircle
 } from 'lucide-react';
@@ -63,19 +69,121 @@ export const DashboardPage: React.FC = () => {
     fetchDepts();
   }, []);
 
-  const stats = [
-    { title: 'Total Employees', value: '1,248', change: '+12%', icon: Users, color: 'from-emerald-500 to-teal-600', link: '/employees' },
-    { title: 'Present Today', value: '1,180', change: '94.5%', icon: UserCheck, color: 'from-teal-500 to-cyan-600', link: '/attendance' },
-    { title: 'On Leave', value: '42', change: '3.3%', icon: Calendar, color: 'from-amber-500 to-orange-500', link: '/attendance' },
-    { title: 'Monthly Payroll', value: '₹ 84.5 L', change: '+4.2%', icon: CircleDollarSign, color: 'from-emerald-600 to-emerald-800', link: '/payroll' },
+  // Admin / HR company-wide metrics
+  const adminStats = [
+    {
+      title: 'Total Employees',
+      value: '1,248',
+      unit: 'Active Staff',
+      footer: '+12% vs last quarter',
+      dotColor: 'bg-emerald-500',
+      icon: Users,
+      color: 'from-emerald-500 to-teal-600',
+      progress: 88,
+      link: '/employees'
+    },
+    {
+      title: 'Present Today',
+      value: '1,180',
+      unit: '/ 1,248 Staff',
+      footer: '94.5% daily attendance',
+      dotColor: 'bg-teal-500',
+      icon: UserCheck,
+      color: 'from-teal-500 to-cyan-600',
+      progress: 94.5,
+      link: '/attendance'
+    },
+    {
+      title: 'Staff On Leave',
+      value: '42',
+      unit: 'Planned',
+      footer: '3.3% daily leave rate',
+      dotColor: 'bg-amber-500',
+      icon: Calendar,
+      color: 'from-amber-500 to-orange-500',
+      progress: 15,
+      link: '/attendance'
+    },
+    {
+      title: 'Monthly Payroll',
+      prefix: '₹',
+      value: '84.5 L',
+      unit: 'Gross',
+      footer: '+4.2% disbursement run',
+      dotColor: 'bg-emerald-600',
+      icon: CircleDollarSign,
+      color: 'from-emerald-600 to-teal-700',
+      progress: 100,
+      link: '/payroll'
+    },
   ];
 
-  const recentActivities = [
+  // Employee personal self-service metrics
+  const employeeStats = [
+    {
+      title: 'Days Present',
+      value: '21',
+      unit: '/ 22 Days',
+      footer: '95.5% on-time attendance',
+      dotColor: 'bg-emerald-500',
+      icon: CalendarCheck,
+      color: 'from-emerald-500 to-teal-600',
+      progress: 95.5,
+      link: '/attendance'
+    },
+    {
+      title: 'Leave Balance',
+      value: '14',
+      unit: 'Days Available',
+      footer: '14 of 18 annual leaves remaining',
+      dotColor: 'bg-teal-500',
+      icon: Calendar,
+      color: 'from-teal-500 to-cyan-600',
+      progress: 77.7,
+      link: '/attendance'
+    },
+    {
+      title: 'Latest Net Pay',
+      prefix: '₹',
+      value: '82,500',
+      unit: '/ month',
+      footer: 'Credited on Aug 31',
+      dotColor: 'bg-blue-500',
+      icon: CircleDollarSign,
+      color: 'from-blue-600 to-indigo-600',
+      progress: 100,
+      link: '/payroll'
+    },
+    {
+      title: 'Active Requests',
+      value: '1',
+      unit: 'In Review',
+      footer: 'Casual leave awaiting approval',
+      dotColor: 'bg-amber-500',
+      icon: ClipboardCheck,
+      color: 'from-amber-500 to-orange-500',
+      progress: 50,
+      link: '/requests'
+    },
+  ];
+
+  const stats = isManagerOrAdmin ? adminStats : employeeStats;
+
+  const adminActivities = [
     { id: 1, type: 'Employee Onboarded', title: 'Rajesh Kumar joined as Lead Frontend Engineer', time: '10 mins ago', icon: UserPlus, iconColor: 'text-emerald-600 bg-emerald-50' },
     { id: 2, type: 'Leave Approved', title: 'Priya Sharma - Annual Leave (3 Days)', time: '25 mins ago', icon: CheckCircle2, iconColor: 'text-teal-600 bg-teal-50' },
     { id: 3, type: 'Payroll Run', title: 'September 2026 Payroll Draft generated for 1,248 employees', time: '1 hour ago', icon: FileCheck, iconColor: 'text-cyan-600 bg-cyan-50' },
     { id: 4, type: 'Attendance Alert', title: '5 Missed Punchouts flagged for verification', time: '2 hours ago', icon: AlertTriangle, iconColor: 'text-amber-600 bg-amber-50' },
   ];
+
+  const employeeActivities = [
+    { id: 1, type: 'Leave Request', title: 'Casual Leave request submitted for Oct 2 — Pending Manager Approval', time: 'Today', icon: Clock, iconColor: 'text-amber-600 bg-amber-50' },
+    { id: 2, type: 'Attendance Recorded', title: 'Biometric punch-in recorded today at 09:14 AM — On time', time: '09:14 AM', icon: CheckCircle2, iconColor: 'text-emerald-600 bg-emerald-50' },
+    { id: 3, type: 'Payslip Released', title: 'August 2026 Monthly Salary Statement generated & ready for download', time: 'Yesterday', icon: FileCheck, iconColor: 'text-cyan-600 bg-cyan-50' },
+    { id: 4, type: 'HR Support', title: 'PF & UAN query responded by HR Specialist', time: '2 days ago', icon: CheckCircle2, iconColor: 'text-teal-600 bg-teal-50' },
+  ];
+
+  const recentActivities = isManagerOrAdmin ? adminActivities : employeeActivities;
 
   // Onboard Employee Handler
   const handleCreateSubmit = async (e: React.FormEvent) => {
@@ -151,7 +259,7 @@ export const DashboardPage: React.FC = () => {
                 : 'Access your employee profile, attendance calendar, shift schedules, and apply for leave applications.'}
             </p>
           </div>
-          {isManagerOrAdmin && (
+          {isManagerOrAdmin ? (
             <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
               <button
                 type="button"
@@ -169,33 +277,89 @@ export const DashboardPage: React.FC = () => {
                 <span>Add Employee</span>
               </button>
             </div>
+          ) : (
+            <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
+              <button
+                type="button"
+                onClick={() => navigate('/attendance')}
+                className="px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs sm:text-sm font-semibold border border-white/20 transition cursor-pointer flex items-center gap-1.5"
+              >
+                <CalendarCheck className="w-4 h-4 text-emerald-300" />
+                <span>Apply for Leave</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate('/payroll')}
+                className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs sm:text-sm shadow-lg shadow-emerald-500/30 transition flex items-center gap-2 cursor-pointer"
+              >
+                <FileText className="w-4 h-4" />
+                <span>View Payslips</span>
+              </button>
+            </div>
           )}
         </div>
       </div>
 
 
       {/* KPI Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {stats.map((stat, idx) => {
           const Icon = stat.icon;
           return (
             <div
               key={idx}
               onClick={() => navigate(stat.link)}
-              className="glass-card rounded-2xl p-6 relative overflow-hidden group cursor-pointer hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
+              className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-xs hover:shadow-xl hover:border-emerald-500/40 hover:-translate-y-1 transition-all duration-300 relative group cursor-pointer flex flex-col justify-between overflow-hidden"
             >
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">{stat.title}</span>
-                <div className={`w-10 h-10 rounded-xl bg-gradient-to-tr ${stat.color} flex items-center justify-center text-white shadow-md`}>
-                  <Icon className="w-5 h-5" />
+              {/* Ambient Hover Glow */}
+              <div className={`absolute -right-8 -top-8 w-28 h-28 bg-gradient-to-br ${stat.color} opacity-5 group-hover:opacity-15 rounded-full blur-2xl transition-all duration-300 pointer-events-none`}></div>
+
+              {/* Card Header Row: Title & Styled Icon */}
+              <div>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider truncate">
+                    {stat.title}
+                  </span>
+                  <div className={`w-10 h-10 rounded-2xl bg-gradient-to-tr ${stat.color} text-white flex items-center justify-center shadow-md shadow-slate-200 group-hover:scale-110 transition-transform duration-300 shrink-0`}>
+                    <Icon className="w-5 h-5" />
+                  </div>
+                </div>
+
+                {/* Main Metric Value Row */}
+                <div className="mt-3.5 flex items-baseline gap-1.5 flex-wrap">
+                  {stat.prefix && (
+                    <span className="text-xl font-bold text-slate-400">
+                      {stat.prefix}
+                    </span>
+                  )}
+                  <span className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight tabular-nums">
+                    {stat.value}
+                  </span>
+                  {stat.unit && (
+                    <span className="text-xs sm:text-sm font-semibold text-slate-400">
+                      {stat.unit}
+                    </span>
+                  )}
                 </div>
               </div>
-              <div className="mt-4 flex items-baseline justify-between">
-                <span className="text-3xl font-extrabold text-slate-900">{stat.value}</span>
-                <span className="text-xs font-bold text-emerald-600 flex items-center gap-0.5 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                  {stat.change}
-                  <ArrowUpRight className="w-3 h-3" />
-                </span>
+
+              {/* Card Footer: Progress Bar (if present) + Clean Status Indicator */}
+              <div className="mt-5 pt-3 border-t border-slate-100 flex flex-col gap-2">
+                {stat.progress !== undefined && (
+                  <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full bg-gradient-to-r ${stat.color}`}
+                      style={{ width: `${stat.progress}%` }}
+                    ></div>
+                  </div>
+                )}
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-[11px] font-medium text-slate-500 truncate flex items-center gap-1.5">
+                    <span className={`w-1.5 h-1.5 rounded-full ${stat.dotColor || 'bg-emerald-500'} shrink-0`}></span>
+                    <span className="truncate">{stat.footer}</span>
+                  </span>
+                  <ArrowRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-emerald-600 group-hover:translate-x-0.5 transition-all shrink-0 ml-1" />
+                </div>
               </div>
             </div>
           );
@@ -204,19 +368,24 @@ export const DashboardPage: React.FC = () => {
 
       {/* Two Column Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Recent Activity Log */}
+        {/* Activity Log / Personal Timeline */}
         <div className="lg:col-span-2 glass-panel rounded-3xl p-6">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
               <Clock className="w-5 h-5 text-emerald-600" />
-              <h2 className="text-lg font-bold text-slate-900">Live System Activity</h2>
+              <h2 className="text-lg font-bold text-slate-900">
+                {isManagerOrAdmin ? 'Live System Activity' : 'My Recent Activity & Timeline'}
+              </h2>
             </div>
-            <button
-              onClick={() => navigate('/audit-logs')}
-              className="text-xs font-bold text-emerald-600 hover:text-emerald-700 cursor-pointer"
-            >
-              View All
-            </button>
+            {isManagerOrAdmin && (
+              <button
+                type="button"
+                onClick={() => navigate('/audit-logs')}
+                className="text-xs font-bold text-emerald-600 hover:text-emerald-700 cursor-pointer"
+              >
+                View All
+              </button>
+            )}
           </div>
 
           <div className="space-y-4">
@@ -240,32 +409,109 @@ export const DashboardPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Quick Actions & System Info */}
+        {/* Quick Actions & System / Self-Service Hub */}
         <div className="space-y-6">
-          <div className="glass-panel rounded-3xl p-6">
-            <h3 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
-              <Building className="w-5 h-5 text-emerald-600" />
-              <span>Company Scope</span>
-            </h3>
-            <div className="space-y-3 text-xs text-slate-600">
-              <div className="flex justify-between py-2 border-b border-slate-200">
-                <span className="text-slate-500 font-medium">Primary Entity</span>
-                <span className="font-bold text-slate-900">Priyex Software Pvt Ltd</span>
-              </div>
-              <div className="flex justify-between py-2 border-b border-slate-200">
-                <span className="text-slate-500 font-medium">Active Branches</span>
-                <span className="font-bold text-emerald-700">4 (Bengaluru, Mumbai, Delhi, Remote)</span>
-              </div>
-              <div className="flex justify-between py-2 border-b border-slate-200">
-                <span className="text-slate-500 font-medium">Database Schema</span>
-                <span className="font-mono font-bold text-emerald-600">hrms_db (PostgreSQL 14+)</span>
-              </div>
-              <div className="flex justify-between py-2">
-                <span className="text-slate-500 font-medium">Flyway Migrations</span>
-                <span className="font-mono font-bold text-slate-800">V1 to V6 Applied</span>
+          {isManagerOrAdmin ? (
+            <div className="glass-panel rounded-3xl p-6">
+              <h3 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
+                <Building className="w-5 h-5 text-emerald-600" />
+                <span>Company Scope</span>
+              </h3>
+              <div className="space-y-3 text-xs text-slate-600">
+                <div className="flex justify-between py-2 border-b border-slate-200">
+                  <span className="text-slate-500 font-medium">Primary Entity</span>
+                  <span className="font-bold text-slate-900">Priyex Software Pvt Ltd</span>
+                </div>
+                <div className="flex justify-between py-2 border-b border-slate-200">
+                  <span className="text-slate-500 font-medium">Active Branches</span>
+                  <span className="font-bold text-emerald-700">4 (Bengaluru, Mumbai, Delhi, Remote)</span>
+                </div>
+                <div className="flex justify-between py-2 border-b border-slate-200">
+                  <span className="text-slate-500 font-medium">Database Schema</span>
+                  <span className="font-mono font-bold text-emerald-600">hrms_db (PostgreSQL 14+)</span>
+                </div>
+                <div className="flex justify-between py-2">
+                  <span className="text-slate-500 font-medium">Flyway Migrations</span>
+                  <span className="font-mono font-bold text-slate-800">V1 to V13 Applied</span>
+                </div>
               </div>
             </div>
-          </div>
+          ) : (
+            <div className="glass-panel rounded-3xl p-6 space-y-4">
+              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-emerald-600" />
+                <span>Quick Self-Service Hub</span>
+              </h3>
+              <div className="space-y-2.5">
+                <button
+                  type="button"
+                  onClick={() => navigate('/attendance')}
+                  className="w-full text-left p-3 rounded-2xl bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 transition flex items-center justify-between group cursor-pointer"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-xl bg-emerald-100 text-emerald-700">
+                      <CalendarCheck className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-900 group-hover:text-emerald-700 transition">Apply for Leave</h4>
+                      <p className="text-[11px] text-slate-500">Submit paid time off or casual leave</p>
+                    </div>
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-slate-400 group-hover:translate-x-1 group-hover:text-emerald-600 transition" />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => navigate('/payroll')}
+                  className="w-full text-left p-3 rounded-2xl bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 transition flex items-center justify-between group cursor-pointer"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-xl bg-teal-100 text-teal-700">
+                      <FileText className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-900 group-hover:text-emerald-700 transition">View My Payslips</h4>
+                      <p className="text-[11px] text-slate-500">Download monthly salary breakdown & tax</p>
+                    </div>
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-slate-400 group-hover:translate-x-1 group-hover:text-emerald-600 transition" />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => navigate('/requests')}
+                  className="w-full text-left p-3 rounded-2xl bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 transition flex items-center justify-between group cursor-pointer"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-xl bg-cyan-100 text-cyan-700">
+                      <ClipboardCheck className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-900 group-hover:text-emerald-700 transition">Profile Update Requests</h4>
+                      <p className="text-[11px] text-slate-500">Request address, phone or bank updates</p>
+                    </div>
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-slate-400 group-hover:translate-x-1 group-hover:text-emerald-600 transition" />
+                </button>
+              </div>
+
+              {/* Employee Account Summary */}
+              <div className="pt-3 border-t border-slate-200/80 text-[11px] text-slate-600 space-y-1.5">
+                <div className="flex justify-between">
+                  <span className="text-slate-500 font-medium">Portal Account ID:</span>
+                  <span className="font-mono font-bold text-slate-900">
+                    {user?.id ? `USR-${1000 + Number(user.id)}` : 'EMP-1001'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500 font-medium">Verification Status:</span>
+                  <span className="font-semibold text-emerald-700 flex items-center gap-1">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Active • Biometric Linked
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
