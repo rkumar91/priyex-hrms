@@ -49,11 +49,11 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen w-screen bg-gradient-to-br from-slate-900 via-slate-950 to-emerald-950 flex items-center justify-center p-4 relative overflow-hidden font-sans">
+    <div className="min-h-screen min-h-[100dvh] w-full bg-gradient-to-br from-slate-900 via-slate-950 to-emerald-950 flex items-center justify-center p-3.5 sm:p-6 py-6 safe-area-top safe-area-bottom relative overflow-x-hidden font-sans">
       {/* Dynamic Ambient Background Elements */}
-      <div className="absolute top-[-10%] left-[-5%] w-[550px] h-[550px] bg-emerald-500/15 rounded-full blur-[130px] pointer-events-none animate-pulse"></div>
-      <div className="absolute bottom-[-10%] right-[-5%] w-[600px] h-[600px] bg-teal-500/15 rounded-full blur-[140px] pointer-events-none"></div>
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-cyan-500/5 rounded-full blur-[160px] pointer-events-none"></div>
+      <div className="absolute top-[-10%] left-[-5%] w-[350px] sm:w-[550px] h-[350px] sm:h-[550px] bg-emerald-500/15 rounded-full blur-[100px] sm:blur-[130px] pointer-events-none animate-pulse"></div>
+      <div className="absolute bottom-[-10%] right-[-5%] w-[350px] sm:w-[600px] h-[350px] sm:h-[600px] bg-teal-500/15 rounded-full blur-[100px] sm:blur-[140px] pointer-events-none"></div>
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] sm:w-[700px] h-[400px] sm:h-[700px] bg-cyan-500/5 rounded-full blur-[120px] sm:blur-[160px] pointer-events-none"></div>
 
       {/* Decorative Subtle Grid Pattern */}
       <div
@@ -66,10 +66,10 @@ export const LoginPage: React.FC = () => {
 
       <div className="w-full max-w-[440px] relative z-10 animate-in fade-in zoom-in-95 duration-200">
         {/* Main Card */}
-        <div className="bg-white/95 backdrop-blur-xl border border-white/60 shadow-2xl shadow-black/40 rounded-[28px] p-8 sm:p-9 text-slate-900">
+        <div className="bg-white/95 backdrop-blur-xl border border-white/60 shadow-2xl shadow-black/40 rounded-2xl sm:rounded-[28px] p-5 sm:p-9 text-slate-900">
           
           {/* Logo & Brand Header */}
-          <BrandLogo size="lg" layout="col" className="mb-8" />
+          <BrandLogo size="lg" layout="col" className="mb-6 sm:mb-8" />
 
           {/* Error Alert */}
           {error && (
@@ -95,7 +95,7 @@ export const LoginPage: React.FC = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@company.com"
-                  className="w-full bg-slate-50/90 text-slate-900 placeholder:text-slate-400 rounded-xl pl-10 pr-4 py-2.5 sm:py-3 border border-slate-200 focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition text-sm font-medium"
+                  className="w-full bg-slate-50/90 text-slate-900 placeholder:text-slate-400 rounded-xl pl-10 pr-4 py-2.5 sm:py-3 border border-slate-200 focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition text-base sm:text-sm font-medium"
                 />
               </div>
             </div>
@@ -126,7 +126,7 @@ export const LoginPage: React.FC = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your account password"
-                  className="w-full bg-slate-50/90 text-slate-900 placeholder:text-slate-400 rounded-xl pl-10 pr-11 py-2.5 sm:py-3 border border-slate-200 focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition text-sm font-medium"
+                  className="w-full bg-slate-50/90 text-slate-900 placeholder:text-slate-400 rounded-xl pl-10 pr-11 py-2.5 sm:py-3 border border-slate-200 focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition text-base sm:text-sm font-medium"
                 />
                 <button
                   type="button"
