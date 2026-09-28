@@ -72,3 +72,36 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #10b981;
 }
+
+/* ── Enhanced Profile Dropdown Animation ── */
+@keyframes profileDropdownEnter {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.profile-dropdown-enter {
+  animation: profileDropdownEnter 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ── Gentle Status Ping (slower than default animate-ping) ── */
+@keyframes statusPing {
+  0% {
+    transform: scale(1);
+    opacity: 0.75;
+  }
+  75%, 100% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}
+
+.profile-status-ping {
+  animation: statusPing 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -43,6 +44,11 @@ export const LiveChatWidget: React.FC = () => {
   const { user } = useAuth();
   const { t } = useLanguage();
   const { currentThemeOption } = useTheme();
+  const location = useLocation();
+
+  // Flag: hide widget on Support Desk page (checked before render, after all hooks)
+  const isSupportDeskPage = location.pathname === '/support-desk';
+
   const [isOpen, setIsOpen] = useState(false);
   const [activeQuery, setActiveQuery] = useState<ActiveQuery | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -57,11 +63,16 @@ export const LiveChatWidget: React.FC = () => {
   const [formError, setFormError] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const userJustSentRef = useRef(false);
+  const prevMessageCountRef = useRef(0);
   const pollIntervalRef = useRef<any>(null);
 
-  // Scroll to bottom of message list
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  // Check if user is scrolled near the bottom (within 100px)
+  const isNearBottom = () => {
+    const el = messagesContainerRef.current;
+    if (!el) return false; // Don't auto-scroll if container not mounted
+    return el.scrollHeight - el.scrollTop - el.clientHeight < 100;
   };
 
   // Check for existing active query on mount and when opening
@@ -79,12 +90,19 @@ export const LiveChatWidget: React.FC = () => {
     }
   };
 
-  // Fetch messages for active query
+  // Fetch messages for active query (only update state if messages actually changed)
   const fetchMessages = async (queryId: number) => {
     try {
       const res: any = await api.get(`/hr-queries/${queryId}/messages`);
       if (res.success && Array.isArray(res.data)) {
-        setMessages(res.data);
+        setMessages((prev) => {
+          const lastPrevId = prev.length > 0 ? prev[prev.length - 1].id : null;
+          const lastNewId = res.data.length > 0 ? res.data[res.data.length - 1].id : null;
+          if (prev.length === res.data.length && lastPrevId === lastNewId) {
+            return prev; // Same reference — no re-render
+          }
+          return res.data;
+        });
       }
     } catch (e) {
       // Ignore poll error
@@ -106,7 +124,14 @@ export const LiveChatWidget: React.FC = () => {
         try {
           const statusRes: any = await api.get(`/hr-queries/${activeQuery.id}/messages`);
           if (statusRes.success && Array.isArray(statusRes.data)) {
-            setMessages(statusRes.data);
+            setMessages((prev) => {
+              const lastPrevId = prev.length > 0 ? prev[prev.length - 1].id : null;
+              const lastNewId = statusRes.data.length > 0 ? statusRes.data[statusRes.data.length - 1].id : null;
+              if (prev.length === statusRes.data.length && lastPrevId === lastNewId) {
+                return prev;
+              }
+              return statusRes.data;
+            });
           }
 
           // If waiting in pool, check if HR claimed it
@@ -130,7 +155,15 @@ export const LiveChatWidget: React.FC = () => {
   }, [activeQuery?.id, activeQuery?.status]);
 
   useEffect(() => {
-    scrollToBottom();
+    const hasNewMessages = messages.length !== prevMessageCountRef.current;
+    prevMessageCountRef.current = messages.length;
+
+    if (userJustSentRef.current) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      userJustSentRef.current = false;
+    } else if (hasNewMessages && isNearBottom()) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
   }, [messages]);
 
   // Submit initial query to HR pool
@@ -183,6 +216,7 @@ export const LiveChatWidget: React.FC = () => {
       messageText: text,
       createdAt: new Date().toISOString(),
     };
+    userJustSentRef.current = true;
     setMessages((prev) => [...prev, tempMsg]);
 
     try {
@@ -219,7 +253,11 @@ export const LiveChatWidget: React.FC = () => {
     { id: 'GENERAL', label: 'General Policy' },
   ];
 
+
   const isConnectedWithHr = activeQuery?.status === 'ACTIVE' && activeQuery.assignedHrName;
+
+  // Don't render the floating widget on the Support Desk page (avoids overlap with reply input)
+  if (isSupportDeskPage) return null;
 
   return (
     <div className="fixed bottom-20 lg:bottom-6 right-4 sm:right-6 z-40 select-none">
@@ -436,7 +474,7 @@ export const LiveChatWidget: React.FC = () => {
                 )}
 
                 {/* Messages Feed */}
-                <div className="flex-1 p-3.5 overflow-y-auto space-y-3">
+                <div ref={messagesContainerRef} className="flex-1 p-3.5 overflow-y-auto space-y-3">
                   {messages.map((msg) => {
                     const isMe = msg.senderType === 'EMPLOYEE';
                     const displaySender = msg.senderName === 'Employee' ? t('chat.employee', 'Employee') : msg.senderName;

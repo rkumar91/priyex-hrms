@@ -63,6 +63,16 @@ export const SupportDeskPage: React.FC = () => {
   const [historySearch, setHistorySearch] = useState('');
 
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+  const userJustSentRef = useRef(false);
+  const prevMessageCountRef = useRef(0);
+
+  // Check if user is scrolled near the bottom (within 100px)
+  const isNearBottom = () => {
+    const el = chatContainerRef.current;
+    if (!el) return false; // Don't auto-scroll if container not mounted
+    return el.scrollHeight - el.scrollTop - el.clientHeight < 100;
+  };
 
   // Fetch pool queries
   const fetchPool = async () => {
@@ -110,12 +120,20 @@ export const SupportDeskPage: React.FC = () => {
     }
   };
 
-  // Fetch messages for selected active chat
+  // Fetch messages for selected active chat (only update state if messages actually changed)
   const fetchSelectedMessages = async (queryId: number) => {
     try {
       const res: any = await api.get(`/hr-queries/${queryId}/messages`);
       if (res.success && Array.isArray(res.data)) {
-        setChatMessages(res.data);
+        setChatMessages((prev) => {
+          // Skip update if message count and last message ID are the same (avoids unnecessary re-renders)
+          const lastPrevId = prev.length > 0 ? prev[prev.length - 1].id : null;
+          const lastNewId = res.data.length > 0 ? res.data[res.data.length - 1].id : null;
+          if (prev.length === res.data.length && lastPrevId === lastNewId) {
+            return prev; // Same reference — no re-render
+          }
+          return res.data;
+        });
       }
     } catch (e) {
       // ignore
@@ -145,7 +163,16 @@ export const SupportDeskPage: React.FC = () => {
   }, [selectedChat]);
 
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const hasNewMessages = chatMessages.length !== prevMessageCountRef.current;
+    prevMessageCountRef.current = chatMessages.length;
+
+    // Only auto-scroll if user just sent a message, OR there are genuinely new messages and user is near bottom
+    if (userJustSentRef.current) {
+      chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      userJustSentRef.current = false;
+    } else if (hasNewMessages && isNearBottom()) {
+      chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
   }, [chatMessages]);
 
   // Claim query from pool
@@ -180,6 +207,7 @@ export const SupportDeskPage: React.FC = () => {
       messageText: text,
       createdAt: new Date().toISOString(),
     };
+    userJustSentRef.current = true;
     setChatMessages((prev) => [...prev, tempMsg]);
 
     try {
@@ -459,7 +487,7 @@ export const SupportDeskPage: React.FC = () => {
                 </div>
 
                 {/* Messages Body */}
-                <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-slate-50/30">
+                <div ref={chatContainerRef} className="flex-1 p-4 overflow-y-auto space-y-3 bg-slate-50/30">
                   {chatMessages.map((m) => {
                     const isHr = m.senderType === 'HR';
                     return (
