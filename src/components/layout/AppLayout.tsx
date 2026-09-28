@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
 import { BottomNav } from './BottomNav';
+import { LiveChatWidget } from '../chat/LiveChatWidget';
 
 export const AppLayout: React.FC = () => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -50,6 +51,9 @@ export const AppLayout: React.FC = () => {
 
         {/* Mobile Bottom Navigation Dock */}
         <BottomNav onOpenMenu={() => setIsMobileMenuOpen(true)} />
+
+        {/* Global Live HR Chat Floating Widget */}
+        <LiveChatWidget />
       </div>
     </div>
   );

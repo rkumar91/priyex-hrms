@@ -12,6 +12,7 @@ const PayrollPage = lazy(() => import('./pages/PayrollPage').then(m => ({ defaul
 const OrganizationPage = lazy(() => import('./pages/OrganizationPage').then(m => ({ default: m.OrganizationPage })));
 const UsersRolesPage = lazy(() => import('./pages/UsersRolesPage').then(m => ({ default: m.UsersRolesPage })));
 const AuditLogsPage = lazy(() => import('./pages/AuditLogsPage').then(m => ({ default: m.AuditLogsPage })));
+const SupportDeskPage = lazy(() => import('./pages/SupportDeskPage').then(m => ({ default: m.SupportDeskPage })));
 
 export const App: React.FC = () => {
   return (
@@ -26,6 +27,7 @@ export const App: React.FC = () => {
             <Route path="/attendance" element={<AttendancePage />} />
             <Route path="/payroll" element={<PayrollPage />} />
             <Route path="/organization" element={<OrganizationPage />} />
+            <Route path="/support-desk" element={<SupportDeskPage />} />
             <Route path="/admin/users" element={<UsersRolesPage />} />
             <Route path="/audit-logs" element={<AuditLogsPage />} />
           </Route>

@@ -1,6 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { BrandLogo } from '../common/BrandLogo';
+import { isHrAdmin } from '../../utils/rbac';
+import api from '../../api/client';
 import {
   Bell,
   Search,
@@ -12,7 +15,8 @@ import {
   Mail,
   IdCard,
   CheckCircle2,
-  Menu
+  Menu,
+  Headphones
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -22,7 +26,28 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
   const { user, logout } = useAuth();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [poolCount, setPoolCount] = useState<number>(0);
   const profileRef = useRef<HTMLDivElement>(null);
+
+  // Poll pool count if user is HR/Admin
+  useEffect(() => {
+    if (!isHrAdmin(user)) return;
+
+    const checkPool = async () => {
+      try {
+        const res: any = await api.get('/hr-queries/pool');
+        if (res.success && Array.isArray(res.data)) {
+          setPoolCount(res.data.length);
+        }
+      } catch (e) {
+        // ignore
+      }
+    };
+
+    checkPool();
+    const interval = setInterval(checkPool, 5000);
+    return () => clearInterval(interval);
+  }, [user]);
 
   // Close profile dropdown on click outside
   useEffect(() => {
@@ -77,6 +102,25 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
           <Building2 className="w-3.5 h-3.5 text-emerald-600" />
           <span>Priyex Software Enterprise</span>
         </div>
+
+        {/* HR Live Pool Alert Badge */}
+        {isHrAdmin(user) && (
+          <Link
+            to="/support-desk"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-900 text-xs font-bold transition cursor-pointer active:scale-95"
+            title="Live HR Support Desk Queue"
+          >
+            <Headphones className="w-3.5 h-3.5 text-amber-600" />
+            <span className="hidden sm:inline">Pool</span>
+            {poolCount > 0 ? (
+              <span className="bg-amber-600 text-white text-[10px] font-mono px-1.5 py-0.5 rounded-full animate-pulse">
+                {poolCount}
+              </span>
+            ) : (
+              <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+            )}
+          </Link>
+        )}
 
         {/* Notifications Button */}
         <button

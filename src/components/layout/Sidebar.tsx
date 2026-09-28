@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { canViewAuditLogs, canManageOrganization, canManageUserRoles } from '../../utils/rbac';
+import { canViewAuditLogs, canManageOrganization, canManageUserRoles, isHrAdmin } from '../../utils/rbac';
 import { BrandLogo } from '../common/BrandLogo';
 import {
   LayoutDashboard,
@@ -12,6 +12,7 @@ import {
   ShieldAlert,
   ClipboardCheck,
   UserCog,
+  Headphones,
   X
 } from 'lucide-react';
 
@@ -34,6 +35,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen = false, onCloseMob
   const navigationItems = [
     { name: 'Dashboard', path: '/', icon: LayoutDashboard, show: true },
     { name: 'Employees', path: '/employees', icon: Users, show: true },
+    { name: 'Live Support Desk', path: '/support-desk', icon: Headphones, show: isHrAdmin(user) },
     { name: 'Requests & Approvals', path: '/requests', icon: ClipboardCheck, show: true },
     { name: 'Attendance & Leave', path: '/attendance', icon: CalendarCheck, show: true },
     { name: 'Payroll & Compensation', path: '/payroll', icon: CircleDollarSign, show: true },
