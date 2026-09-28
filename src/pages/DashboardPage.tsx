@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
+import { useTheme } from '../context/ThemeContext';
 import { canManageEmployees } from '../utils/rbac';
 import api from '../api/client';
 import {
@@ -35,6 +37,8 @@ export interface Department {
 export const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useLanguage();
+  const { currentThemeOption } = useTheme();
   const isManagerOrAdmin = canManageEmployees(user);
 
   // Modals state
@@ -72,7 +76,7 @@ export const DashboardPage: React.FC = () => {
   // Admin / HR company-wide metrics
   const adminStats = [
     {
-      title: 'Total Employees',
+      title: t('dash.kpi.totalStaff', 'Total Staff'),
       value: '1,248',
       unit: 'Active Staff',
       footer: '+12% vs last quarter',
@@ -83,7 +87,7 @@ export const DashboardPage: React.FC = () => {
       link: '/employees'
     },
     {
-      title: 'Present Today',
+      title: t('dash.kpi.presentToday', 'Present Today'),
       value: '1,180',
       unit: '/ 1,248 Staff',
       footer: '94.5% daily attendance',
@@ -94,7 +98,7 @@ export const DashboardPage: React.FC = () => {
       link: '/attendance'
     },
     {
-      title: 'Staff On Leave',
+      title: t('dash.kpi.staffOnLeave', 'Staff On Leave'),
       value: '42',
       unit: 'Planned',
       footer: '3.3% daily leave rate',
@@ -105,7 +109,7 @@ export const DashboardPage: React.FC = () => {
       link: '/attendance'
     },
     {
-      title: 'Monthly Payroll',
+      title: t('dash.kpi.monthlyPayroll', 'Monthly Payroll'),
       prefix: '₹',
       value: '84.5 L',
       unit: 'Gross',
@@ -121,10 +125,10 @@ export const DashboardPage: React.FC = () => {
   // Employee personal self-service metrics
   const employeeStats = [
     {
-      title: 'Days Present',
+      title: t('dash.kpi.daysPresent', 'Days Present'),
       value: '21',
       unit: '/ 22 Days',
-      footer: '95.5% on-time attendance',
+      footer: `95.5% ${t('dash.kpi.onTime', 'on-time attendance')}`,
       dotColor: 'bg-emerald-500',
       icon: CalendarCheck,
       color: 'from-emerald-500 to-teal-600',
@@ -132,10 +136,10 @@ export const DashboardPage: React.FC = () => {
       link: '/attendance'
     },
     {
-      title: 'Leave Balance',
+      title: t('dash.kpi.leaveBalance', 'Leave Balance'),
       value: '14',
-      unit: 'Days Available',
-      footer: '14 of 18 annual leaves remaining',
+      unit: t('dash.kpi.daysAvailable', 'Days Available'),
+      footer: `14 of 18 ${t('dash.kpi.availableLeaves', 'annual leaves remaining')}`,
       dotColor: 'bg-teal-500',
       icon: Calendar,
       color: 'from-teal-500 to-cyan-600',
@@ -143,11 +147,11 @@ export const DashboardPage: React.FC = () => {
       link: '/attendance'
     },
     {
-      title: 'Latest Net Pay',
+      title: t('dash.kpi.latestNetPay', 'Latest Net Pay'),
       prefix: '₹',
       value: '82,500',
       unit: '/ month',
-      footer: 'Credited on Aug 31',
+      footer: t('dash.kpi.credited', 'Credited on Aug 31'),
       dotColor: 'bg-blue-500',
       icon: CircleDollarSign,
       color: 'from-blue-600 to-indigo-600',
@@ -155,10 +159,10 @@ export const DashboardPage: React.FC = () => {
       link: '/payroll'
     },
     {
-      title: 'Active Requests',
+      title: t('dash.kpi.activeRequests', 'Active Requests'),
       value: '1',
-      unit: 'In Review',
-      footer: 'Casual leave awaiting approval',
+      unit: t('dash.kpi.inReview', 'In Review'),
+      footer: t('dash.kpi.awaitingApproval', 'Casual leave awaiting approval'),
       dotColor: 'bg-amber-500',
       icon: ClipboardCheck,
       color: 'from-amber-500 to-orange-500',
@@ -243,17 +247,17 @@ export const DashboardPage: React.FC = () => {
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
       {/* Top Banner */}
-      <div className="relative rounded-2xl sm:rounded-3xl bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 text-white p-5 sm:p-8 overflow-hidden shadow-xl">
+      <div className={`relative rounded-2xl sm:rounded-3xl bg-gradient-to-r ${currentThemeOption.gradient} text-white p-5 sm:p-8 overflow-hidden shadow-xl transition-all duration-500`}>
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5 sm:gap-6">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-emerald-200 text-xs font-bold mb-2.5">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white/90 text-xs font-bold mb-2.5">
               <TrendingUp className="w-3.5 h-3.5" />
-              <span>{isManagerOrAdmin ? 'Q3 2026 Enterprise Overview' : 'Employee Self-Service Workspace'}</span>
+              <span>{isManagerOrAdmin ? 'Q3 2026 Enterprise Overview' : t('dash.enterprisePortal', 'Enterprise HR & Workforce Portal')}</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-              Welcome back, {user?.displayName || user?.fullName || (user?.roles?.includes('SUPER_ADMIN') ? 'Super Admin' : 'User')} 👋
+              {t('dash.welcomeBack', 'Welcome back')}, {user?.displayName || user?.fullName || (user?.roles?.includes('SUPER_ADMIN') ? 'Super Admin' : 'User')} 👋
             </h1>
-            <p className="text-emerald-100/90 text-xs sm:text-sm mt-2 max-w-xl">
+            <p className="text-white/80 text-xs sm:text-sm mt-2 max-w-xl">
               {isManagerOrAdmin
                 ? 'All systems nominal. Isolated PostgreSQL database hrms_db active with multi-tenant company isolation.'
                 : 'Access your employee profile, attendance calendar, shift schedules, and apply for leave applications.'}
@@ -266,15 +270,15 @@ export const DashboardPage: React.FC = () => {
                 onClick={handleDownloadSummary}
                 className="px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs sm:text-sm font-semibold border border-white/20 transition cursor-pointer"
               >
-                Download Summary
+                {t('dash.downloadReport', 'Download Summary')}
               </button>
               <button
                 type="button"
                 onClick={() => { setIsAddModalOpen(true); setFormError(null); }}
-                className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs sm:text-sm shadow-lg shadow-emerald-500/30 transition flex items-center gap-2 cursor-pointer"
+                className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-brand-500 hover:bg-brand-400 text-slate-950 font-bold text-xs sm:text-sm shadow-lg shadow-brand-500/30 transition flex items-center gap-2 cursor-pointer"
               >
                 <UserPlus className="w-4 h-4" />
-                <span>Add Employee</span>
+                <span>{t('dash.addEmployee', 'Add Employee')}</span>
               </button>
             </div>
           ) : (
@@ -284,16 +288,16 @@ export const DashboardPage: React.FC = () => {
                 onClick={() => navigate('/attendance')}
                 className="px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs sm:text-sm font-semibold border border-white/20 transition cursor-pointer flex items-center gap-1.5"
               >
-                <CalendarCheck className="w-4 h-4 text-emerald-300" />
-                <span>Apply for Leave</span>
+                <CalendarCheck className="w-4 h-4 text-white" />
+                <span>{t('dash.applyLeave', 'Apply for Leave')}</span>
               </button>
               <button
                 type="button"
                 onClick={() => navigate('/payroll')}
-                className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs sm:text-sm shadow-lg shadow-emerald-500/30 transition flex items-center gap-2 cursor-pointer"
+                className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-brand-500 hover:bg-brand-400 text-slate-950 font-bold text-xs sm:text-sm shadow-lg shadow-brand-500/30 transition flex items-center gap-2 cursor-pointer"
               >
                 <FileText className="w-4 h-4" />
-                <span>View Payslips</span>
+                <span>{t('dash.viewPayslips', 'View Payslips')}</span>
               </button>
             </div>
           )}

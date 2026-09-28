@@ -1,6 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
+import { LanguageDropdown } from '../common/LanguageDropdown';
+import { ThemeDropdown } from '../common/ThemeDropdown';
 import { BrandLogo } from '../common/BrandLogo';
 import { isHrAdmin } from '../../utils/rbac';
 import api from '../../api/client';
@@ -25,6 +28,7 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
   const { user, logout } = useAuth();
+  const { t } = useLanguage();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [poolCount, setPoolCount] = useState<number>(0);
   const profileRef = useRef<HTMLDivElement>(null);
@@ -88,30 +92,36 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
-              placeholder="Search directory, requests, records..."
-              className="w-full bg-slate-100 text-sm text-slate-900 placeholder-slate-400 rounded-xl pl-9 pr-4 py-2 border border-slate-200 focus:outline-none focus:bg-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition text-base sm:text-sm"
+              placeholder={t('header.searchPlaceholder', 'Search directory, requests, records...')}
+              className="w-full bg-slate-100 text-sm text-slate-900 placeholder-slate-400 rounded-xl pl-9 pr-4 py-2 border border-slate-200 focus:outline-none focus:bg-white focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition text-base sm:text-sm"
             />
           </div>
         </div>
       </div>
 
       {/* Right Controls */}
-      <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+      <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
         {/* Company Badge (Hidden on small mobile) */}
-        <div className="hidden xl:flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold">
-          <Building2 className="w-3.5 h-3.5 text-emerald-600" />
-          <span>Priyex Software Enterprise</span>
+        <div className="hidden xl:flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold">
+          <Building2 className="w-3.5 h-3.5 text-brand-600" />
+          <span>{t('header.companyName', 'Priyex Software Enterprise')}</span>
         </div>
+
+        {/* Local Language Selection Dropdown */}
+        <LanguageDropdown />
+
+        {/* Theme Color Dropdown */}
+        <ThemeDropdown />
 
         {/* HR Live Pool Alert Badge */}
         {isHrAdmin(user) && (
           <Link
             to="/support-desk"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-900 text-xs font-bold transition cursor-pointer active:scale-95"
+            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-900 text-xs font-bold transition cursor-pointer active:scale-95"
             title="Live HR Support Desk Queue"
           >
             <Headphones className="w-3.5 h-3.5 text-amber-600" />
-            <span className="hidden sm:inline">Pool</span>
+            <span className="hidden sm:inline">{t('header.supportPool', 'Pool')}</span>
             {poolCount > 0 ? (
               <span className="bg-amber-600 text-white text-[10px] font-mono px-1.5 py-0.5 rounded-full animate-pulse">
                 {poolCount}
@@ -129,30 +139,30 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
           className="p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 relative transition cursor-pointer"
         >
           <Bell className="w-5 h-5" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-brand-500"></span>
         </button>
 
         {/* User Profile Container */}
-        <div className="relative pl-1 sm:pl-3 border-l border-slate-200" ref={profileRef}>
+        <div className="relative pl-1 sm:pl-2 border-l border-slate-200" ref={profileRef}>
           <button
             type="button"
             onClick={() => setIsProfileOpen(!isProfileOpen)}
             className="flex items-center gap-2 sm:gap-3 p-1 rounded-xl hover:bg-slate-100/80 transition cursor-pointer group"
           >
             <div className="flex flex-col text-right hidden sm:flex">
-              <span className="text-sm font-semibold text-slate-900 group-hover:text-emerald-700 transition truncate max-w-[120px]">
+              <span className="text-sm font-semibold text-slate-900 group-hover:text-brand-600 transition truncate max-w-[120px]">
                 {displayName}
               </span>
-              <span className="text-[11px] text-emerald-600 flex items-center justify-end gap-1 font-semibold">
+              <span className="text-[11px] text-brand-600 flex items-center justify-end gap-1 font-semibold">
                 <ShieldCheck className="w-3 h-3" />
                 {primaryRole}
               </span>
             </div>
 
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-600 flex items-center justify-center text-white font-bold text-sm shadow-sm ring-2 ring-emerald-500/20 group-hover:ring-emerald-500/50 transition shrink-0">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-brand-600 flex items-center justify-center text-white font-bold text-sm shadow-sm ring-2 ring-brand-500/20 group-hover:ring-brand-500/50 transition shrink-0">
               {displayName ? displayName.charAt(0).toUpperCase() : <User className="w-4 h-4" />}
             </div>
-            <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${isProfileOpen ? 'rotate-180 text-emerald-600' : ''}`} />
+            <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${isProfileOpen ? 'rotate-180 text-brand-600' : ''}`} />
           </button>
 
           {/* Profile Details Dropdown Popover */}
@@ -160,7 +170,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
             <div className="absolute right-0 top-12 sm:top-14 w-[calc(100vw-2rem)] max-w-xs sm:w-80 bg-white border border-slate-200 rounded-2xl sm:rounded-3xl shadow-2xl z-50 p-4 sm:p-5 space-y-4 animate-in fade-in zoom-in-95 duration-150 text-slate-900">
               {/* Popover Header */}
               <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
-                <div className="w-11 h-11 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-600 flex items-center justify-center text-white text-base font-extrabold shadow-md shrink-0">
+                <div className="w-11 h-11 rounded-full bg-brand-600 flex items-center justify-center text-white text-base font-extrabold shadow-md shrink-0">
                   {displayName ? displayName.charAt(0).toUpperCase() : 'U'}
                 </div>
                 <div className="flex flex-col min-w-0">
@@ -178,9 +188,9 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
               <div className="space-y-2 text-xs bg-slate-50 p-3 rounded-xl sm:rounded-2xl border border-slate-200/80">
                 <div className="flex items-center justify-between py-1 border-b border-slate-200/60">
                   <span className="text-slate-500 font-semibold flex items-center gap-1.5">
-                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> System Role
+                    <ShieldCheck className="w-3.5 h-3.5 text-brand-600" /> System Role
                   </span>
-                  <span className="font-extrabold text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-md font-mono text-[11px]">
+                  <span className="font-extrabold text-brand-700 bg-brand-50 px-2 py-0.5 rounded-md font-mono text-[11px]">
                     {primaryRole}
                   </span>
                 </div>
@@ -194,10 +204,10 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
                 </div>
                 <div className="flex items-center justify-between py-1">
                   <span className="text-slate-500 font-semibold flex items-center gap-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> Session Status
+                    <CheckCircle2 className="w-3.5 h-3.5 text-brand-500" /> Session Status
                   </span>
-                  <span className="text-emerald-700 font-bold flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                  <span className="text-brand-700 font-bold flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-brand-500 animate-ping"></span>
                     Active Online
                   </span>
                 </div>
@@ -214,7 +224,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
                   className="w-full py-2.5 px-4 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer border border-rose-200"
                 >
                   <LogOut className="w-3.5 h-3.5" />
-                  <span>Sign Out Session</span>
+                  <span>{t('header.signOut', 'Sign Out Session')}</span>
                 </button>
               </div>
             </div>

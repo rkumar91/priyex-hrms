@@ -1,5 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
+import { useLanguage } from '../../context/LanguageContext';
 import {
   LayoutDashboard,
   Users,
@@ -13,11 +14,13 @@ interface BottomNavProps {
 }
 
 export const BottomNav: React.FC<BottomNavProps> = ({ onOpenMenu }) => {
+  const { t } = useLanguage();
+
   const tabs = [
-    { name: 'Dashboard', path: '/', icon: LayoutDashboard },
-    { name: 'Directory', path: '/employees', icon: Users },
-    { name: 'Requests', path: '/requests', icon: ClipboardCheck },
-    { name: 'Attendance', path: '/attendance', icon: CalendarCheck },
+    { name: t('nav.dashboard', 'Dashboard'), path: '/', icon: LayoutDashboard },
+    { name: t('nav.employees', 'Directory'), path: '/employees', icon: Users },
+    { name: t('nav.requests', 'Requests'), path: '/requests', icon: ClipboardCheck },
+    { name: t('nav.attendance', 'Attendance'), path: '/attendance', icon: CalendarCheck },
   ];
 
   return (
@@ -32,21 +35,21 @@ export const BottomNav: React.FC<BottomNavProps> = ({ onOpenMenu }) => {
               className={({ isActive }) =>
                 `flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all active:scale-95 ${
                   isActive
-                    ? 'text-emerald-700 font-bold'
+                    ? 'text-brand-700 font-bold'
                     : 'text-slate-500 hover:text-slate-800 font-medium'
                 }`
               }
             >
               {({ isActive }) => (
                 <>
-                  <div className={`p-1 rounded-lg transition-colors ${isActive ? 'bg-emerald-50 text-emerald-600' : ''}`}>
+                  <div className={`p-1 rounded-lg transition-colors ${isActive ? 'bg-brand-50 text-brand-600' : ''}`}>
                     <Icon className="w-5 h-5" />
                   </div>
                   <span className="text-[10px] tracking-tight mt-0.5 truncate max-w-full">
                     {tab.name}
                   </span>
                   {isActive && (
-                    <span className="w-1 h-1 rounded-full bg-emerald-600 -mt-0.5"></span>
+                    <span className="w-1 h-1 rounded-full bg-brand-600 -mt-0.5"></span>
                   )}
                 </>
               )}
@@ -65,7 +68,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ onOpenMenu }) => {
             <Menu className="w-5 h-5" />
           </div>
           <span className="text-[10px] tracking-tight mt-0.5">
-            More
+            {t('nav.more', 'More')}
           </span>
         </button>
       </div>

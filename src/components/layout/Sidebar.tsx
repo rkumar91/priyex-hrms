@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { canViewAuditLogs, canManageOrganization, canManageUserRoles, isHrAdmin } from '../../utils/rbac';
 import { BrandLogo } from '../common/BrandLogo';
 import {
@@ -23,6 +24,7 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen = false, onCloseMobile }) => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const location = useLocation();
 
   // Close mobile drawer on route change
@@ -33,15 +35,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen = false, onCloseMob
   }, [location.pathname]);
 
   const navigationItems = [
-    { name: 'Dashboard', path: '/', icon: LayoutDashboard, show: true },
-    { name: 'Employees', path: '/employees', icon: Users, show: true },
-    { name: 'Live Support Desk', path: '/support-desk', icon: Headphones, show: isHrAdmin(user) },
-    { name: 'Requests & Approvals', path: '/requests', icon: ClipboardCheck, show: true },
-    { name: 'Attendance & Leave', path: '/attendance', icon: CalendarCheck, show: true },
-    { name: 'Payroll & Compensation', path: '/payroll', icon: CircleDollarSign, show: true },
-    { name: 'Organization', path: '/organization', icon: Building, show: canManageOrganization(user) },
-    { name: 'User & Roles', path: '/admin/users', icon: UserCog, show: canManageUserRoles(user) },
-    { name: 'Audit & Compliance', path: '/audit-logs', icon: ShieldAlert, show: canViewAuditLogs(user) },
+    { name: t('nav.dashboard', 'Dashboard'), path: '/', icon: LayoutDashboard, show: true },
+    { name: t('nav.employees', 'Employees'), path: '/employees', icon: Users, show: true },
+    { name: t('nav.supportDesk', 'Live Support Desk'), path: '/support-desk', icon: Headphones, show: isHrAdmin(user) },
+    { name: t('nav.requests', 'Requests & Approvals'), path: '/requests', icon: ClipboardCheck, show: true },
+    { name: t('nav.attendance', 'Attendance & Leave'), path: '/attendance', icon: CalendarCheck, show: true },
+    { name: t('nav.payroll', 'Payroll & Compensation'), path: '/payroll', icon: CircleDollarSign, show: true },
+    { name: t('nav.organization', 'Organization'), path: '/organization', icon: Building, show: canManageOrganization(user) },
+    { name: t('nav.usersRoles', 'User & Roles'), path: '/admin/users', icon: UserCog, show: canManageUserRoles(user) },
+    { name: t('nav.auditLogs', 'Audit & Compliance'), path: '/audit-logs', icon: ShieldAlert, show: canViewAuditLogs(user) },
   ].filter(item => item.show);
 
   const sidebarContent = (
@@ -66,7 +68,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen = false, onCloseMob
         {/* Navigation Menu */}
         <nav className="p-4 space-y-1.5 overflow-y-auto max-h-[calc(100vh-140px)]">
           <div className="px-3 py-2 text-[11px] font-bold tracking-wider text-slate-400 uppercase">
-            Core Modules
+            {t('nav.coreModules', 'Core Modules')}
           </div>
           {navigationItems.map((item) => {
             const Icon = item.icon;
@@ -77,7 +79,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen = false, onCloseMob
                 onClick={onCloseMobile}
                 className={({ isActive }) =>
                   `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all group ${isActive
-                    ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md shadow-emerald-600/20 font-semibold'
+                    ? 'bg-brand-600 text-white shadow-md shadow-brand-500/25 font-semibold'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
                   }`
                 }
@@ -93,7 +95,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen = false, onCloseMob
       {/* Footer System Status */}
       <div className="p-4 border-t border-slate-200 m-3 rounded-2xl bg-slate-50 border-slate-200 safe-area-bottom">
         <div className="flex items-center gap-3">
-          <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0"></div>
+          <div className="w-2.5 h-2.5 rounded-full bg-brand-500 animate-pulse shrink-0"></div>
           <div className="flex flex-col min-w-0">
             <span className="text-xs font-semibold text-slate-800 truncate">Isolated DB Connected</span>
             <span className="text-[10px] text-slate-500 font-mono truncate">PostgreSQL (hrms_db)</span>

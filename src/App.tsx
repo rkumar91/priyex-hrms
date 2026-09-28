@@ -1,6 +1,8 @@
 import React, { lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
+import { LanguageProvider } from './context/LanguageContext';
 import { AppLayout } from './components/layout/AppLayout';
 import { LoginPage } from './pages/LoginPage';
 
@@ -17,23 +19,27 @@ const SupportDeskPage = lazy(() => import('./pages/SupportDeskPage').then(m => (
 export const App: React.FC = () => {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route element={<AppLayout />}>
-            <Route path="/" element={<DashboardPage />} />
-            <Route path="/employees" element={<EmployeesPage />} />
-            <Route path="/requests" element={<ProfileRequestsPage />} />
-            <Route path="/attendance" element={<AttendancePage />} />
-            <Route path="/payroll" element={<PayrollPage />} />
-            <Route path="/organization" element={<OrganizationPage />} />
-            <Route path="/support-desk" element={<SupportDeskPage />} />
-            <Route path="/admin/users" element={<UsersRolesPage />} />
-            <Route path="/audit-logs" element={<AuditLogsPage />} />
-          </Route>
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </AuthProvider>
+      <ThemeProvider>
+        <LanguageProvider>
+          <AuthProvider>
+            <Routes>
+              <Route path="/login" element={<LoginPage />} />
+              <Route element={<AppLayout />}>
+                <Route path="/" element={<DashboardPage />} />
+                <Route path="/employees" element={<EmployeesPage />} />
+                <Route path="/requests" element={<ProfileRequestsPage />} />
+                <Route path="/attendance" element={<AttendancePage />} />
+                <Route path="/payroll" element={<PayrollPage />} />
+                <Route path="/organization" element={<OrganizationPage />} />
+                <Route path="/support-desk" element={<SupportDeskPage />} />
+                <Route path="/admin/users" element={<UsersRolesPage />} />
+                <Route path="/audit-logs" element={<AuditLogsPage />} />
+              </Route>
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </AuthProvider>
+        </LanguageProvider>
+      </ThemeProvider>
     </BrowserRouter>
   );
 };
