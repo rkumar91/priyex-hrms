@@ -174,17 +174,73 @@ export const DashboardPage: React.FC = () => {
   const stats = isManagerOrAdmin ? adminStats : employeeStats;
 
   const adminActivities = [
-    { id: 1, type: 'Employee Onboarded', title: 'Rajesh Kumar joined as Lead Frontend Engineer', time: '10 mins ago', icon: UserPlus, iconColor: 'text-emerald-600 bg-emerald-50' },
-    { id: 2, type: 'Leave Approved', title: 'Priya Sharma - Annual Leave (3 Days)', time: '25 mins ago', icon: CheckCircle2, iconColor: 'text-teal-600 bg-teal-50' },
-    { id: 3, type: 'Payroll Run', title: 'September 2026 Payroll Draft generated for 1,248 employees', time: '1 hour ago', icon: FileCheck, iconColor: 'text-cyan-600 bg-cyan-50' },
-    { id: 4, type: 'Attendance Alert', title: '5 Missed Punchouts flagged for verification', time: '2 hours ago', icon: AlertTriangle, iconColor: 'text-amber-600 bg-amber-50' },
+    {
+      id: 1,
+      type: t('dash.act.onboarded', 'Employee Onboarded'),
+      title: t('dash.act.onboardedDesc', 'Rajesh Kumar joined as Lead Frontend Engineer'),
+      time: t('dash.act.time10m', '10 mins ago'),
+      icon: UserPlus,
+      iconColor: 'text-emerald-600 bg-emerald-50'
+    },
+    {
+      id: 2,
+      type: t('dash.act.leaveApproved', 'Leave Approved'),
+      title: t('dash.act.leaveApprovedDesc', 'Priya Sharma - Annual Leave (3 Days)'),
+      time: t('dash.act.time25m', '25 mins ago'),
+      icon: CheckCircle2,
+      iconColor: 'text-teal-600 bg-teal-50'
+    },
+    {
+      id: 3,
+      type: t('dash.act.payrollRun', 'Payroll Run'),
+      title: t('dash.act.payrollRunDesc', 'September 2026 Payroll Draft generated for 1,248 employees'),
+      time: t('dash.act.time1h', '1 hour ago'),
+      icon: FileCheck,
+      iconColor: 'text-cyan-600 bg-cyan-50'
+    },
+    {
+      id: 4,
+      type: t('dash.act.attendanceAlert', 'Attendance Alert'),
+      title: t('dash.act.attendanceAlertDesc', '5 Missed Punchouts flagged for verification'),
+      time: t('dash.act.time2h', '2 hours ago'),
+      icon: AlertTriangle,
+      iconColor: 'text-amber-600 bg-amber-50'
+    },
   ];
 
   const employeeActivities = [
-    { id: 1, type: 'Leave Request', title: 'Casual Leave request submitted for Oct 2 — Pending Manager Approval', time: 'Today', icon: Clock, iconColor: 'text-amber-600 bg-amber-50' },
-    { id: 2, type: 'Attendance Recorded', title: 'Biometric punch-in recorded today at 09:14 AM — On time', time: '09:14 AM', icon: CheckCircle2, iconColor: 'text-emerald-600 bg-emerald-50' },
-    { id: 3, type: 'Payslip Released', title: 'August 2026 Monthly Salary Statement generated & ready for download', time: 'Yesterday', icon: FileCheck, iconColor: 'text-cyan-600 bg-cyan-50' },
-    { id: 4, type: 'HR Support', title: 'PF & UAN query responded by HR Specialist', time: '2 days ago', icon: CheckCircle2, iconColor: 'text-teal-600 bg-teal-50' },
+    {
+      id: 1,
+      type: t('dash.act.leaveRequest', 'Leave Request'),
+      title: t('dash.act.leaveRequestDesc', 'Casual Leave request submitted for Oct 2 — Pending Manager Approval'),
+      time: t('dash.act.today', 'Today'),
+      icon: Clock,
+      iconColor: 'text-amber-600 bg-amber-50'
+    },
+    {
+      id: 2,
+      type: t('dash.act.attendanceRecorded', 'Attendance Recorded'),
+      title: t('dash.act.attendanceRecordedDesc', 'Biometric punch-in recorded today at 09:14 AM — On time'),
+      time: '09:14 AM',
+      icon: CheckCircle2,
+      iconColor: 'text-emerald-600 bg-emerald-50'
+    },
+    {
+      id: 3,
+      type: t('dash.act.payslipReleased', 'Payslip Released'),
+      title: t('dash.act.payslipReleasedDesc', 'August 2026 Monthly Salary Statement generated & ready for download'),
+      time: t('dash.act.yesterday', 'Yesterday'),
+      icon: FileCheck,
+      iconColor: 'text-cyan-600 bg-cyan-50'
+    },
+    {
+      id: 4,
+      type: t('dash.act.hrSupport', 'HR Support'),
+      title: t('dash.act.hrSupportDesc', 'PF & UAN query responded by HR Specialist'),
+      time: t('dash.act.time2d', '2 days ago'),
+      icon: CheckCircle2,
+      iconColor: 'text-teal-600 bg-teal-50'
+    },
   ];
 
   const recentActivities = isManagerOrAdmin ? adminActivities : employeeActivities;
