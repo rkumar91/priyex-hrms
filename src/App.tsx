@@ -1,16 +1,17 @@
-import React from 'react';
+import React, { lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { AppLayout } from './components/layout/AppLayout';
 import { LoginPage } from './pages/LoginPage';
-import { DashboardPage } from './pages/DashboardPage';
-import { EmployeesPage } from './pages/EmployeesPage';
-import { AttendancePage } from './pages/AttendancePage';
-import { PayrollPage } from './pages/PayrollPage';
-import { OrganizationPage } from './pages/OrganizationPage';
-import { AuditLogsPage } from './pages/AuditLogsPage';
-import { ProfileRequestsPage } from './pages/ProfileRequestsPage';
-import { UsersRolesPage } from './pages/UsersRolesPage';
+
+const DashboardPage = lazy(() => import('./pages/DashboardPage').then(m => ({ default: m.DashboardPage })));
+const EmployeesPage = lazy(() => import('./pages/EmployeesPage').then(m => ({ default: m.EmployeesPage })));
+const ProfileRequestsPage = lazy(() => import('./pages/ProfileRequestsPage').then(m => ({ default: m.ProfileRequestsPage })));
+const AttendancePage = lazy(() => import('./pages/AttendancePage').then(m => ({ default: m.AttendancePage })));
+const PayrollPage = lazy(() => import('./pages/PayrollPage').then(m => ({ default: m.PayrollPage })));
+const OrganizationPage = lazy(() => import('./pages/OrganizationPage').then(m => ({ default: m.OrganizationPage })));
+const UsersRolesPage = lazy(() => import('./pages/UsersRolesPage').then(m => ({ default: m.UsersRolesPage })));
+const AuditLogsPage = lazy(() => import('./pages/AuditLogsPage').then(m => ({ default: m.AuditLogsPage })));
 
 export const App: React.FC = () => {
   return (

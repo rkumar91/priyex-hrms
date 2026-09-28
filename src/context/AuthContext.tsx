@@ -26,12 +26,29 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<UserProfile | null>(() => {
+    const token = localStorage.getItem('accessToken');
+    if (!token) return null;
     const saved = localStorage.getItem('user');
     return saved ? JSON.parse(saved) : null;
   });
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  // Only show full loading screen if there is an active token but no cached user profile yet
+  const [isLoading, setIsLoading] = useState<boolean>(() => {
+    const token = localStorage.getItem('accessToken');
+    const saved = localStorage.getItem('user');
+    return Boolean(token && !saved);
+  });
 
   useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+    // If no token exists, the user is unauthenticated. Do NOT make an API call to /auth/me.
+    // This prevents unwanted 401 errors on the login page and eliminates initialization lag.
+    if (!token) {
+      setUser(null);
+      setIsLoading(false);
+      return;
+    }
+
     const checkAuth = async () => {
       try {
         const res: any = await api.get('/auth/me');
@@ -43,9 +60,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           };
           setUser(profile);
           localStorage.setItem('user', JSON.stringify(profile));
+        } else {
+          setUser(null);
+          localStorage.removeItem('user');
+          localStorage.removeItem('accessToken');
         }
       } catch (err) {
-        // Not authenticated
+        // Not authenticated or token expired
         setUser(null);
         localStorage.removeItem('user');
         localStorage.removeItem('accessToken');
