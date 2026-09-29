@@ -91,17 +91,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen = false, onCloseMob
           })}
         </nav>
       </div>
-
-      {/* Footer System Status */}
-      <div className="p-4 border-t border-slate-200 m-3 rounded-2xl bg-slate-50 border-slate-200 safe-area-bottom">
-        <div className="flex items-center gap-3">
-          <div className="w-2.5 h-2.5 rounded-full bg-brand-500 animate-pulse shrink-0"></div>
-          <div className="flex flex-col min-w-0">
-            <span className="text-xs font-semibold text-slate-800 truncate">{t('sidebar.dbConnected', 'Isolated DB Connected')}</span>
-            <span className="text-[10px] text-slate-500 font-mono truncate">PostgreSQL (hrms_db)</span>
-          </div>
-        </div>
-      </div>
     </div>
   );
 

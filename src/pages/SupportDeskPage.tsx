@@ -250,7 +250,7 @@ export const SupportDeskPage: React.FC = () => {
       {/* Top Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/90 shadow-sm">
         <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-600 flex items-center justify-center text-white shadow-md shadow-emerald-600/20">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-700 to-indigo-600 flex items-center justify-center text-white shadow-sm">
             <Headphones className="w-6 h-6" />
           </div>
           <div>
@@ -286,7 +286,7 @@ export const SupportDeskPage: React.FC = () => {
           onClick={() => setActiveTab('pool')}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer shrink-0 ${
             activeTab === 'pool'
-              ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
+              ? 'bg-blue-600 text-white shadow-sm'
               : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
@@ -294,7 +294,7 @@ export const SupportDeskPage: React.FC = () => {
           <span>Live Available Pool</span>
           {poolQueries.length > 0 && (
             <span className={`px-2 py-0.5 rounded-full text-xs font-mono ${
-              activeTab === 'pool' ? 'bg-white text-emerald-800' : 'bg-emerald-100 text-emerald-800'
+              activeTab === 'pool' ? 'bg-white text-blue-800' : 'bg-blue-100 text-blue-800'
             }`}>
               {poolQueries.length}
             </span>
@@ -306,7 +306,7 @@ export const SupportDeskPage: React.FC = () => {
           onClick={() => setActiveTab('active')}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer shrink-0 ${
             activeTab === 'active'
-              ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
+              ? 'bg-blue-600 text-white shadow-sm'
               : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
@@ -314,7 +314,7 @@ export const SupportDeskPage: React.FC = () => {
           <span>My Active Chats</span>
           {myChats.length > 0 && (
             <span className={`px-2 py-0.5 rounded-full text-xs font-mono ${
-              activeTab === 'active' ? 'bg-white text-emerald-800' : 'bg-slate-200 text-slate-800'
+              activeTab === 'active' ? 'bg-white text-blue-800' : 'bg-slate-200 text-slate-800'
             }`}>
               {myChats.length}
             </span>
@@ -326,7 +326,7 @@ export const SupportDeskPage: React.FC = () => {
           onClick={() => setActiveTab('history')}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer shrink-0 ${
             activeTab === 'history'
-              ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
+              ? 'bg-blue-600 text-white shadow-sm'
               : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
@@ -395,7 +395,7 @@ export const SupportDeskPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => handleClaimQuery(item)}
-                    className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-md shadow-emerald-600/20 transition flex items-center justify-center gap-2 cursor-pointer active:scale-98"
+                    className="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-sm transition flex items-center justify-center gap-2 cursor-pointer active:scale-98"
                   >
                     <UserCheck className="w-4 h-4" />
                     <span>Claim & Start Live Chat</span>
@@ -462,7 +462,7 @@ export const SupportDeskPage: React.FC = () => {
                 {/* Chat Top Banner */}
                 <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/50 shrink-0">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-600 text-white font-bold flex items-center justify-center text-sm shadow-sm">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-bold flex items-center justify-center text-sm shadow-sm">
                       {selectedChat.employeeName.charAt(0)}
                     </div>
                     <div>
@@ -470,7 +470,7 @@ export const SupportDeskPage: React.FC = () => {
                         {selectedChat.employeeName} ({selectedChat.employeeCode})
                       </h3>
                       <p className="text-xs text-slate-500 flex items-center gap-2">
-                        <span className="font-semibold text-emerald-700">{selectedChat.category}</span>
+                        <span className="font-semibold text-blue-600">{selectedChat.category}</span>
                         <span>•</span>
                         <span className="truncate max-w-xs">{selectedChat.subject}</span>
                       </p>
@@ -501,7 +501,7 @@ export const SupportDeskPage: React.FC = () => {
                         <div
                           className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-xs leading-relaxed shadow-xs ${
                             isHr
-                              ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-br-xs'
+                              ? 'bg-blue-600 text-white rounded-br-xs'
                               : 'bg-white text-slate-800 border border-slate-200 rounded-bl-xs'
                           }`}
                         >
@@ -537,12 +537,12 @@ export const SupportDeskPage: React.FC = () => {
                     value={replyText}
                     onChange={(e) => setReplyText(e.target.value)}
                     placeholder="Type your response to the employee..."
-                    className="flex-1 bg-slate-100 text-slate-900 text-xs rounded-xl px-3.5 py-2.5 border border-slate-200 focus:outline-none focus:bg-white focus:border-emerald-500 transition"
+                    className="flex-1 bg-slate-100 text-slate-900 text-xs rounded-xl px-3.5 py-2.5 border border-slate-200 focus:outline-none focus:bg-white focus:border-blue-500 transition"
                   />
                   <button
                     type="submit"
                     disabled={isSending || !replyText.trim()}
-                    className="p-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white transition disabled:opacity-50 cursor-pointer shadow-sm"
+                    className="p-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white transition disabled:opacity-50 cursor-pointer shadow-sm active:scale-95"
                   >
                     <Send className="w-4 h-4" />
                   </button>

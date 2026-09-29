@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-export type ThemeId = 'emerald' | 'indigo' | 'violet' | 'teal' | 'rose' | 'amber' | 'blue' | 'dark';
+export type ThemeId = 'sapphire' | 'indigo' | 'emerald' | 'violet' | 'teal' | 'rose' | 'amber' | 'blue' | 'dark';
 
 export interface ThemeOption {
   id: ThemeId;
@@ -19,17 +19,30 @@ export interface ThemeOption {
 
 export const THEME_OPTIONS: ThemeOption[] = [
   {
-    id: 'emerald',
-    name: 'Emerald Forest',
-    subtitle: 'Classic enterprise green (Default)',
-    previewColor: '#10b981',
-    primaryColor: '#059669',
-    badgeClass: 'bg-emerald-500',
-    gradientStyle: 'linear-gradient(135deg, #064e3b 0%, #047857 50%, #0f172a 100%)',
-    pageBg: 'linear-gradient(135deg, #f0fdf4 0%, #f8fafc 40%, #ecfdf5 100%)',
+    id: 'sapphire',
+    name: 'Enterprise Sapphire',
+    subtitle: 'Standard enterprise HRMS crystal blue & clean slate (Default)',
+    previewColor: '#2563eb',
+    primaryColor: '#2563eb',
+    badgeClass: 'bg-blue-600',
+    gradientStyle: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #eff6ff 100%)',
+    pageBg: '#f8fafc',
     cardBg: '#ffffff',
     textColor: '#0f172a',
-    accentClass: 'text-emerald-600',
+    accentClass: 'text-blue-600',
+  },
+  {
+    id: 'indigo',
+    name: 'Royal Indigo',
+    subtitle: 'Modern corporate deep blue',
+    previewColor: '#6366f1',
+    primaryColor: '#4f46e5',
+    badgeClass: 'bg-indigo-500',
+    gradientStyle: 'linear-gradient(135deg, #1e1b4b 0%, #3730a3 50%, #0f172a 100%)',
+    pageBg: 'linear-gradient(135deg, #eef2ff 0%, #f8faff 40%, #e0e7ff 100%)',
+    cardBg: '#ffffff',
+    textColor: '#0f172a',
+    accentClass: 'text-indigo-600',
   },
   {
     id: 'indigo',
@@ -126,6 +139,22 @@ export const THEME_OPTIONS: ThemeOption[] = [
 ];
 
 const THEME_SCALES: Record<ThemeId, Record<string, string>> = {
+  sapphire: {
+    '--brand-50': '#eff6ff',
+    '--brand-100': '#dbeafe',
+    '--brand-200': '#bfdbfe',
+    '--brand-300': '#93c5fd',
+    '--brand-400': '#60a5fa',
+    '--brand-500': '#3b82f6',
+    '--brand-600': '#2563eb',
+    '--brand-700': '#1d4ed8',
+    '--brand-800': '#1e40af',
+    '--brand-900': '#1e3a8a',
+    '--brand-950': '#172554',
+    '--brand-primary': '#2563eb',
+    '--brand-glow': 'rgba(37, 99, 235, 0.2)',
+    '--theme-page-bg': '#f8fafc',
+  },
   emerald: {
     '--brand-50': '#ecfdf5',
     '--brand-100': '#d1fae5',
@@ -267,14 +296,14 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setThemeState] = useState<ThemeId>(() => {
-    const saved = localStorage.getItem('priyex_hrms_theme') as ThemeId;
-    return saved && THEME_SCALES[saved] ? saved : 'emerald';
+    localStorage.setItem('priyex_hrms_theme', 'sapphire');
+    return 'sapphire';
   });
 
   const applyThemeVariables = (themeId: ThemeId) => {
     const root = document.documentElement;
     const currentOption = THEME_OPTIONS.find((t) => t.id === themeId) || THEME_OPTIONS[0];
-    const scale = THEME_SCALES[themeId] || THEME_SCALES.emerald;
+    const scale = THEME_SCALES[themeId] || THEME_SCALES.sapphire;
 
     Object.entries(scale).forEach(([prop, val]) => {
       root.style.setProperty(prop, val);

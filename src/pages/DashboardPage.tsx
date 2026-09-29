@@ -73,6 +73,21 @@ export const DashboardPage: React.FC = () => {
     fetchDepts();
   }, []);
 
+  // Greeting helper based on time of day
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return t('dash.goodMorning', 'Good morning');
+    if (hour < 17) return t('dash.goodAfternoon', 'Good afternoon');
+    return t('dash.goodEvening', 'Good evening');
+  };
+
+  const currentDateDisplay = new Intl.DateTimeFormat('en-US', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric'
+  }).format(new Date());
+
   // Admin / HR company-wide metrics
   const adminStats = [
     {
@@ -80,9 +95,11 @@ export const DashboardPage: React.FC = () => {
       value: '1,248',
       unit: 'Active Staff',
       footer: '+12% vs last quarter',
-      dotColor: 'bg-emerald-500',
+      badge: '+12% QoQ',
       icon: Users,
-      color: 'from-emerald-500 to-teal-600',
+      color: 'from-blue-600 to-indigo-600',
+      iconBg: 'bg-blue-50 text-blue-600 border border-blue-200/60',
+      progressColor: '#2563eb',
       progress: 88,
       link: '/employees'
     },
@@ -91,9 +108,11 @@ export const DashboardPage: React.FC = () => {
       value: '1,180',
       unit: '/ 1,248 Staff',
       footer: '94.5% daily attendance',
-      dotColor: 'bg-teal-500',
+      badge: '94.5%',
       icon: UserCheck,
-      color: 'from-teal-500 to-cyan-600',
+      color: 'from-emerald-500 to-teal-600',
+      iconBg: 'bg-emerald-50 text-emerald-600 border border-emerald-200/60',
+      progressColor: '#10b981',
       progress: 94.5,
       link: '/attendance'
     },
@@ -102,9 +121,11 @@ export const DashboardPage: React.FC = () => {
       value: '42',
       unit: 'Planned',
       footer: '3.3% daily leave rate',
-      dotColor: 'bg-amber-500',
+      badge: '3.3%',
       icon: Calendar,
       color: 'from-amber-500 to-orange-500',
+      iconBg: 'bg-amber-50 text-amber-600 border border-amber-200/60',
+      progressColor: '#f59e0b',
       progress: 15,
       link: '/attendance'
     },
@@ -114,9 +135,11 @@ export const DashboardPage: React.FC = () => {
       value: '84.5 L',
       unit: 'Gross',
       footer: '+4.2% disbursement run',
-      dotColor: 'bg-emerald-600',
+      badge: '+4.2%',
       icon: CircleDollarSign,
-      color: 'from-emerald-600 to-teal-700',
+      color: 'from-indigo-600 to-violet-600',
+      iconBg: 'bg-indigo-50 text-indigo-600 border border-indigo-200/60',
+      progressColor: '#4f46e5',
       progress: 100,
       link: '/payroll'
     },
@@ -129,9 +152,11 @@ export const DashboardPage: React.FC = () => {
       value: '21',
       unit: '/ 22 Days',
       footer: `95.5% ${t('dash.kpi.onTime', 'on-time attendance')}`,
-      dotColor: 'bg-emerald-500',
+      badge: '95.5%',
       icon: CalendarCheck,
       color: 'from-emerald-500 to-teal-600',
+      iconBg: 'bg-emerald-50 text-emerald-600 border border-emerald-200/60',
+      progressColor: '#10b981',
       progress: 95.5,
       link: '/attendance'
     },
@@ -140,9 +165,11 @@ export const DashboardPage: React.FC = () => {
       value: '14',
       unit: t('dash.kpi.daysAvailable', 'Days Available'),
       footer: `14 of 18 ${t('dash.kpi.availableLeaves', 'annual leaves remaining')}`,
-      dotColor: 'bg-teal-500',
+      badge: '14 Days',
       icon: Calendar,
       color: 'from-teal-500 to-cyan-600',
+      iconBg: 'bg-teal-50 text-teal-600 border border-teal-200/60',
+      progressColor: '#14b8a6',
       progress: 77.7,
       link: '/attendance'
     },
@@ -152,9 +179,11 @@ export const DashboardPage: React.FC = () => {
       value: '82,500',
       unit: '/ month',
       footer: t('dash.kpi.credited', 'Credited on Aug 31'),
-      dotColor: 'bg-blue-500',
+      badge: 'Credited',
       icon: CircleDollarSign,
       color: 'from-blue-600 to-indigo-600',
+      iconBg: 'bg-indigo-50 text-indigo-600 border border-indigo-200/60',
+      progressColor: '#6366f1',
       progress: 100,
       link: '/payroll'
     },
@@ -163,9 +192,11 @@ export const DashboardPage: React.FC = () => {
       value: '1',
       unit: t('dash.kpi.inReview', 'In Review'),
       footer: t('dash.kpi.awaitingApproval', 'Casual leave awaiting approval'),
-      dotColor: 'bg-amber-500',
+      badge: '1 Pending',
       icon: ClipboardCheck,
       color: 'from-amber-500 to-orange-500',
+      iconBg: 'bg-amber-50 text-amber-600 border border-amber-200/60',
+      progressColor: '#f59e0b',
       progress: 50,
       link: '/requests'
     },
@@ -302,60 +333,83 @@ export const DashboardPage: React.FC = () => {
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
-      {/* Top Banner */}
+      {/* Top Banner: Crystal Clear Enterprise Hero */}
       <div
-        className="relative rounded-2xl sm:rounded-3xl text-white p-5 sm:p-8 overflow-hidden shadow-xl transition-all duration-500"
-        style={{ background: currentThemeOption.gradientStyle }}
+        className="relative rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 shadow-xs p-6 sm:p-7 overflow-hidden transition-all duration-300"
       >
+        {/* Subtle executive blue ambient glow */}
+        <div className="absolute top-0 right-0 w-96 h-full bg-gradient-to-l from-blue-50/70 via-slate-50/30 to-transparent pointer-events-none" />
+
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5 sm:gap-6">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white/90 text-xs font-bold mb-2.5">
-              <TrendingUp className="w-3.5 h-3.5" />
-              <span>{isManagerOrAdmin ? t('dash.q3Overview', 'Q3 2026 Enterprise Overview') : t('dash.enterprisePortal', 'Enterprise HR & Workforce Portal')}</span>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200/70 text-blue-700 text-xs font-bold mb-2.5">
+              <TrendingUp className="w-3.5 h-3.5 text-blue-600" />
+              <span>{isManagerOrAdmin ? t('dash.q3Overview', 'Enterprise HR Operations') : t('dash.enterprisePortal', 'Employee Workforce Portal')}</span>
+              <span className="w-1 h-1 rounded-full bg-blue-400" />
+              <span className="font-medium text-slate-500">{currentDateDisplay}</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-              {t('dash.welcomeBack', 'Welcome back')}, {user?.displayName || user?.fullName || (user?.roles?.includes('SUPER_ADMIN') ? 'Super Admin' : 'User')} 👋
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+              {getGreeting()},{' '}
+              <span className="text-blue-600 font-extrabold">
+                {user?.displayName || user?.fullName || (user?.roles?.includes('SUPER_ADMIN') ? 'Super Admin' : 'Colleague')}
+              </span> 👋
             </h1>
-            <p className="text-white/80 text-xs sm:text-sm mt-2 max-w-xl">
+            <p className="text-slate-600 text-xs sm:text-sm mt-1.5 max-w-xl leading-relaxed">
               {isManagerOrAdmin
-                ? t('dash.adminSubtitle', 'All systems nominal. Isolated PostgreSQL database hrms_db active with multi-tenant company isolation.')
-                : t('dash.empSubtitle', 'Access your employee profile, attendance calendar, shift schedules, and apply for leave applications.')}
+                ? t('dash.adminSubtitle', 'Real-time overview of workforce operations, attendance health, and payroll across all branch locations.')
+                : t('dash.empSubtitle', 'Your centralized portal for attendance verification, leave planning, and monthly salary statements.')}
             </p>
+
+            {/* Live Inline Metric Badges */}
+            <div className="flex flex-wrap items-center gap-2 mt-4 pt-3.5 border-t border-slate-100 text-xs font-semibold">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-50 border border-slate-200/80 text-slate-700">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span>1,248 {t('dash.chipStaff', 'Active Staff')}</span>
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-50 border border-slate-200/80 text-slate-700">
+                <span className="w-2 h-2 rounded-full bg-blue-500" />
+                <span>94.5% {t('dash.chipPresent', 'Present Today')}</span>
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-50 border border-slate-200/80 text-slate-700">
+                <span className="w-2 h-2 rounded-full bg-indigo-500" />
+                <span>4 {t('dash.chipBranches', 'Branches')}</span>
+              </span>
+            </div>
           </div>
+
+          {/* Action buttons (Clean Enterprise Blue + White) */}
           {isManagerOrAdmin ? (
-            <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
+            <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 shrink-0">
               <button
                 type="button"
                 onClick={handleDownloadSummary}
-                className="px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs sm:text-sm font-semibold border border-white/20 transition cursor-pointer"
+                className="px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 text-xs sm:text-sm font-semibold border border-slate-200 hover:border-slate-300 transition-all cursor-pointer shadow-xs active:scale-95"
               >
                 {t('dash.downloadReport', 'Download Summary')}
               </button>
               <button
                 type="button"
                 onClick={() => { setIsAddModalOpen(true); setFormError(null); }}
-                style={{ background: currentThemeOption.primaryColor }}
-                className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl hover:opacity-90 text-white font-bold text-xs sm:text-sm shadow-lg transition flex items-center gap-2 cursor-pointer"
+                className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs sm:text-sm shadow-sm transition-all flex items-center gap-2 cursor-pointer active:scale-95"
               >
                 <UserPlus className="w-4 h-4" />
                 <span>{t('dash.addEmployee', 'Add Employee')}</span>
               </button>
             </div>
           ) : (
-            <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
+            <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 shrink-0">
               <button
                 type="button"
                 onClick={() => navigate('/attendance')}
-                className="px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs sm:text-sm font-semibold border border-white/20 transition cursor-pointer flex items-center gap-1.5"
+                className="px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 text-xs sm:text-sm font-semibold border border-slate-200 transition-all cursor-pointer shadow-xs flex items-center gap-1.5 active:scale-95"
               >
-                <CalendarCheck className="w-4 h-4 text-white" />
+                <CalendarCheck className="w-4 h-4 text-slate-600" />
                 <span>{t('dash.applyLeave', 'Apply for Leave')}</span>
               </button>
               <button
                 type="button"
                 onClick={() => navigate('/payroll')}
-                style={{ background: currentThemeOption.primaryColor }}
-                className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl hover:opacity-90 text-white font-bold text-xs sm:text-sm shadow-lg transition flex items-center gap-2 cursor-pointer"
+                className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs sm:text-sm shadow-sm transition-all flex items-center gap-2 cursor-pointer active:scale-95"
               >
                 <FileText className="w-4 h-4" />
                 <span>{t('dash.viewPayslips', 'View Payslips')}</span>
@@ -365,10 +419,9 @@ export const DashboardPage: React.FC = () => {
         </div>
       </div>
 
-
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        {stats.map((stat, idx) => {
+        {stats.map((stat: any, idx) => {
           const Icon = stat.icon;
           return (
             <div
@@ -376,11 +429,10 @@ export const DashboardPage: React.FC = () => {
               onClick={() => navigate(stat.link)}
               className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-xs hover:shadow-xl hover:border-slate-300 hover:-translate-y-1 transition-all duration-300 relative group cursor-pointer flex flex-col justify-between overflow-hidden"
             >
-              {/* Ambient Hover Glow with theme color */}
+              {/* Top ambient glow */}
               <div
-                className="absolute -right-8 -top-8 w-28 h-28 opacity-10 group-hover:opacity-20 rounded-full blur-2xl transition-all duration-300 pointer-events-none"
-                style={{ background: currentThemeOption.primaryColor }}
-              ></div>
+                className={`absolute -right-6 -top-6 w-24 h-24 rounded-full opacity-10 group-hover:opacity-20 blur-xl transition-all duration-300 pointer-events-none bg-gradient-to-br ${stat.color}`}
+              />
 
               {/* Card Header Row: Title & Styled Icon */}
               <div>
@@ -389,15 +441,14 @@ export const DashboardPage: React.FC = () => {
                     {stat.title}
                   </span>
                   <div
-                    className="w-10 h-10 rounded-2xl text-white flex items-center justify-center shadow-md shadow-slate-200 group-hover:scale-110 transition-transform duration-300 shrink-0"
-                    style={{ background: currentThemeOption.primaryColor }}
+                    className={`w-10 h-10 rounded-2xl flex items-center justify-center shadow-xs group-hover:scale-110 transition-transform duration-300 shrink-0 ${stat.iconBg}`}
                   >
                     <Icon className="w-5 h-5" />
                   </div>
                 </div>
 
                 {/* Main Metric Value Row */}
-                <div className="mt-3.5 flex items-baseline gap-1.5 flex-wrap">
+                <div className="mt-3 flex items-baseline gap-1.5 flex-wrap">
                   {stat.prefix && (
                     <span className="text-xl font-bold text-slate-400">
                       {stat.prefix}
@@ -419,26 +470,29 @@ export const DashboardPage: React.FC = () => {
                 {stat.progress !== undefined && (
                   <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
                     <div
-                      className="h-full rounded-full transition-all duration-500"
-                      style={{
-                        width: `${stat.progress}%`,
-                        background: currentThemeOption.primaryColor
-                      }}
-                    ></div>
+                      className={`h-full rounded-full transition-all duration-500 bg-gradient-to-r ${stat.color}`}
+                      style={{ width: `${stat.progress}%` }}
+                    />
                   </div>
                 )}
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-[11px] font-medium text-slate-500 truncate flex items-center gap-1.5">
                     <span
                       className="w-1.5 h-1.5 rounded-full shrink-0"
-                      style={{ background: currentThemeOption.primaryColor }}
-                    ></span>
+                      style={{ background: stat.progressColor || currentThemeOption.primaryColor }}
+                    />
                     <span className="truncate">{stat.footer}</span>
                   </span>
-                  <ArrowRight
-                    className="w-3.5 h-3.5 text-slate-300 group-hover:translate-x-0.5 transition-all shrink-0 ml-1"
-                    style={{ color: currentThemeOption.primaryColor }}
-                  />
+                  {stat.badge ? (
+                    <span className="px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-600 shrink-0 ml-1">
+                      {stat.badge}
+                    </span>
+                  ) : (
+                    <ArrowRight
+                      className="w-3.5 h-3.5 text-slate-300 group-hover:translate-x-0.5 transition-all shrink-0 ml-1"
+                      style={{ color: currentThemeOption.primaryColor }}
+                    />
+                  )}
                 </div>
               </div>
             </div>
@@ -496,26 +550,36 @@ export const DashboardPage: React.FC = () => {
         <div className="space-y-6">
           {isManagerOrAdmin ? (
             <div className="glass-panel rounded-3xl p-6">
-              <h3 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
-                <Building className="w-5 h-5" style={{ color: currentThemeOption.primaryColor }} />
-                <span>{t('dash.companyScope', 'Company Scope')}</span>
-              </h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                  <Building className="w-5 h-5 text-emerald-600" />
+                  <span>{t('dash.enterpriseInsights', 'Enterprise Insights')}</span>
+                </h3>
+                <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200/60">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  Operational
+                </span>
+              </div>
               <div className="space-y-3 text-xs text-slate-600">
-                <div className="flex justify-between py-2 border-b border-slate-200">
+                <div className="flex justify-between py-2 border-b border-slate-100">
                   <span className="text-slate-500 font-medium">{t('dash.primaryEntity', 'Primary Entity')}</span>
                   <span className="font-bold text-slate-900">Priyex Software Pvt Ltd</span>
                 </div>
-                <div className="flex justify-between py-2 border-b border-slate-200">
-                  <span className="text-slate-500 font-medium">{t('dash.activeBranches', 'Active Branches')}</span>
-                  <span className="font-bold" style={{ color: currentThemeOption.primaryColor }}>4 (Bengaluru, Mumbai, Delhi, Remote)</span>
+                <div className="flex justify-between py-2 border-b border-slate-100">
+                  <span className="text-slate-500 font-medium">{t('dash.activeBranches', 'Active Locations')}</span>
+                  <span className="font-bold text-slate-800">4 (BLR, BOM, DEL, Remote)</span>
                 </div>
-                <div className="flex justify-between py-2 border-b border-slate-200">
-                  <span className="text-slate-500 font-medium">{t('dash.databaseSchema', 'Database Schema')}</span>
-                  <span className="font-mono font-bold" style={{ color: currentThemeOption.primaryColor }}>hrms_db (PostgreSQL 14+)</span>
+                <div className="flex justify-between py-2 border-b border-slate-100">
+                  <span className="text-slate-500 font-medium">{t('dash.newJoiners', 'New Joiners (This Month)')}</span>
+                  <span className="font-bold text-emerald-600">+14 Employees</span>
+                </div>
+                <div className="flex justify-between py-2 border-b border-slate-100">
+                  <span className="text-slate-500 font-medium">{t('dash.pendingApprovals', 'Pending Approvals')}</span>
+                  <span className="font-bold text-amber-600">7 Requests Pending</span>
                 </div>
                 <div className="flex justify-between py-2">
-                  <span className="text-slate-500 font-medium">{t('dash.flywayMigrations', 'Flyway Migrations')}</span>
-                  <span className="font-mono font-bold text-slate-800">V1 to V13 Applied</span>
+                  <span className="text-slate-500 font-medium">{t('dash.payrollSchedule', 'Next Payroll Run')}</span>
+                  <span className="font-bold text-slate-800">30 Sep 2026 (Scheduled)</span>
                 </div>
               </div>
             </div>

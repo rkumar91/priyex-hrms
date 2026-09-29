@@ -14,7 +14,7 @@ export const AuditLogsPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
-            <ShieldAlert className="w-6 h-6 text-emerald-600" />
+            <ShieldAlert className="w-6 h-6 text-blue-600" />
             <span>Immutable Audit Trail</span>
           </h1>
           <p className="text-sm text-slate-500 mt-1 font-normal">
@@ -42,12 +42,12 @@ export const AuditLogsPage: React.FC = () => {
             </thead>
             <tbody className="divide-y divide-slate-100 text-sm">
               {auditEntries.map((log) => (
-                <tr key={log.id} className="hover:bg-emerald-50/30 transition-colors">
+                <tr key={log.id} className="hover:bg-blue-50/20 transition-colors">
                   <td className="py-3.5 px-5 font-mono text-xs text-slate-600 font-medium">
                     {log.timestamp}
                   </td>
-                  <td className="py-3.5 px-5 font-semibold text-emerald-700">
-                    <span className="px-2.5 py-1 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold tracking-wide">
+                  <td className="py-3.5 px-5 font-semibold text-blue-700">
+                    <span className="px-2.5 py-1 rounded-md bg-blue-50 border border-blue-200 text-blue-800 text-xs font-bold tracking-wide">
                       {log.action}
                     </span>
                   </td>

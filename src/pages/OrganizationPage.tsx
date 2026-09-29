@@ -14,7 +14,7 @@ export const OrganizationPage: React.FC = () => {
       {/* Page Header Aligned Across All Modules */}
       <div className="border-b border-slate-200 pb-5">
         <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
-          <Building className="w-6 h-6 text-emerald-600" />
+          <Building className="w-6 h-6 text-blue-600" />
           <span>Organization Architecture</span>
         </h1>
         <p className="text-sm text-slate-500 mt-1 font-normal">
@@ -26,13 +26,13 @@ export const OrganizationPage: React.FC = () => {
         {/* Company Info Card */}
         <div className="bg-white rounded-2xl p-6 border border-slate-200/90 shadow-sm space-y-5">
           <div className="flex items-center gap-4">
-            <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-700 shadow-xs">
+            <div className="p-3.5 rounded-2xl bg-blue-50 border border-blue-200 text-blue-600 shadow-xs">
               <Building className="w-6 h-6" />
             </div>
             <div>
               <h2 className="text-lg font-bold text-slate-900 tracking-tight">Priyex Software Enterprise</h2>
               <div className="mt-1">
-                <span className="px-2.5 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-mono font-bold">
+                <span className="px-2.5 py-0.5 rounded-md bg-blue-50 text-blue-800 border border-blue-200 text-xs font-mono font-bold">
                   CIN: U72900KA2023PTC123456
                 </span>
               </div>
@@ -54,12 +54,12 @@ export const OrganizationPage: React.FC = () => {
         {/* Departments List Card */}
         <div className="bg-white rounded-2xl p-6 border border-slate-200/90 shadow-sm space-y-4">
           <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2 tracking-tight">
-            <Layers className="w-5 h-5 text-teal-600" />
+            <Layers className="w-5 h-5 text-blue-600" />
             <span>Active Departments</span>
           </h2>
           <div className="space-y-3">
             {departments.map((dept, idx) => (
-              <div key={idx} className="flex items-center justify-between p-4 rounded-xl bg-slate-50/80 border border-slate-200 text-sm hover:border-emerald-300 transition-colors">
+              <div key={idx} className="flex items-center justify-between p-4 rounded-xl bg-slate-50/80 border border-slate-200 text-sm hover:border-blue-300 transition-colors">
                 <div>
                   <p className="font-bold text-slate-900">{dept.name}</p>
                   <p className="text-xs text-slate-500 font-normal mt-0.5">
@@ -67,7 +67,7 @@ export const OrganizationPage: React.FC = () => {
                   </p>
                 </div>
                 <div className="text-right space-y-1">
-                  <span className="inline-block px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-800 font-bold border border-emerald-200 text-xs">
+                  <span className="inline-block px-2.5 py-1 rounded-md bg-blue-50 text-blue-800 font-bold border border-blue-200 text-xs">
                     {dept.count} Members
                   </span>
                   <p className="text-[11px] text-slate-500 font-mono">

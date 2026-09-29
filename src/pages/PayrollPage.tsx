@@ -368,7 +368,7 @@ export const PayrollPage: React.FC = () => {
         {canManage && (
           <button
             onClick={() => setIsExecuteModalOpen(true)}
-            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-sm font-semibold shadow-md shadow-emerald-600/20 transition flex items-center gap-2 cursor-pointer self-start sm:self-auto group"
+            className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold shadow-sm transition flex items-center gap-2 cursor-pointer self-start sm:self-auto group active:scale-95"
           >
             <Play className="w-4 h-4 fill-white transition-transform group-hover:scale-110" />
             <span>Execute Monthly Payroll Run</span>
@@ -396,7 +396,7 @@ export const PayrollPage: React.FC = () => {
             onClick={() => setActiveTab('OPERATIONS')}
             className={`px-4 py-2.5 text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-2 ${
               activeTab === 'OPERATIONS'
-                ? 'bg-emerald-600 text-white shadow-xs'
+                ? 'bg-blue-600 text-white shadow-xs'
                 : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
             }`}
           >
@@ -408,7 +408,7 @@ export const PayrollPage: React.FC = () => {
             onClick={() => setActiveTab('COMPENSATION_REGISTER')}
             className={`px-4 py-2.5 text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-2 ${
               activeTab === 'COMPENSATION_REGISTER'
-                ? 'bg-emerald-600 text-white shadow-xs'
+                ? 'bg-blue-600 text-white shadow-xs'
                 : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
             }`}
           >
@@ -420,7 +420,7 @@ export const PayrollPage: React.FC = () => {
             onClick={() => setActiveTab('MY_CTC_PAYSLIPS')}
             className={`px-4 py-2.5 text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-2 ${
               activeTab === 'MY_CTC_PAYSLIPS'
-                ? 'bg-emerald-600 text-white shadow-xs'
+                ? 'bg-blue-600 text-white shadow-xs'
                 : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
             }`}
           >
@@ -658,7 +658,7 @@ export const PayrollPage: React.FC = () => {
           {/* Explanation Banner */}
           <div className="p-4 rounded-2xl bg-emerald-50/80 border border-emerald-200 text-xs text-emerald-950 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
             <div className="flex items-center gap-3">
-              <Sparkles className="w-5 h-5 text-emerald-600 shrink-0" />
+              <Sparkles className="w-5 h-5 text-blue-600 shrink-0" />
               <div>
                 <p className="font-bold">Dynamic Salary Formula Applied Automatically</p>
                 <p className="text-slate-600 mt-0.5">
@@ -668,7 +668,7 @@ export const PayrollPage: React.FC = () => {
             </div>
             <button
               onClick={() => setIsExecuteModalOpen(true)}
-              className="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs shrink-0 transition cursor-pointer flex items-center gap-1.5 self-start sm:self-auto"
+              className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shrink-0 transition cursor-pointer flex items-center gap-1.5 self-start sm:self-auto shadow-sm shadow-blue-600/20"
             >
               <Play className="w-3.5 h-3.5 fill-white" />
               <span>Re-Run Payroll Now</span>
@@ -761,28 +761,28 @@ export const PayrollPage: React.FC = () => {
       {activeTab === 'MY_CTC_PAYSLIPS' && (
         <div className="space-y-6">
           {/* Employee Compensation Banner */}
-          <div className="bg-gradient-to-r from-emerald-800 to-teal-800 text-white rounded-3xl p-6 shadow-md relative overflow-hidden">
-            <div className="absolute right-0 top-0 translate-x-8 -translate-y-8 w-64 h-64 bg-emerald-600/20 rounded-full blur-2xl pointer-events-none" />
+          <div className="bg-gradient-to-r from-slate-900 via-blue-950 to-blue-900 text-white rounded-3xl p-6 shadow-sm relative overflow-hidden border border-slate-800">
+            <div className="absolute right-0 top-0 translate-x-8 -translate-y-8 w-64 h-64 bg-blue-500/10 rounded-full blur-2xl pointer-events-none" />
             
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
               <div>
-                <span className="text-emerald-300 font-mono text-xs font-semibold uppercase tracking-wider">
+                <span className="text-blue-300 font-mono text-xs font-semibold uppercase tracking-wider">
                   Employee Salary Master Record • {myCtc.employeeCode}
                 </span>
                 <h2 className="text-2xl font-extrabold mt-1">{myCtc.employeeName}</h2>
-                <p className="text-xs text-emerald-100 mt-0.5">
+                <p className="text-xs text-blue-100 mt-0.5">
                   {myCtc.designationName || 'Lead Architect'} • {myCtc.departmentName || 'Engineering'}
                 </p>
               </div>
 
               <div className="flex items-center gap-6 bg-white/10 backdrop-blur-xs p-4 rounded-2xl border border-white/15">
                 <div>
-                  <span className="text-[11px] text-emerald-200 uppercase font-semibold">Annual Cost to Company</span>
+                  <span className="text-[11px] text-blue-200 uppercase font-semibold">Annual Cost to Company</span>
                   <p className="text-2xl font-black text-white font-mono">{formatINR(myCtc.annualCtc)}</p>
-                  <span className="text-[10px] text-emerald-300">₹ {(Number(myCtc.annualCtc) / 100000).toFixed(1)} Lakhs / year</span>
+                  <span className="text-[10px] text-blue-300">₹ {(Number(myCtc.annualCtc) / 100000).toFixed(1)} Lakhs / year</span>
                 </div>
                 <div className="border-l border-white/20 pl-6">
-                  <span className="text-[11px] text-emerald-200 uppercase font-semibold">Net Take-Home Salary</span>
+                  <span className="text-[11px] text-blue-200 uppercase font-semibold">Net Take-Home Salary</span>
                   <p className="text-2xl font-black text-emerald-300 font-mono">{formatINR(myCtc.monthlyNetSalary)}</p>
                   <span className="text-[10px] text-emerald-200">Deposited monthly in bank</span>
                 </div>
@@ -944,7 +944,7 @@ export const PayrollPage: React.FC = () => {
                       <td className="py-4 px-5 text-right">
                         <button
                           onClick={() => setSelectedPayslip(ps)}
-                          className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition cursor-pointer inline-flex items-center gap-1.5 shadow-xs shadow-emerald-600/20"
+                          className="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold transition cursor-pointer inline-flex items-center gap-1.5 shadow-xs shadow-blue-600/20"
                         >
                           <Eye className="w-3.5 h-3.5" />
                           <span>View Payslip</span>
@@ -1066,7 +1066,7 @@ export const PayrollPage: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isExecuting}
-                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold transition cursor-pointer shadow-md shadow-emerald-600/20 flex items-center gap-2"
+                  className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition cursor-pointer shadow-sm flex items-center gap-2 active:scale-95 disabled:opacity-50"
                 >
                   <Play className="w-4 h-4 fill-white" />
                   <span>{isExecuting ? 'Processing Payroll Run...' : `Run & Disburse for ${MONTH_NAMES[executeForm.payrollMonth]} ${executeForm.payrollYear}`}</span>
@@ -1351,7 +1351,7 @@ export const PayrollPage: React.FC = () => {
         <div className="w-full max-w-2xl bg-white border border-slate-200 rounded-3xl shadow-2xl relative text-slate-900 animate-in fade-in zoom-in-95 duration-150 overflow-hidden">
           <div className="flex items-center justify-between p-5 border-b border-slate-200 bg-slate-50/50">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center font-bold">
+              <div className="w-10 h-10 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-bold shadow-sm shadow-blue-600/20">
                 <Calculator className="w-5 h-5" />
               </div>
               <div>
@@ -1502,7 +1502,7 @@ export const PayrollPage: React.FC = () => {
                 type="button"
                 disabled={isUpdatingCtc || editCtcValue <= 0}
                 onClick={() => handleSaveCtc(true)}
-                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold transition cursor-pointer shadow-md shadow-emerald-600/20 flex items-center justify-center gap-2 disabled:opacity-50"
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition cursor-pointer shadow-sm flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95"
               >
                 <Play className="w-3.5 h-3.5 fill-white" />
                 <span>{isUpdatingCtc ? 'Updating & Running...' : 'Save & Re-Run Current Month'}</span>

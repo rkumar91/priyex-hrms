@@ -341,15 +341,15 @@ export const UsersRolesPage: React.FC = () => {
                     const hasAccount = !!emp.userId;
 
                     return (
-                      <tr key={emp.employeeId} className="hover:bg-emerald-50/20 transition-colors">
+                      <tr key={emp.employeeId} className="hover:bg-blue-50/20 transition-colors">
                         <td className="py-3.5 px-5">
                           <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-600 flex items-center justify-center text-white font-bold text-xs shadow-xs">
+                            <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold text-xs shadow-xs">
                               {emp.firstName ? emp.firstName.charAt(0) : 'E'}
                             </div>
                             <div>
                               <span className="font-semibold text-slate-900 block">{emp.firstName} {emp.lastName}</span>
-                              <span className="text-[11px] font-mono font-semibold text-emerald-700">{emp.employeeCode}</span>
+                              <span className="text-[11px] font-mono font-semibold text-blue-700">{emp.employeeCode}</span>
                             </div>
                           </div>
                         </td>
@@ -453,10 +453,10 @@ export const UsersRolesPage: React.FC = () => {
                   filteredUsers.map((u) => {
                     const primaryRole = u.roles?.[0] || 'EMPLOYEE';
                     return (
-                      <tr key={u.id} className="hover:bg-emerald-50/20 transition-colors">
+                      <tr key={u.id} className="hover:bg-blue-50/20 transition-colors">
                         <td className="py-3.5 px-5">
                           <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-600 flex items-center justify-center text-white font-bold text-xs shadow-xs">
+                            <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold text-xs shadow-xs">
                               {u.displayName ? u.displayName.charAt(0) : 'U'}
                             </div>
                             <div>
@@ -561,13 +561,13 @@ export const UsersRolesPage: React.FC = () => {
                     onClick={() => setSelectedRole(item.role)}
                     className={`block p-3 rounded-2xl border cursor-pointer transition ${
                       selectedRole === item.role
-                        ? 'bg-emerald-50/80 border-emerald-500 ring-1 ring-emerald-500'
+                        ? 'bg-blue-50/80 border-blue-500 ring-1 ring-blue-500'
                         : 'bg-white border-slate-200 hover:bg-slate-50'
                     }`}
                   >
                     <div className="flex items-center justify-between">
                       <span className="font-bold text-slate-900 text-xs">{item.title}</span>
-                      <span className="font-mono text-[10px] text-emerald-700 font-bold">{item.role}</span>
+                      <span className="font-mono text-[10px] text-blue-700 font-bold">{item.role}</span>
                     </div>
                     <p className="text-[11px] text-slate-500 mt-0.5 leading-normal">{item.desc}</p>
                   </label>
@@ -585,7 +585,7 @@ export const UsersRolesPage: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isUpdating}
-                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-semibold flex items-center gap-2 shadow-md shadow-emerald-600/20 cursor-pointer transition"
+                  className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold flex items-center gap-2 shadow-sm cursor-pointer transition active:scale-95 disabled:opacity-50"
                 >
                   {isUpdating ? 'Saving...' : 'Apply Role to Employee'}
                 </button>
@@ -630,13 +630,13 @@ export const UsersRolesPage: React.FC = () => {
                     onClick={() => setSelectedRole(item.role)}
                     className={`block p-3 rounded-2xl border cursor-pointer transition ${
                       selectedRole === item.role
-                        ? 'bg-emerald-50/80 border-emerald-500 ring-1 ring-emerald-500'
+                        ? 'bg-blue-50/80 border-blue-500 ring-1 ring-blue-500'
                         : 'bg-white border-slate-200 hover:bg-slate-50'
                     }`}
                   >
                     <div className="flex items-center justify-between">
                       <span className="font-bold text-slate-900 text-xs">{item.title}</span>
-                      <span className="font-mono text-[10px] text-emerald-700 font-bold">{item.role}</span>
+                      <span className="font-mono text-[10px] text-blue-700 font-bold">{item.role}</span>
                     </div>
                     <p className="text-[11px] text-slate-500 mt-0.5 leading-normal">{item.desc}</p>
                   </label>
@@ -654,7 +654,7 @@ export const UsersRolesPage: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isUpdating}
-                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-semibold flex items-center gap-2 shadow-md shadow-emerald-600/20 cursor-pointer transition"
+                  className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold flex items-center gap-2 shadow-sm cursor-pointer transition active:scale-95 disabled:opacity-50"
                 >
                   {isUpdating ? 'Updating Role...' : 'Save & Update Role'}
                 </button>

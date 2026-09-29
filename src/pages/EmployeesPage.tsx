@@ -770,7 +770,7 @@ export const EmployeesPage: React.FC = () => {
           {canManage && (
             <button
               onClick={() => { setIsAddModalOpen(true); setFormError(null); }}
-              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-sm font-semibold shadow-md shadow-emerald-600/20 transition flex items-center gap-2 self-start sm:self-auto cursor-pointer"
+              className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold shadow-md shadow-blue-600/20 transition flex items-center gap-2 self-start sm:self-auto cursor-pointer"
             >
               <UserPlus className="w-4 h-4" />
               <span>Onboard New Employee</span>
@@ -883,7 +883,7 @@ export const EmployeesPage: React.FC = () => {
                             />
                           ) : null}
                           {(!emp.photoUrl) && (
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-600 flex items-center justify-center text-white font-bold text-sm shadow-xs">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-xs">
                               {emp.firstName ? emp.firstName.charAt(0) : 'E'}
                             </div>
                           )}
@@ -1302,7 +1302,7 @@ export const EmployeesPage: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-semibold flex items-center gap-2 shadow-md shadow-emerald-600/20 cursor-pointer transition"
+                  className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold flex items-center gap-2 shadow-md shadow-blue-600/20 cursor-pointer transition"
                 >
                   {isSubmitting ? 'Onboarding...' : 'Save & Onboard Employee'}
                 </button>
@@ -1329,7 +1329,7 @@ export const EmployeesPage: React.FC = () => {
                       onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
                     />
                   ) : (
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-600 flex items-center justify-center text-white text-lg font-bold shadow-xs">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white text-lg font-bold shadow-xs">
                       {viewEmployee.firstName ? viewEmployee.firstName.charAt(0) : 'E'}
                     </div>
                   )}
@@ -1734,13 +1734,13 @@ export const EmployeesPage: React.FC = () => {
                       onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
                     />
                   ) : (
-                    <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-600 flex items-center justify-center text-white text-xl font-bold shadow-xs">
+                    <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white text-xl font-bold shadow-xs">
                       {myProfile.firstName ? myProfile.firstName.charAt(0) : 'U'}
                     </div>
                   )}
                   {/* Instant Upload Camera Overlay Badge */}
                   <label
-                    className="absolute -bottom-1 -right-1 p-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full shadow-md cursor-pointer transition transform hover:scale-110 border-2 border-white flex items-center justify-center group-hover:bg-emerald-500"
+                    className="absolute -bottom-1 -right-1 p-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-md cursor-pointer transition transform hover:scale-110 border-2 border-white flex items-center justify-center"
                     title="Click to instantly upload new profile photo"
                   >
                     <Camera className="w-3 h-3" />
@@ -1771,7 +1771,7 @@ export const EmployeesPage: React.FC = () => {
                 </button>
                 <button
                   onClick={handleOpenHrQueryModal}
-                  className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shadow-xs shadow-emerald-600/20"
+                  className="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shadow-xs shadow-blue-600/20"
                 >
                   <MessageSquare className="w-3.5 h-3.5" /> HR Desk Query
                 </button>
@@ -2127,7 +2127,7 @@ export const EmployeesPage: React.FC = () => {
                         type="button"
                         onClick={() => handleUploadDocument(true, myProfile.id)}
                         disabled={isUploadingDoc || !uploadDocForm.fileData}
-                        className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold transition cursor-pointer flex items-center gap-1.5 shadow-xs shadow-emerald-600/20"
+                        className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold transition cursor-pointer flex items-center gap-1.5 shadow-xs shadow-blue-600/20"
                       >
                         <FileUp className="w-3.5 h-3.5" />
                         <span>{isUploadingDoc ? 'Uploading...' : 'Upload Document'}</span>
@@ -2252,7 +2252,7 @@ export const EmployeesPage: React.FC = () => {
                   {/* Upload Controls & Actions */}
                   <div className="flex-1 w-full space-y-2 text-center sm:text-left">
                     <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-                      <label className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs cursor-pointer shadow-xs transition transform hover:scale-[1.02]">
+                      <label className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs cursor-pointer shadow-xs transition transform hover:scale-[1.02]">
                         <UploadCloud className="w-4 h-4" />
                         <span>{selfEditData.photoUrl ? 'Change Photo' : 'Upload Photo'}</span>
                         <input
@@ -2542,7 +2542,7 @@ export const EmployeesPage: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold transition cursor-pointer shadow-md shadow-emerald-600/20"
+                  className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition cursor-pointer shadow-md shadow-blue-600/20"
                 >
                   {isSubmitting ? 'Saving...' : 'Save Profile Updates'}
                 </button>
@@ -2626,7 +2626,7 @@ export const EmployeesPage: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold transition cursor-pointer shadow-md shadow-emerald-600/20"
+                  className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition cursor-pointer shadow-md shadow-blue-600/20"
                 >
                   {isSubmitting ? 'Submitting...' : 'Submit to HR Manager'}
                 </button>
@@ -2742,7 +2742,7 @@ export const EmployeesPage: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isSendingQuery}
-                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-semibold transition cursor-pointer shadow-md shadow-emerald-600/20 flex items-center gap-2"
+                  className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition cursor-pointer shadow-md shadow-blue-600/20 flex items-center gap-2"
                 >
                   <Send className="w-3.5 h-3.5" />
                   <span>{isSendingQuery ? 'Sending...' : 'Dispatch Query to HR'}</span>

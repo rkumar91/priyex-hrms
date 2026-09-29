@@ -52,8 +52,8 @@ export const TRANSLATIONS: Record<LanguageCode, Record<string, string>> = {
     // Dashboard Banner & Headings
     'dash.welcomeBack': 'Welcome back',
     'dash.enterprisePortal': 'Enterprise HR & Workforce Portal',
-    'dash.q3Overview': 'Q3 2026 Enterprise Overview',
-    'dash.adminSubtitle': 'All systems nominal. Isolated PostgreSQL database hrms_db active with multi-tenant company isolation.',
+    'dash.q3Overview': 'Enterprise HR Overview',
+    'dash.adminSubtitle': 'Real-time overview of workforce operations, attendance health, and payroll across all branch locations.',
     'dash.empSubtitle': 'Access your employee profile, attendance calendar, shift schedules, and apply for leave applications.',
     'dash.applyLeave': 'Apply for Leave',
     'dash.viewPayslips': 'View Payslips',
