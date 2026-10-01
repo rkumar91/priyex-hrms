@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { canApproveLeaves } from '../utils/rbac';
 import api from '../api/client';
@@ -11,7 +12,9 @@ import {
   AlertCircle,
   PlusCircle,
   X,
-  FileText
+  FileText,
+  Info,
+  ExternalLink
 } from 'lucide-react';
 
 export interface LeaveRequestItem {
@@ -44,8 +47,9 @@ export const AttendancePage: React.FC = () => {
   });
 
   // Apply Leave Form State
+  const [orgPolicies, setOrgPolicies] = useState<{ id: number; leaveCode: string; leaveName: string; annualDays: number }[]>([]);
   const [leaveForm, setLeaveForm] = useState({
-    leaveType: 'Annual Leave',
+    leaveType: 'Casual Leave (CL)',
     startDate: new Date().toISOString().split('T')[0],
     endDate: new Date().toISOString().split('T')[0],
     reason: '',
@@ -107,6 +111,12 @@ export const AttendancePage: React.FC = () => {
   useEffect(() => {
     fetchLeaves();
     fetchAttendanceData();
+    api.get('/organization/leave-policies').then((res: any) => {
+      if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+        setOrgPolicies(res.data);
+        setLeaveForm((prev) => ({ ...prev, leaveType: res.data[0].leaveName }));
+      }
+    }).catch(() => {});
   }, []);
 
   // Approve Handler
@@ -237,6 +247,20 @@ export const AttendancePage: React.FC = () => {
         </div>
       </div>
 
+      {/* Org Policy Reference Banner */}
+      <div className="flex items-center justify-between p-3.5 rounded-2xl bg-blue-50/70 border border-blue-200/80 text-xs">
+        <div className="flex items-center gap-2 text-blue-900">
+          <Info className="w-4 h-4 text-blue-600 shrink-0" />
+          <span>
+            <strong>Organization Leave Policies:</strong> Quotas are managed at the org level (Casual: 12d, Sick: 10d, Privilege: 15d).
+          </span>
+        </div>
+        <Link to="/organization" className="text-blue-700 font-bold hover:underline shrink-0 flex items-center gap-1">
+          <span>View Quotas</span>
+          <ExternalLink className="w-3.5 h-3.5" />
+        </Link>
+      </div>
+
       {/* Leave Applications Table */}
       <div className="glass-panel rounded-3xl p-6 space-y-4">
         <h2 className="text-lg font-bold text-slate-900 mb-4">Recent Leave Requests</h2>
@@ -309,12 +333,23 @@ export const AttendancePage: React.FC = () => {
                 <select
                   value={leaveForm.leaveType}
                   onChange={(e) => setLeaveForm({ ...leaveForm, leaveType: e.target.value })}
-                  className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-emerald-500"
+                  className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-emerald-500 font-semibold"
                 >
-                  <option value="Annual Leave">Annual Leave</option>
-                  <option value="Casual Leave">Casual Leave</option>
-                  <option value="Sick Leave">Sick Leave</option>
-                  <option value="Maternity / Paternity Leave">Maternity / Paternity Leave</option>
+                  {orgPolicies.length > 0 ? (
+                    orgPolicies.map((p) => (
+                      <option key={p.id} value={p.leaveName}>
+                        {p.leaveName} ({p.annualDays} days/yr)
+                      </option>
+                    ))
+                  ) : (
+                    <>
+                      <option value="Casual Leave (CL)">Casual Leave (CL) (12 days/yr)</option>
+                      <option value="Sick Leave (SL)">Sick Leave (SL) (10 days/yr)</option>
+                      <option value="Privilege Leave (PL)">Privilege Leave (PL) (15 days/yr)</option>
+                      <option value="Maternity Leave">Maternity Leave (180 days)</option>
+                      <option value="Paternity Leave">Paternity Leave (15 days)</option>
+                    </>
+                  )}
                 </select>
               </div>
 

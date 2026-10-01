@@ -23,9 +23,12 @@ import {
   UserCircle,
   Command
 } from 'lucide-react';
+import { NotificationCenter } from '../notifications/NotificationCenter';
+import { AnnouncementItem } from '../notifications/BroadcastBanner';
 
 interface HeaderProps {
   onOpenMobileMenu?: () => void;
+  onAnnouncementsChange?: (items: AnnouncementItem[]) => void;
 }
 
 // Helper to get role display config
@@ -38,7 +41,7 @@ const getRoleConfig = (role: string) => {
   return { label: 'Employee', icon: UserCircle, gradient: 'from-brand-500 to-emerald-500', bg: 'bg-gradient-to-r from-brand-50 to-emerald-50', border: 'border-brand-200/60', text: 'text-brand-700' };
 };
 
-export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
+export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu, onAnnouncementsChange }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout, updateUser } = useAuth();
@@ -194,15 +197,8 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
             </Link>
           )}
 
-          {/* Notifications */}
-          <button
-            type="button"
-            aria-label="Notifications"
-            className="p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 relative transition-all duration-200 cursor-pointer"
-          >
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-brand-500 ring-2 ring-white" />
-          </button>
+          {/* Notifications Center */}
+          <NotificationCenter onAnnouncementsChange={onAnnouncementsChange} />
 
           {/* ─── User Profile Cluster ─── */}
           <div className="relative pl-1.5 sm:pl-2 border-l border-slate-200/70" ref={profileRef}>
