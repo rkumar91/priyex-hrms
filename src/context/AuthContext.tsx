@@ -13,6 +13,7 @@ export interface UserProfile {
   employeeId?: string | number;
   roles: string[];
   permissions?: string[];
+  mustChangePassword?: boolean;
 }
 
 interface AuthContextType {

@@ -43,6 +43,8 @@ import {
   Home,
   Plus
 } from 'lucide-react';
+import { InitiateOnboardingModal } from '../components/onboarding/InitiateOnboardingModal';
+import { OnboardingPipelineTab } from '../components/onboarding/OnboardingPipelineTab';
 
 export interface Employee {
   id: string | number;
@@ -158,6 +160,8 @@ export const EmployeesPage: React.FC = () => {
 
   // Modals state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isInitiateOnboardingOpen, setIsInitiateOnboardingOpen] = useState(false);
+  const [activeMainTab, setActiveMainTab] = useState<'DIRECTORY' | 'ONBOARDING_PIPELINE'>('DIRECTORY');
   const [viewEmployee, setViewEmployee] = useState<Employee | null>(null);
   const [activeMenuId, setActiveMenuId] = useState<string | number | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
@@ -769,8 +773,8 @@ export const EmployeesPage: React.FC = () => {
 
           {canManage && (
             <button
-              onClick={() => { setIsAddModalOpen(true); setFormError(null); }}
-              className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold shadow-md shadow-blue-600/20 transition flex items-center gap-2 self-start sm:self-auto cursor-pointer"
+              onClick={() => setIsInitiateOnboardingOpen(true)}
+              className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold shadow-md shadow-blue-600/20 transition flex items-center gap-2 self-start sm:self-auto cursor-pointer active:scale-95"
             >
               <UserPlus className="w-4 h-4" />
               <span>Onboard New Employee</span>
@@ -778,6 +782,36 @@ export const EmployeesPage: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* HR View Switcher: Directory vs Onboarding Pipeline */}
+      {canManage && (
+        <div className="flex items-center gap-2 border-b border-slate-200 pb-2 text-xs font-semibold">
+          <button
+            type="button"
+            onClick={() => setActiveMainTab('DIRECTORY')}
+            className={`px-4 py-2 rounded-xl transition cursor-pointer flex items-center gap-2 ${
+              activeMainTab === 'DIRECTORY'
+                ? 'bg-blue-50 text-blue-700 font-bold border border-blue-200 shadow-xs'
+                : 'text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            <Users className="w-4 h-4" />
+            <span>Active Workforce Directory</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveMainTab('ONBOARDING_PIPELINE')}
+            className={`px-4 py-2 rounded-xl transition cursor-pointer flex items-center gap-2 ${
+              activeMainTab === 'ONBOARDING_PIPELINE'
+                ? 'bg-blue-50 text-blue-700 font-bold border border-blue-200 shadow-xs'
+                : 'text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            <UserCheck className="w-4 h-4" />
+            <span>Onboarding Review Pipeline</span>
+          </button>
+        </div>
+      )}
 
       {feedbackMsg && (
         <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center justify-between shadow-xs">
@@ -791,9 +825,14 @@ export const EmployeesPage: React.FC = () => {
         </div>
       )}
 
-      {/* Filter and Search Toolbar */}
-      <div className="bg-white rounded-2xl p-4 border border-slate-200/90 shadow-xs flex flex-col md:flex-row items-center justify-between gap-4">
-        <div className="relative w-full md:w-96">
+      {/* Content Rendering: Directory or Onboarding Pipeline */}
+      {activeMainTab === 'ONBOARDING_PIPELINE' ? (
+        <OnboardingPipelineTab onRefreshNeeded={fetchEmployees} />
+      ) : (
+        <>
+          {/* Filter and Search Toolbar */}
+          <div className="bg-white rounded-2xl p-4 border border-slate-200/90 shadow-xs flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="relative w-full md:w-96">
           <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
@@ -977,6 +1016,18 @@ export const EmployeesPage: React.FC = () => {
           </table>
         </div>
       </div>
+      </>
+      )}
+
+      {/* Onboarding Invitation Modal */}
+      <InitiateOnboardingModal
+        isOpen={isInitiateOnboardingOpen}
+        onClose={() => setIsInitiateOnboardingOpen(false)}
+        onSuccess={() => {
+          setIsInitiateOnboardingOpen(false);
+          fetchEmployees();
+        }}
+      />
 
       {/* Onboard New Employee Modal (HR / Admin only) */}
       {isAddModalOpen && createPortal(

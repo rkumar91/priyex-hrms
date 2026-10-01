@@ -6,6 +6,7 @@ import { Sidebar } from './Sidebar';
 import { BottomNav } from './BottomNav';
 import { LiveChatWidget } from '../chat/LiveChatWidget';
 import { BroadcastBanner, AnnouncementItem } from '../notifications/BroadcastBanner';
+import { ForceChangePasswordModal } from '../auth/ForceChangePasswordModal';
 import { X, Flame, AlertTriangle, Info } from 'lucide-react';
 
 export const AppLayout: React.FC = () => {
@@ -132,6 +133,9 @@ export const AppLayout: React.FC = () => {
 
         {/* Global Live HR Chat Floating Widget */}
         <LiveChatWidget />
+
+        {/* Mandatory Password Change Modal on First Login */}
+        <ForceChangePasswordModal />
       </div>
     </div>
   );
