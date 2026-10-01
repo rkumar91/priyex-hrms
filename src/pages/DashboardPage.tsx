@@ -58,6 +58,112 @@ export const DashboardPage: React.FC = () => {
     joiningDate: new Date().toISOString().split('T')[0],
   });
 
+  // Real-time Dashboard Statistics State
+  const [statsData, setStatsData] = useState({
+    totalStaff: 0,
+    activeStaff: 0,
+    presentToday: 0,
+    staffOnLeave: 0,
+    attendanceRate: 100,
+    leaveRate: 0,
+    monthlyPayroll: '0.0 L',
+    totalDepartments: 0,
+    pendingLeaves: 0,
+    myDaysPresent: 21,
+    myTotalWorkingDays: 22,
+    myLeaveBalance: 18,
+    myLatestNetPayFormatted: '82,500',
+    myActiveRequests: 0,
+  });
+  const [liveActivities, setLiveActivities] = useState<any[]>([]);
+  const [isLoadingStats, setIsLoadingStats] = useState(true);
+
+  // Fetch real-time statistics from backend API & live synchronization
+  const fetchDashboardData = async () => {
+    setIsLoadingStats(true);
+    try {
+      let statsLoaded = false;
+      try {
+        const res: any = await api.get('/dashboard/stats');
+        if (res.success && res.data) {
+          const d = res.data;
+          setStatsData({
+            totalStaff: d.totalStaff ?? 0,
+            activeStaff: d.activeStaff ?? 0,
+            presentToday: d.presentToday ?? 0,
+            staffOnLeave: d.staffOnLeave ?? 0,
+            attendanceRate: d.attendanceRate ?? 100,
+            leaveRate: d.leaveRate ?? 0,
+            monthlyPayroll: d.monthlyPayrollFormatted ?? '0.0 L',
+            totalDepartments: d.totalDepartments ?? 0,
+            pendingLeaves: d.pendingLeaves ?? 0,
+            myDaysPresent: d.myDaysPresent ?? 21,
+            myTotalWorkingDays: d.myTotalWorkingDays ?? 22,
+            myLeaveBalance: d.myLeaveBalance ?? 18,
+            myLatestNetPayFormatted: d.myLatestNetPayFormatted ?? '82,500',
+            myActiveRequests: d.myActiveRequests ?? 0,
+          });
+          if (Array.isArray(d.recentActivities) && d.recentActivities.length > 0) {
+            setLiveActivities(d.recentActivities);
+          }
+          statsLoaded = true;
+        }
+      } catch (err) {
+        // Fallback to direct resources
+      }
+
+      // Secondary synchronization: Query direct /employees and /leaves endpoints
+      if (!statsLoaded) {
+        const [empRes, leaveRes]: any[] = await Promise.allSettled([
+          api.get('/employees'),
+          api.get('/leaves')
+        ]);
+
+        const employeesList = (empRes.status === 'fulfilled' && empRes.value?.success && empRes.value?.data?.content)
+          ? empRes.value.data.content
+          : [];
+        const total = (empRes.status === 'fulfilled' && empRes.value?.data?.totalElements !== undefined)
+          ? Number(empRes.value.data.totalElements)
+          : employeesList.length;
+
+        const activeCount = employeesList.filter((e: any) => e.status === 'ACTIVE').length;
+        const leavesList = (leaveRes.status === 'fulfilled' && leaveRes.value?.success && Array.isArray(leaveRes.value?.data))
+          ? leaveRes.value.data
+          : [];
+
+        const todayStr = new Date().toISOString().split('T')[0];
+        const onLeaveToday = leavesList.filter((l: any) => 
+          l.status === 'APPROVED' && 
+          l.startDate && l.endDate && 
+          todayStr >= l.startDate && todayStr <= l.endDate
+        ).length;
+        const statusOnLeave = employeesList.filter((e: any) => e.status === 'ON_LEAVE').length;
+        const totalOnLeave = Math.max(onLeaveToday, statusOnLeave);
+
+        const totalStaff = total;
+        const present = Math.max(0, activeCount - onLeaveToday);
+        const attRate = totalStaff > 0 ? Number(((present / totalStaff) * 100).toFixed(1)) : 100;
+        const lRate = totalStaff > 0 ? Number(((totalOnLeave / totalStaff) * 100).toFixed(1)) : 0;
+        const pendingCount = leavesList.filter((l: any) => l.status === 'PENDING').length;
+
+        setStatsData(prev => ({
+          ...prev,
+          totalStaff,
+          activeStaff: activeCount,
+          presentToday: present,
+          staffOnLeave: totalOnLeave,
+          attendanceRate: attRate,
+          leaveRate: lRate,
+          pendingLeaves: pendingCount,
+        }));
+      }
+    } catch (e) {
+      console.error('Error fetching dashboard real-time data:', e);
+    } finally {
+      setIsLoadingStats(false);
+    }
+  };
+
   // Fetch departments for dropdown
   useEffect(() => {
     const fetchDepts = async () => {
@@ -71,6 +177,7 @@ export const DashboardPage: React.FC = () => {
       }
     };
     fetchDepts();
+    fetchDashboardData();
   }, []);
 
   // Greeting helper based on time of day
@@ -88,54 +195,59 @@ export const DashboardPage: React.FC = () => {
     year: 'numeric'
   }).format(new Date());
 
-  // Admin / HR company-wide metrics
+  // Dynamic rates
+  const empAttRate = statsData.myTotalWorkingDays > 0
+    ? Math.round((statsData.myDaysPresent / statsData.myTotalWorkingDays) * 100)
+    : 100;
+
+  // Admin / HR company-wide metrics with real-time values
   const adminStats = [
     {
       title: t('dash.kpi.totalStaff', 'Total Staff'),
-      value: '1,248',
-      unit: 'Active Staff',
-      footer: '+12% vs last quarter',
-      badge: '+12% QoQ',
+      value: statsData.totalStaff.toLocaleString(),
+      unit: t('dash.kpi.activeStaff', 'Active Staff'),
+      footer: `${statsData.activeStaff} ${t('dash.kpi.activeStaff', 'Active')} / ${statsData.totalStaff} ${t('dash.kpi.staffRatio', 'Staff')}`,
+      badge: `${statsData.totalStaff > 0 ? Math.round((statsData.activeStaff / statsData.totalStaff) * 100) : 100}% Active`,
       icon: Users,
       color: 'from-blue-600 to-indigo-600',
       iconBg: 'bg-blue-50 text-blue-600 border border-blue-200/60',
       progressColor: '#2563eb',
-      progress: 88,
+      progress: statsData.totalStaff > 0 ? Math.round((statsData.activeStaff / statsData.totalStaff) * 100) : 100,
       link: '/employees'
     },
     {
       title: t('dash.kpi.presentToday', 'Present Today'),
-      value: '1,180',
-      unit: '/ 1,248 Staff',
-      footer: '94.5% daily attendance',
-      badge: '94.5%',
+      value: statsData.presentToday.toLocaleString(),
+      unit: `/ ${statsData.totalStaff} ${t('dash.kpi.staffRatio', 'Staff')}`,
+      footer: `${statsData.attendanceRate}% ${t('dash.kpi.dailyAttendance', 'daily attendance')}`,
+      badge: `${statsData.attendanceRate}%`,
       icon: UserCheck,
       color: 'from-emerald-500 to-teal-600',
       iconBg: 'bg-emerald-50 text-emerald-600 border border-emerald-200/60',
       progressColor: '#10b981',
-      progress: 94.5,
+      progress: statsData.attendanceRate,
       link: '/attendance'
     },
     {
       title: t('dash.kpi.staffOnLeave', 'Staff On Leave'),
-      value: '42',
-      unit: 'Planned',
-      footer: '3.3% daily leave rate',
-      badge: '3.3%',
+      value: statsData.staffOnLeave.toLocaleString(),
+      unit: t('dash.kpi.planned', 'Planned'),
+      footer: `${statsData.leaveRate}% ${t('dash.kpi.leaveRate', 'daily leave rate')}`,
+      badge: `${statsData.leaveRate}%`,
       icon: Calendar,
       color: 'from-amber-500 to-orange-500',
       iconBg: 'bg-amber-50 text-amber-600 border border-amber-200/60',
       progressColor: '#f59e0b',
-      progress: 15,
+      progress: Math.max(5, statsData.leaveRate),
       link: '/attendance'
     },
     {
       title: t('dash.kpi.monthlyPayroll', 'Monthly Payroll'),
       prefix: '₹',
-      value: '84.5 L',
+      value: statsData.monthlyPayroll,
       unit: 'Gross',
-      footer: '+4.2% disbursement run',
-      badge: '+4.2%',
+      footer: `${statsData.activeStaff} staff active disbursement`,
+      badge: `${statsData.totalStaff} Staff`,
       icon: CircleDollarSign,
       color: 'from-indigo-600 to-violet-600',
       iconBg: 'bg-indigo-50 text-indigo-600 border border-indigo-200/60',
@@ -145,41 +257,41 @@ export const DashboardPage: React.FC = () => {
     },
   ];
 
-  // Employee personal self-service metrics
+  // Employee personal self-service metrics with real-time values
   const employeeStats = [
     {
       title: t('dash.kpi.daysPresent', 'Days Present'),
-      value: '21',
-      unit: '/ 22 Days',
-      footer: `95.5% ${t('dash.kpi.onTime', 'on-time attendance')}`,
-      badge: '95.5%',
+      value: String(statsData.myDaysPresent),
+      unit: `/ ${statsData.myTotalWorkingDays} Days`,
+      footer: `${empAttRate}% ${t('dash.kpi.onTime', 'attendance rate')}`,
+      badge: `${empAttRate}%`,
       icon: CalendarCheck,
       color: 'from-emerald-500 to-teal-600',
       iconBg: 'bg-emerald-50 text-emerald-600 border border-emerald-200/60',
       progressColor: '#10b981',
-      progress: 95.5,
+      progress: empAttRate,
       link: '/attendance'
     },
     {
       title: t('dash.kpi.leaveBalance', 'Leave Balance'),
-      value: '14',
+      value: String(statsData.myLeaveBalance),
       unit: t('dash.kpi.daysAvailable', 'Days Available'),
-      footer: `14 of 18 ${t('dash.kpi.availableLeaves', 'annual leaves remaining')}`,
-      badge: '14 Days',
+      footer: `${statsData.myLeaveBalance} of 18 ${t('dash.kpi.availableLeaves', 'annual leaves remaining')}`,
+      badge: `${statsData.myLeaveBalance} Days`,
       icon: Calendar,
       color: 'from-teal-500 to-cyan-600',
       iconBg: 'bg-teal-50 text-teal-600 border border-teal-200/60',
       progressColor: '#14b8a6',
-      progress: 77.7,
+      progress: Math.min(100, Math.round((statsData.myLeaveBalance / 18) * 100)),
       link: '/attendance'
     },
     {
       title: t('dash.kpi.latestNetPay', 'Latest Net Pay'),
       prefix: '₹',
-      value: '82,500',
+      value: statsData.myLatestNetPayFormatted,
       unit: '/ month',
-      footer: t('dash.kpi.credited', 'Credited on Aug 31'),
-      badge: 'Credited',
+      footer: `₹${statsData.myLatestNetPayFormatted} disbursed`,
+      badge: 'Disbursed',
       icon: CircleDollarSign,
       color: 'from-blue-600 to-indigo-600',
       iconBg: 'bg-indigo-50 text-indigo-600 border border-indigo-200/60',
@@ -189,22 +301,33 @@ export const DashboardPage: React.FC = () => {
     },
     {
       title: t('dash.kpi.activeRequests', 'Active Requests'),
-      value: '1',
+      value: String(statsData.myActiveRequests),
       unit: t('dash.kpi.inReview', 'In Review'),
-      footer: t('dash.kpi.awaitingApproval', 'Casual leave awaiting approval'),
-      badge: '1 Pending',
+      footer: statsData.myActiveRequests > 0 
+        ? `${statsData.myActiveRequests} ${t('dash.kpi.activeRequestsPending', 'request(s) awaiting approval')}` 
+        : t('dash.kpi.allRequestsProcessed', 'All requests processed'),
+      badge: `${statsData.myActiveRequests} Pending`,
       icon: ClipboardCheck,
       color: 'from-amber-500 to-orange-500',
       iconBg: 'bg-amber-50 text-amber-600 border border-amber-200/60',
       progressColor: '#f59e0b',
-      progress: 50,
+      progress: statsData.myActiveRequests > 0 ? 50 : 100,
       link: '/requests'
     },
   ];
 
   const stats = isManagerOrAdmin ? adminStats : employeeStats;
 
-  const adminActivities = [
+  // Icon mapping for dynamic activities
+  const activityIconMap: Record<string, any> = {
+    UserPlus,
+    CheckCircle2,
+    Clock,
+    FileCheck,
+    AlertTriangle,
+  };
+
+  const defaultAdminActivities = [
     {
       id: 1,
       type: t('dash.act.onboarded', 'Employee Onboarded'),
@@ -224,7 +347,7 @@ export const DashboardPage: React.FC = () => {
     {
       id: 3,
       type: t('dash.act.payrollRun', 'Payroll Run'),
-      title: t('dash.act.payrollRunDesc', 'September 2026 Payroll Draft generated for 1,248 employees'),
+      title: t('dash.act.payrollRunDesc', 'Monthly Payroll Draft generated for active employees'),
       time: t('dash.act.time1h', '1 hour ago'),
       icon: FileCheck,
       iconColor: 'text-cyan-600 bg-cyan-50'
@@ -232,18 +355,18 @@ export const DashboardPage: React.FC = () => {
     {
       id: 4,
       type: t('dash.act.attendanceAlert', 'Attendance Alert'),
-      title: t('dash.act.attendanceAlertDesc', '5 Missed Punchouts flagged for verification'),
+      title: t('dash.act.attendanceAlertDesc', 'Missed punchouts flagged for verification'),
       time: t('dash.act.time2h', '2 hours ago'),
       icon: AlertTriangle,
       iconColor: 'text-amber-600 bg-amber-50'
     },
   ];
 
-  const employeeActivities = [
+  const defaultEmployeeActivities = [
     {
       id: 1,
       type: t('dash.act.leaveRequest', 'Leave Request'),
-      title: t('dash.act.leaveRequestDesc', 'Casual Leave request submitted for Oct 2 — Pending Manager Approval'),
+      title: t('dash.act.leaveRequestDesc', 'Leave request submitted — Pending Manager Approval'),
       time: t('dash.act.today', 'Today'),
       icon: Clock,
       iconColor: 'text-amber-600 bg-amber-50'
@@ -251,7 +374,7 @@ export const DashboardPage: React.FC = () => {
     {
       id: 2,
       type: t('dash.act.attendanceRecorded', 'Attendance Recorded'),
-      title: t('dash.act.attendanceRecordedDesc', 'Biometric punch-in recorded today at 09:14 AM — On time'),
+      title: t('dash.act.attendanceRecordedDesc', 'Biometric punch-in recorded today — On time'),
       time: '09:14 AM',
       icon: CheckCircle2,
       iconColor: 'text-emerald-600 bg-emerald-50'
@@ -259,7 +382,7 @@ export const DashboardPage: React.FC = () => {
     {
       id: 3,
       type: t('dash.act.payslipReleased', 'Payslip Released'),
-      title: t('dash.act.payslipReleasedDesc', 'August 2026 Monthly Salary Statement generated & ready for download'),
+      title: t('dash.act.payslipReleasedDesc', 'Monthly Salary Statement generated & ready for download'),
       time: t('dash.act.yesterday', 'Yesterday'),
       icon: FileCheck,
       iconColor: 'text-cyan-600 bg-cyan-50'
@@ -274,7 +397,14 @@ export const DashboardPage: React.FC = () => {
     },
   ];
 
-  const recentActivities = isManagerOrAdmin ? adminActivities : employeeActivities;
+  const dynamicActivities = liveActivities.length > 0
+    ? liveActivities.map(act => ({
+        ...act,
+        icon: activityIconMap[act.icon] || CheckCircle2,
+      }))
+    : (isManagerOrAdmin ? defaultAdminActivities : defaultEmployeeActivities);
+
+  const recentActivities = dynamicActivities;
 
   // Onboard Employee Handler
   const handleCreateSubmit = async (e: React.FormEvent) => {
@@ -364,15 +494,15 @@ export const DashboardPage: React.FC = () => {
             <div className="flex flex-wrap items-center gap-2 mt-4 pt-3.5 border-t border-slate-100 text-xs font-semibold">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-50 border border-slate-200/80 text-slate-700">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span>1,248 {t('dash.chipStaff', 'Active Staff')}</span>
+                <span>{statsData.activeStaff} {t('dash.chipStaff', 'Active Staff')}</span>
               </span>
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-50 border border-slate-200/80 text-slate-700">
                 <span className="w-2 h-2 rounded-full bg-blue-500" />
-                <span>94.5% {t('dash.chipPresent', 'Present Today')}</span>
+                <span>{statsData.attendanceRate}% {t('dash.chipPresent', 'Present Today')}</span>
               </span>
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-50 border border-slate-200/80 text-slate-700">
                 <span className="w-2 h-2 rounded-full bg-indigo-500" />
-                <span>4 {t('dash.chipBranches', 'Branches')}</span>
+                <span>{statsData.totalDepartments || departments.length || 1} {t('dash.chipBranches', 'Departments')}</span>
               </span>
             </div>
           </div>
@@ -570,16 +700,18 @@ export const DashboardPage: React.FC = () => {
                   <span className="font-bold text-slate-800">4 (BLR, BOM, DEL, Remote)</span>
                 </div>
                 <div className="flex justify-between py-2 border-b border-slate-100">
-                  <span className="text-slate-500 font-medium">{t('dash.newJoiners', 'New Joiners (This Month)')}</span>
-                  <span className="font-bold text-emerald-600">+14 Employees</span>
+                  <span className="text-slate-500 font-medium">{t('dash.totalStaff', 'Active Workforce')}</span>
+                  <span className="font-bold text-emerald-600">{statsData.activeStaff} / {statsData.totalStaff} Enrolled</span>
                 </div>
                 <div className="flex justify-between py-2 border-b border-slate-100">
                   <span className="text-slate-500 font-medium">{t('dash.pendingApprovals', 'Pending Approvals')}</span>
-                  <span className="font-bold text-amber-600">7 Requests Pending</span>
+                  <span className={`font-bold ${statsData.pendingLeaves > 0 ? 'text-amber-600' : 'text-slate-600'}`}>
+                    {statsData.pendingLeaves} {statsData.pendingLeaves === 1 ? 'Request' : 'Requests'} Pending
+                  </span>
                 </div>
                 <div className="flex justify-between py-2">
                   <span className="text-slate-500 font-medium">{t('dash.payrollSchedule', 'Next Payroll Run')}</span>
-                  <span className="font-bold text-slate-800">30 Sep 2026 (Scheduled)</span>
+                  <span className="font-bold text-slate-800">Monthly Cycle (Scheduled)</span>
                 </div>
               </div>
             </div>

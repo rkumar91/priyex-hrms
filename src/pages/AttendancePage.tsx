@@ -34,6 +34,15 @@ export const AttendancePage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Real-time Punch & Attendance Statistics
+  const [punchStats, setPunchStats] = useState({
+    onTimePunches: 0,
+    lateArrivals: 0,
+    missedPunchouts: 0,
+    staffOnLeave: 0,
+    totalStaff: 0
+  });
+
   // Apply Leave Form State
   const [leaveForm, setLeaveForm] = useState({
     leaveType: 'Annual Leave',
@@ -42,12 +51,48 @@ export const AttendancePage: React.FC = () => {
     reason: '',
   });
 
+  // Fetch real-time attendance and leave data
+  const fetchAttendanceData = async () => {
+    try {
+      // Try dashboard stats first
+      const statsRes: any = await api.get('/dashboard/stats');
+      if (statsRes.success && statsRes.data) {
+        const d = statsRes.data;
+        setPunchStats({
+          onTimePunches: d.presentToday ?? 0,
+          lateArrivals: 0,
+          missedPunchouts: 0,
+          staffOnLeave: d.staffOnLeave ?? 0,
+          totalStaff: d.totalStaff ?? 0
+        });
+      }
+    } catch (e) {
+      // Fallback: calculate from employees
+      try {
+        const empRes: any = await api.get('/employees');
+        const empList = empRes?.data?.content || [];
+        const total = empRes?.data?.totalElements ?? empList.length;
+        const active = empList.filter((x: any) => x.status === 'ACTIVE').length;
+        const onLeave = empList.filter((x: any) => x.status === 'ON_LEAVE').length;
+        setPunchStats({
+          onTimePunches: Math.max(0, active - onLeave),
+          lateArrivals: 0,
+          missedPunchouts: 0,
+          staffOnLeave: onLeave,
+          totalStaff: total
+        });
+      } catch (err) {
+        // Fallback
+      }
+    }
+  };
+
   // Fetch Leave Requests from API
   const fetchLeaves = async () => {
     setIsLoading(true);
     try {
       const res: any = await api.get('/leaves');
-      if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+      if (res.success && Array.isArray(res.data)) {
         setLeaveRequests(res.data);
       } else {
         setLeaveRequests(fallbackLeaves);
@@ -61,6 +106,7 @@ export const AttendancePage: React.FC = () => {
 
   useEffect(() => {
     fetchLeaves();
+    fetchAttendanceData();
   }, []);
 
   // Approve Handler
@@ -70,6 +116,7 @@ export const AttendancePage: React.FC = () => {
     );
     try {
       await api.put(`/leaves/${id}/approve`);
+      fetchAttendanceData();
     } catch (err) {
       // Ignore network fallback
     }
@@ -82,6 +129,7 @@ export const AttendancePage: React.FC = () => {
     );
     try {
       await api.put(`/leaves/${id}/reject`);
+      fetchAttendanceData();
     } catch (err) {
       // Ignore network fallback
     }
@@ -153,15 +201,15 @@ export const AttendancePage: React.FC = () => {
           <div className="mt-4 space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-slate-600">On Time Punches</span>
-              <span className="font-bold text-emerald-700">1,120</span>
+              <span className="font-bold text-emerald-700">{punchStats.onTimePunches.toLocaleString()}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-600">Late Arrivals</span>
-              <span className="font-bold text-amber-600">60</span>
+              <span className="text-slate-600">Staff On Leave</span>
+              <span className="font-bold text-amber-600">{punchStats.staffOnLeave.toLocaleString()}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-600">Missed Punchout</span>
-              <span className="font-bold text-rose-600">5</span>
+              <span className="text-slate-600">Total Enrolled Workforce</span>
+              <span className="font-bold text-blue-600">{punchStats.totalStaff.toLocaleString()}</span>
             </div>
           </div>
         </div>
