@@ -7,7 +7,7 @@ const baseURL = rawBaseUrl
 
 const api = axios.create({
   baseURL,
-  timeout: 15000, // 15s timeout
+  timeout: 90000, // 90s timeout (generous window for Render free tier cold start)
   headers: {
     'Content-Type': 'application/json',
   },
@@ -37,8 +37,35 @@ api.interceptors.response.use(
         window.location.href = '/login';
       }
     }
+
+    // Friendly explanation for Render free tier cold-start timeouts
+    if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+      return Promise.reject({
+        success: false,
+        message: 'The cloud server took longer than expected to wake up from idle sleep. Please wait a few seconds and try again.'
+      });
+    }
+
+    if (!error.response && error.message === 'Network Error') {
+      return Promise.reject({
+        success: false,
+        message: 'Cannot reach the cloud server. It is likely waking up from idle sleep. Please wait a moment and try again.'
+      });
+    }
+
     return Promise.reject(error.response?.data || error.message || 'An unexpected error occurred');
   }
 );
+
+// Helper function to pre-warm the backend immediately on app load
+export const prewarmBackend = () => {
+  try {
+    const healthUrl = baseURL.endsWith('/api/v1') ? `${baseURL}/health` : `${baseURL}/api/v1/health`;
+    fetch(healthUrl, { method: 'GET', keepalive: true }).catch(() => {});
+  } catch (e) {}
+};
+
+// Immediately fire background pre-warm ping on script evaluation
+prewarmBackend();
 
 export default api;

@@ -21,6 +21,7 @@ export const LoginPage: React.FC = () => {
   const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isWakingUp, setIsWakingUp] = useState(false);
   const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
@@ -29,6 +30,18 @@ export const LoginPage: React.FC = () => {
       navigate('/', { replace: true });
     }
   }, [isAuthenticated, navigate]);
+
+  React.useEffect(() => {
+    let timer: any;
+    if (isSubmitting) {
+      timer = setTimeout(() => {
+        setIsWakingUp(true);
+      }, 3500);
+    } else {
+      setIsWakingUp(false);
+    }
+    return () => clearTimeout(timer);
+  }, [isSubmitting]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,7 +55,8 @@ export const LoginPage: React.FC = () => {
       await login({ email, password });
       navigate('/');
     } catch (err: any) {
-      setError(err?.message || err || 'Invalid email or password. Please verify your credentials.');
+      const errMsg = err?.message || (typeof err === 'string' ? err : 'Invalid email or password. Please verify your credentials.');
+      setError(errMsg);
     } finally {
       setIsSubmitting(false);
     }
@@ -70,6 +84,16 @@ export const LoginPage: React.FC = () => {
           
           {/* Logo & Brand Header */}
           <BrandLogo size="lg" layout="col" className="mb-6 sm:mb-8" />
+
+          {/* Cloud Server Cold-Start Notice */}
+          {isWakingUp && isSubmitting && (
+            <div className="mb-5 p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-center gap-2.5 font-medium animate-in fade-in duration-200">
+              <div className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping shrink-0" />
+              <span className="leading-relaxed">
+                <strong>Waking up cloud server...</strong> Free tier instances spin down after inactivity. Please hold on a few seconds while it starts up.
+              </span>
+            </div>
+          )}
 
           {/* Error Alert */}
           {error && (
