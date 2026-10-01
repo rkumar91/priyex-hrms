@@ -24,8 +24,13 @@ import {
   ChevronRight,
   Sparkles,
   Edit3,
-  Calculator
+  Calculator,
+  ShieldCheck
 } from 'lucide-react';
+import { InvestmentDeclarationTab } from '../components/tax/InvestmentDeclarationTab';
+import { TaxCalculatorTab } from '../components/tax/TaxCalculatorTab';
+import { FormsDownloadCenterTab } from '../components/tax/FormsDownloadCenterTab';
+import { HrDeclarationsReviewTab } from '../components/tax/HrDeclarationsReviewTab';
 
 export interface PayrollRun {
   id: number;
@@ -131,11 +136,10 @@ export const PayrollPage: React.FC = () => {
   const { user } = useAuth();
   const canManage = isHrAdmin(user);
 
-  // Tab: HR/Admin can toggle between 'OPERATIONS', 'COMPENSATION_REGISTER', and 'MY_CTC_PAYSLIPS'
-  // Regular employees ONLY see 'MY_CTC_PAYSLIPS'
-  const [activeTab, setActiveTab] = useState<'OPERATIONS' | 'COMPENSATION_REGISTER' | 'MY_CTC_PAYSLIPS'>(
-    canManage ? 'OPERATIONS' : 'MY_CTC_PAYSLIPS'
-  );
+  // Tab options: Operations, Compensation Register, Declarations Review, Forms Download, Tax Declaration, Tax Calculator, and My Payslips
+  const [activeTab, setActiveTab] = useState<
+    'OPERATIONS' | 'COMPENSATION_REGISTER' | 'MY_CTC_PAYSLIPS' | 'TAX_DECLARATION' | 'TAX_CALCULATOR' | 'FORMS_DOWNLOAD' | 'DECLARATIONS_REVIEW'
+  >(canManage ? 'OPERATIONS' : 'MY_CTC_PAYSLIPS');
 
   // Modals state
   const [isExecuteModalOpen, setIsExecuteModalOpen] = useState(false);
@@ -389,46 +393,96 @@ export const PayrollPage: React.FC = () => {
         </div>
       )}
 
-      {/* Role Navigation Switcher (HR & Admin can toggle between Company Operations, Compensation Register and My CTC/Payslips) */}
-      {canManage && (
-        <div className="flex items-center gap-2 border-b border-slate-200 pb-1">
-          <button
-            onClick={() => setActiveTab('OPERATIONS')}
-            className={`px-4 py-2.5 text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-2 ${
-              activeTab === 'OPERATIONS'
-                ? 'bg-blue-600 text-white shadow-xs'
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-            }`}
-          >
-            <Building2 className="w-4 h-4" />
-            <span>Company Payroll & Operations</span>
-          </button>
+      {/* Navigation Switcher Tabs */}
+      <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 pb-2">
+        {canManage && (
+          <>
+            <button
+              onClick={() => setActiveTab('OPERATIONS')}
+              className={`px-3.5 py-2 text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5 ${
+                activeTab === 'OPERATIONS'
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+              }`}
+            >
+              <Building2 className="w-3.5 h-3.5" />
+              <span>Company Operations</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('COMPENSATION_REGISTER')}
-            className={`px-4 py-2.5 text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-2 ${
-              activeTab === 'COMPENSATION_REGISTER'
-                ? 'bg-blue-600 text-white shadow-xs'
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-            }`}
-          >
-            <CircleDollarSign className="w-4 h-4" />
-            <span>Employee CTC & Compensation Register</span>
-          </button>
+            <button
+              onClick={() => setActiveTab('COMPENSATION_REGISTER')}
+              className={`px-3.5 py-2 text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5 ${
+                activeTab === 'COMPENSATION_REGISTER'
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+              }`}
+            >
+              <CircleDollarSign className="w-3.5 h-3.5" />
+              <span>CTC Register</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('MY_CTC_PAYSLIPS')}
-            className={`px-4 py-2.5 text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-2 ${
-              activeTab === 'MY_CTC_PAYSLIPS'
-                ? 'bg-blue-600 text-white shadow-xs'
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-            }`}
-          >
-            <Wallet className="w-4 h-4" />
-            <span>My Personal CTC & Payslips</span>
-          </button>
-        </div>
-      )}
+            <button
+              onClick={() => setActiveTab('DECLARATIONS_REVIEW')}
+              className={`px-3.5 py-2 text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5 ${
+                activeTab === 'DECLARATIONS_REVIEW'
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+              }`}
+            >
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+              <span>Declarations Review</span>
+            </button>
+          </>
+        )}
+
+        <button
+          onClick={() => setActiveTab('FORMS_DOWNLOAD')}
+          className={`px-3.5 py-2 text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5 ${
+            activeTab === 'FORMS_DOWNLOAD'
+              ? 'bg-blue-600 text-white shadow-xs'
+              : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+          }`}
+        >
+          <Download className="w-3.5 h-3.5" />
+          <span>Forms & Payslips Download</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('TAX_DECLARATION')}
+          className={`px-3.5 py-2 text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5 ${
+            activeTab === 'TAX_DECLARATION'
+              ? 'bg-blue-600 text-white shadow-xs'
+              : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+          }`}
+        >
+          <Shield className="w-3.5 h-3.5" />
+          <span>Investment Declaration</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('TAX_CALCULATOR')}
+          className={`px-3.5 py-2 text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5 ${
+            activeTab === 'TAX_CALCULATOR'
+              ? 'bg-blue-600 text-white shadow-xs'
+              : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+          }`}
+        >
+          <Calculator className="w-3.5 h-3.5" />
+          <span>Tax Calculator & Comparison</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('MY_CTC_PAYSLIPS')}
+          className={`px-3.5 py-2 text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5 ${
+            activeTab === 'MY_CTC_PAYSLIPS'
+              ? 'bg-blue-600 text-white shadow-xs'
+              : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+          }`}
+        >
+          <Wallet className="w-3.5 h-3.5" />
+          <span>My Personal CTC & Payslips</span>
+        </button>
+      </div>
 
       {/* ═════════════════════════════════════════════════════════════════════════ */}
       {/* VIEW 1: HR & Admin Company Payroll Operations Dashboard                  */}
@@ -957,6 +1011,34 @@ export const PayrollPage: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ═════════════════════════════════════════════════════════════════════════ */}
+      {/* VIEW 4: Statutory Forms & Payslips Download Center                        */}
+      {/* ═════════════════════════════════════════════════════════════════════════ */}
+      {activeTab === 'FORMS_DOWNLOAD' && (
+        <FormsDownloadCenterTab onViewPayslip={(slip) => setSelectedPayslip(slip)} />
+      )}
+
+      {/* ═════════════════════════════════════════════════════════════════════════ */}
+      {/* VIEW 5: Employee Investment & Tax Exemption Declaration Form             */}
+      {/* ═════════════════════════════════════════════════════════════════════════ */}
+      {activeTab === 'TAX_DECLARATION' && (
+        <InvestmentDeclarationTab onDeclarationUpdated={fetchData} />
+      )}
+
+      {/* ═════════════════════════════════════════════════════════════════════════ */}
+      {/* VIEW 6: Live Tax Calculator & Dual Regime Comparison                     */}
+      {/* ═════════════════════════════════════════════════════════════════════════ */}
+      {activeTab === 'TAX_CALCULATOR' && (
+        <TaxCalculatorTab initialCtc={myCtc?.annualCtc} />
+      )}
+
+      {/* ═════════════════════════════════════════════════════════════════════════ */}
+      {/* VIEW 7: HR Admin Declarations Review Register                             */}
+      {/* ═════════════════════════════════════════════════════════════════════════ */}
+      {canManage && activeTab === 'DECLARATIONS_REVIEW' && (
+        <HrDeclarationsReviewTab />
       )}
 
       {/* ═════════════════════════════════════════════════════════════════════════ */}
