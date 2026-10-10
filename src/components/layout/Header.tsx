@@ -61,6 +61,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu, onAnnouncement
     if (pathname.startsWith('/organization')) return t('nav.organization', 'Organization');
     if (pathname.startsWith('/admin/users')) return t('nav.usersRoles', 'Users & Roles');
     if (pathname.startsWith('/audit-logs')) return t('nav.auditLogs', 'Audit & Compliance');
+    if (pathname.startsWith('/banner-notifications')) return t('nav.bannerNotifications', 'Banner Notifications');
     return t('nav.workspace', 'Workspace');
   };
   const pageTitle = getPageTitle(location.pathname);

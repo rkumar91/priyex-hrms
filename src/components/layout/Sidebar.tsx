@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
-import { canViewAuditLogs, canManageOrganization, canManageUserRoles, isHrAdmin } from '../../utils/rbac';
+import { canViewAuditLogs, canManageOrganization, canManageUserRoles, isHrAdmin, canManageAnnouncements } from '../../utils/rbac';
 import { BrandLogo } from '../common/BrandLogo';
 import {
   LayoutDashboard,
@@ -14,6 +14,7 @@ import {
   ClipboardCheck,
   UserCog,
   Headphones,
+  Megaphone,
   X
 } from 'lucide-react';
 
@@ -42,6 +43,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen = false, onCloseMob
     { name: t('nav.attendance', 'Attendance & Leave'), path: '/attendance', icon: CalendarCheck, show: true },
     { name: t('nav.payroll', 'Payroll & Compensation'), path: '/payroll', icon: CircleDollarSign, show: true },
     { name: t('nav.organization', 'Organization'), path: '/organization', icon: Building, show: canManageOrganization(user) },
+    { name: t('nav.bannerNotifications', 'Banner Notifications'), path: '/banner-notifications', icon: Megaphone, show: canManageAnnouncements(user) },
     { name: t('nav.usersRoles', 'User & Roles'), path: '/admin/users', icon: UserCog, show: canManageUserRoles(user) },
     { name: t('nav.auditLogs', 'Audit & Compliance'), path: '/audit-logs', icon: ShieldAlert, show: canViewAuditLogs(user) },
   ].filter(item => item.show);

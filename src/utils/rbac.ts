@@ -51,3 +51,8 @@ export const canApproveProfileRequests = (user: UserProfile | null): boolean => 
   return isHrAdmin(user);
 };
 
+/** Matches backend @PreAuthorize on /notifications/broadcasts management endpoints. */
+export const canManageAnnouncements = (user: UserProfile | null): boolean => {
+  return hasRole(user, ['SUPER_ADMIN', 'ADMIN', 'HR_ADMIN']);
+};
+

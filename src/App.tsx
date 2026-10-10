@@ -17,6 +17,7 @@ const UsersRolesPage = lazy(() => import('./pages/UsersRolesPage').then(m => ({ 
 const AuditLogsPage = lazy(() => import('./pages/AuditLogsPage').then(m => ({ default: m.AuditLogsPage })));
 const SupportDeskPage = lazy(() => import('./pages/SupportDeskPage').then(m => ({ default: m.SupportDeskPage })));
 const OnboardingPage = lazy(() => import('./pages/OnboardingPage').then(m => ({ default: m.OnboardingPage })));
+const BannerNotificationsPage = lazy(() => import('./pages/BannerNotificationsPage').then(m => ({ default: m.BannerNotificationsPage })));
 
 export const App: React.FC = () => {
   useEffect(() => {
@@ -49,6 +50,7 @@ export const App: React.FC = () => {
                 <Route path="/admin/users" element={<UsersRolesPage />} />
                 <Route path="/audit-logs" element={<AuditLogsPage />} />
                 <Route path="/onboarding" element={<OnboardingPage />} />
+                <Route path="/banner-notifications" element={<BannerNotificationsPage />} />
               </Route>
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Flame, AlertTriangle, X, ChevronRight } from 'lucide-react';
 import api from '../../api/client';
+import { isLiveNow } from './announcementSchedule';
 
 export interface AnnouncementItem {
   id: number;
@@ -10,8 +11,12 @@ export interface AnnouncementItem {
   targetAudience: string;
   isRead?: boolean;
   publishedAt?: string;
+  expiresAt?: string | null;
   createdAt?: string;
+  updatedAt?: string;
   creatorName?: string;
+  requiresAck?: boolean;
+  readCount?: number;
 }
 
 interface BroadcastBannerProps {
@@ -25,9 +30,16 @@ export const BroadcastBanner: React.FC<BroadcastBannerProps> = ({
   onDismiss,
   onViewDetails
 }) => {
-  // Find the top unread URGENT or HIGH priority announcement
+  // Re-check the schedule window periodically so banners auto-appear/disappear on time
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 15000);
+    return () => clearInterval(t);
+  }, []);
+
+  // Find the top unread URGENT or HIGH priority announcement that is live right now
   const urgentAnnouncement = announcements.find(
-    (a) => !a.isRead && (a.priority === 'URGENT' || a.priority === 'HIGH')
+    (a) => !a.isRead && (a.priority === 'URGENT' || a.priority === 'HIGH') && isLiveNow(a, now)
   );
 
   if (!urgentAnnouncement) return null;

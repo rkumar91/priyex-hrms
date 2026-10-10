@@ -9,13 +9,14 @@ import {
   Clock,
   User,
   X,
-  ExternalLink
+  Settings2
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { isHrAdmin } from '../../utils/rbac';
+import { canManageAnnouncements } from '../../utils/rbac';
 import api from '../../api/client';
-import { PostAnnouncementModal } from './PostAnnouncementModal';
 import { AnnouncementItem } from './BroadcastBanner';
+import { isLiveNow } from './announcementSchedule';
 
 interface NotificationCenterProps {
   onAnnouncementsChange?: (items: AnnouncementItem[]) => void;
@@ -25,12 +26,14 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
   onAnnouncementsChange
 }) => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
-  const [announcements, setAnnouncements] = useState<AnnouncementItem[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [rawAnnouncements, setAnnouncements] = useState<AnnouncementItem[]>([]);
   const [activeTab, setActiveTab] = useState<'ALL' | 'UNREAD' | 'URGENT'>('ALL');
-  const [isPostModalOpen, setIsPostModalOpen] = useState(false);
   const [selectedAnnouncement, setSelectedAnnouncement] = useState<AnnouncementItem | null>(null);
+
+  // Hide items whose display window lapsed between server polls
+  const announcements = rawAnnouncements.filter((a) => isLiveNow(a));
 
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -182,17 +185,18 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
                   <span className="hidden sm:inline">Mark all read</span>
                 </button>
               )}
-              {isHrAdmin(user) && (
+              {canManageAnnouncements(user) && (
                 <button
                   type="button"
                   onClick={() => {
                     setIsOpen(false);
-                    setIsPostModalOpen(true);
+                    navigate('/banner-notifications');
                   }}
                   className="px-2 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold shadow-xs transition flex items-center gap-1 cursor-pointer"
-                  title="Broadcast new announcement"
+                  title="Manage & schedule banner notifications"
                 >
-                  <span>+ Broadcast</span>
+                  <Settings2 className="w-3 h-3" />
+                  <span>Manage</span>
                 </button>
               )}
             </div>
@@ -303,15 +307,6 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
           </div>
         </div>
       )}
-
-      {/* Post Announcement Modal */}
-      <PostAnnouncementModal
-        isOpen={isPostModalOpen}
-        onClose={() => setIsPostModalOpen(false)}
-        onSuccess={() => {
-          fetchBroadcasts();
-        }}
-      />
 
       {/* Announcement Detail Modal */}
       {selectedAnnouncement && (
