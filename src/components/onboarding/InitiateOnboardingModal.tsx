@@ -30,12 +30,20 @@ interface Department {
   name: string;
 }
 
+interface Designation {
+  id: number;
+  name: string;
+  level?: number;
+  description?: string;
+}
+
 export const InitiateOnboardingModal: React.FC<InitiateOnboardingModalProps> = ({
   isOpen,
   onClose,
   onSuccess
 }) => {
   const [departments, setDepartments] = useState<Department[]>([]);
+  const [designations, setDesignations] = useState<Designation[]>([]);
   const [formData, setFormData] = useState({
     firstName: '',
     middleName: '',
@@ -44,7 +52,7 @@ export const InitiateOnboardingModal: React.FC<InitiateOnboardingModalProps> = (
     alternativeEmail: '',
     personalPhone: '',
     departmentId: 1,
-    designationId: 1,
+    designationId: 9,
     designationName: 'Software Engineer',
     joiningDate: new Date().toISOString().split('T')[0],
     employmentType: 'FULL_TIME',
@@ -69,6 +77,22 @@ export const InitiateOnboardingModal: React.FC<InitiateOnboardingModalProps> = (
           if (res.success && Array.isArray(res.data) && res.data.length > 0) {
             setDepartments(res.data);
             setFormData((prev) => ({ ...prev, departmentId: res.data[0].id }));
+          }
+        })
+        .catch(() => {});
+
+      api.get('/organization/designations')
+        .then((res: any) => {
+          if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+            setDesignations(res.data);
+            const se = res.data.find((d: Designation) =>
+              d.name.toLowerCase().includes('software engineer')
+            ) || res.data[0];
+            setFormData((prev) => ({
+              ...prev,
+              designationId: se.id,
+              designationName: se.name
+            }));
           }
         })
         .catch(() => {});
@@ -379,14 +403,38 @@ export const InitiateOnboardingModal: React.FC<InitiateOnboardingModalProps> = (
               </div>
 
               <div>
-                <label className="block text-slate-700 font-bold mb-1">Designation Title</label>
-                <input
-                  type="text"
-                  value={formData.designationName}
-                  onChange={(e) => setFormData({ ...formData, designationName: e.target.value })}
-                  placeholder="e.g. Associate Software Engineer"
+                <label className="block text-slate-700 font-bold mb-1">Designation *</label>
+                <select
+                  value={formData.designationId}
+                  onChange={(e) => {
+                    const id = Number(e.target.value);
+                    const selected = designations.find((d) => d.id === id);
+                    setFormData({
+                      ...formData,
+                      designationId: id,
+                      designationName: selected ? selected.name : ''
+                    });
+                  }}
                   className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2 border border-slate-200 focus:bg-white focus:outline-none focus:border-blue-500 font-medium"
-                />
+                >
+                  {designations.length > 0 ? (
+                    designations.map((d) => (
+                      <option key={d.id} value={d.id}>
+                        {d.name} {d.level ? `(L${d.level})` : ''}
+                      </option>
+                    ))
+                  ) : (
+                    <>
+                      <option value="9">Software Engineer</option>
+                      <option value="10">Senior Software Engineer</option>
+                      <option value="11">Tech Lead</option>
+                      <option value="13">QA Engineer</option>
+                      <option value="14">Product Manager</option>
+                      <option value="16">HR Executive</option>
+                      <option value="1">Chief Executive Officer</option>
+                    </>
+                  )}
+                </select>
               </div>
             </div>
 

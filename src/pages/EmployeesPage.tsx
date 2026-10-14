@@ -1593,41 +1593,54 @@ export const EmployeesPage: React.FC = () => {
 
                   {activeViewTab === 'PF_STATUTORY' && (
                     <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
-                      <h4 className="font-bold text-slate-800 uppercase tracking-wider text-[11px] mb-1 flex items-center gap-1.5">
-                        <BadgeCheck className="w-3.5 h-3.5 text-emerald-600" /> Provident Fund (PF) & Statutory Details
-                      </h4>
+                      <div className="flex items-center justify-between mb-1">
+                        <h4 className="font-bold text-slate-800 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                          <BadgeCheck className="w-3.5 h-3.5 text-emerald-600" /> Provident Fund (PF) & Statutory Details
+                        </h4>
+                        {viewEmployee.status === 'ONBOARDING' && (
+                          <span className="text-[10px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded font-bold border border-amber-200">
+                            Onboarding Pending
+                          </span>
+                        )}
+                      </div>
+                      {viewEmployee.status === 'ONBOARDING' && !viewEmployee.uanNumber && (
+                        <div className="p-2.5 rounded-xl bg-amber-50/80 border border-amber-200 text-amber-800 text-[11px] flex items-center gap-2">
+                          <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                          <span>Candidate has not completed self-onboarding yet. Statutory details will be populated once submitted.</span>
+                        </div>
+                      )}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
                         <div className="flex justify-between py-1.5 border-b border-slate-200">
                           <span className="text-slate-500">PF Member ID:</span>
-                          <span className="font-mono font-bold text-slate-900">{viewEmployee.pfNumber || 'MH/BAN/0012345/000/0192834'}</span>
+                          <span className="font-mono font-bold text-slate-900">{viewEmployee.pfNumber || '—'}</span>
                         </div>
                         <div className="flex justify-between py-1.5 border-b border-slate-200">
                           <span className="text-slate-500">Universal Account No (UAN):</span>
-                          <span className="font-mono font-bold text-emerald-800">{viewEmployee.uanNumber || '101293847561'}</span>
+                          <span className="font-mono font-bold text-emerald-800">{viewEmployee.uanNumber || '—'}</span>
                         </div>
                         <div className="flex justify-between py-1.5 border-b border-slate-200">
                           <span className="text-slate-500">ESIC Insurance No:</span>
-                          <span className="font-mono font-bold text-slate-900">{viewEmployee.esiNumber || '110029384756001'}</span>
+                          <span className="font-mono font-bold text-slate-900">{viewEmployee.esiNumber || '—'}</span>
                         </div>
                         <div className="flex justify-between py-1.5 border-b border-slate-200">
                           <span className="text-slate-500">PAN Number:</span>
-                          <span className="font-mono font-bold text-slate-900">{viewEmployee.panNumber || 'ABCDE1234F'}</span>
+                          <span className="font-mono font-bold text-slate-900">{viewEmployee.panNumber || '—'}</span>
                         </div>
                         <div className="flex justify-between py-1.5 border-b border-slate-200">
                           <span className="text-slate-500">Aadhaar Card No:</span>
-                          <span className="font-mono font-bold text-slate-900">{viewEmployee.aadhaarNumber || '9876 5432 1098'}</span>
+                          <span className="font-mono font-bold text-slate-900">{viewEmployee.aadhaarNumber || '—'}</span>
                         </div>
                         <div className="flex justify-between py-1.5 border-b border-slate-200">
                           <span className="text-slate-500">PF Nominee Name:</span>
-                          <span className="font-semibold text-slate-900">{viewEmployee.pfNomineeName || 'Sunita Kumar'}</span>
+                          <span className="font-semibold text-slate-900">{viewEmployee.pfNomineeName || '—'}</span>
                         </div>
                         <div className="flex justify-between py-1.5 border-b border-slate-200">
                           <span className="text-slate-500">Nominee Relationship:</span>
-                          <span className="font-semibold text-slate-900">{viewEmployee.pfNomineeRelationship || 'Spouse'}</span>
+                          <span className="font-semibold text-slate-900">{viewEmployee.pfNomineeRelationship || '—'}</span>
                         </div>
                         <div className="flex justify-between py-1.5 border-b border-slate-200">
                           <span className="text-slate-500">PF Joining Date:</span>
-                          <span className="font-mono font-semibold text-slate-900">{viewEmployee.pfJoiningDate || viewEmployee.joiningDate || '2023-01-15'}</span>
+                          <span className="font-mono font-semibold text-slate-900">{viewEmployee.pfJoiningDate || viewEmployee.joiningDate || '—'}</span>
                         </div>
                       </div>
                     </div>
@@ -1635,29 +1648,42 @@ export const EmployeesPage: React.FC = () => {
 
                   {activeViewTab === 'BANK' && (
                     <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
-                      <h4 className="font-bold text-slate-800 uppercase tracking-wider text-[11px] mb-1 flex items-center gap-1.5">
-                        <CreditCard className="w-3.5 h-3.5 text-emerald-600" /> Primary Salary Disbursement Account
-                      </h4>
+                      <div className="flex items-center justify-between mb-1">
+                        <h4 className="font-bold text-slate-800 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                          <CreditCard className="w-3.5 h-3.5 text-emerald-600" /> Primary Salary Disbursement Account
+                        </h4>
+                        {viewEmployee.status === 'ONBOARDING' && (
+                          <span className="text-[10px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded font-bold border border-amber-200">
+                            Onboarding Pending
+                          </span>
+                        )}
+                      </div>
+                      {viewEmployee.status === 'ONBOARDING' && !viewEmployee.bankAccountNumber && (
+                        <div className="p-2.5 rounded-xl bg-amber-50/80 border border-amber-200 text-amber-800 text-[11px] flex items-center gap-2">
+                          <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                          <span>Candidate has not completed self-onboarding yet. Bank account details will appear once submitted.</span>
+                        </div>
+                      )}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
                         <div className="flex justify-between py-1.5 border-b border-slate-200">
                           <span className="text-slate-500">Bank Name:</span>
-                          <span className="font-bold text-slate-900">{viewEmployee.bankName || 'HDFC Bank'}</span>
+                          <span className="font-bold text-slate-900">{viewEmployee.bankName || '—'}</span>
                         </div>
                         <div className="flex justify-between py-1.5 border-b border-slate-200">
                           <span className="text-slate-500">Branch Name:</span>
-                          <span className="font-semibold text-slate-900">{viewEmployee.bankBranch || 'Noida Sector 62'}</span>
+                          <span className="font-semibold text-slate-900">{viewEmployee.bankBranch || '—'}</span>
                         </div>
                         <div className="flex justify-between py-1.5 border-b border-slate-200">
                           <span className="text-slate-500">Account Number:</span>
-                          <span className="font-mono font-bold text-emerald-800">{viewEmployee.bankAccountNumber || '5010098234123'}</span>
+                          <span className="font-mono font-bold text-emerald-800">{viewEmployee.bankAccountNumber || '—'}</span>
                         </div>
                         <div className="flex justify-between py-1.5 border-b border-slate-200">
                           <span className="text-slate-500">IFSC Code:</span>
-                          <span className="font-mono font-bold text-slate-900">{viewEmployee.bankIfsc || 'HDFC0000128'}</span>
+                          <span className="font-mono font-bold text-slate-900">{viewEmployee.bankIfsc || '—'}</span>
                         </div>
                         <div className="flex justify-between py-1.5">
                           <span className="text-slate-500">Account Type:</span>
-                          <span className="font-semibold text-slate-900">{viewEmployee.bankAccountType || 'SALARY'}</span>
+                          <span className="font-semibold text-slate-900">{viewEmployee.bankAccountType || '—'}</span>
                         </div>
                       </div>
                     </div>
@@ -1665,21 +1691,34 @@ export const EmployeesPage: React.FC = () => {
 
                   {activeViewTab === 'EMERGENCY' && (
                     <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
-                      <h4 className="font-bold text-slate-800 uppercase tracking-wider text-[11px] mb-1 flex items-center gap-1.5">
-                        <HeartPulse className="w-3.5 h-3.5 text-rose-600" /> Emergency Point of Contact
-                      </h4>
+                      <div className="flex items-center justify-between mb-1">
+                        <h4 className="font-bold text-slate-800 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                          <HeartPulse className="w-3.5 h-3.5 text-rose-600" /> Emergency Point of Contact
+                        </h4>
+                        {viewEmployee.status === 'ONBOARDING' && (
+                          <span className="text-[10px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded font-bold border border-amber-200">
+                            Onboarding Pending
+                          </span>
+                        )}
+                      </div>
+                      {viewEmployee.status === 'ONBOARDING' && !viewEmployee.emergencyContactName && (
+                        <div className="p-2.5 rounded-xl bg-amber-50/80 border border-amber-200 text-amber-800 text-[11px] flex items-center gap-2">
+                          <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                          <span>Candidate has not completed self-onboarding yet. Emergency contact will appear once submitted.</span>
+                        </div>
+                      )}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
                         <div className="flex justify-between py-1.5 border-b border-slate-200">
                           <span className="text-slate-500">Contact Person:</span>
-                          <span className="font-bold text-slate-900">{viewEmployee.emergencyContactName || 'Sunita Kumar'}</span>
+                          <span className="font-bold text-slate-900">{viewEmployee.emergencyContactName || '—'}</span>
                         </div>
                         <div className="flex justify-between py-1.5 border-b border-slate-200">
                           <span className="text-slate-500">Relationship:</span>
-                          <span className="font-semibold text-slate-900">{viewEmployee.emergencyContactRelationship || 'Spouse'}</span>
+                          <span className="font-semibold text-slate-900">{viewEmployee.emergencyContactRelationship || '—'}</span>
                         </div>
                         <div className="flex justify-between py-1.5">
                           <span className="text-slate-500">Emergency Phone:</span>
-                          <span className="font-mono font-bold text-rose-700">{viewEmployee.emergencyContactPhone || '+91 9876543299'}</span>
+                          <span className="font-mono font-bold text-rose-700">{viewEmployee.emergencyContactPhone || '—'}</span>
                         </div>
                       </div>
                     </div>
@@ -2003,35 +2042,35 @@ export const EmployeesPage: React.FC = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
                     <div className="flex justify-between py-1.5 border-b border-slate-200">
                       <span className="text-slate-500">PF Account Number:</span>
-                      <span className="font-mono font-bold text-slate-900">{myProfile.pfNumber || 'MH/BAN/0012345/000/0192834'}</span>
+                      <span className="font-mono font-bold text-slate-900">{myProfile.pfNumber || '—'}</span>
                     </div>
                     <div className="flex justify-between py-1.5 border-b border-slate-200">
                       <span className="text-slate-500">Universal Account No (UAN):</span>
-                      <span className="font-mono font-bold text-emerald-800 tracking-wider">{myProfile.uanNumber || '101293847561'}</span>
+                      <span className="font-mono font-bold text-emerald-800 tracking-wider">{myProfile.uanNumber || '—'}</span>
                     </div>
                     <div className="flex justify-between py-1.5 border-b border-slate-200">
                       <span className="text-slate-500">ESI Insurance Number:</span>
-                      <span className="font-mono font-bold text-slate-900">{myProfile.esiNumber || '110029384756001'}</span>
+                      <span className="font-mono font-bold text-slate-900">{myProfile.esiNumber || '—'}</span>
                     </div>
                     <div className="flex justify-between py-1.5 border-b border-slate-200">
                       <span className="text-slate-500">Income Tax PAN:</span>
-                      <span className="font-mono font-bold text-slate-900">{myProfile.panNumber || 'ABCDE1234F'}</span>
+                      <span className="font-mono font-bold text-slate-900">{myProfile.panNumber || '—'}</span>
                     </div>
                     <div className="flex justify-between py-1.5 border-b border-slate-200">
                       <span className="text-slate-500">Aadhaar Card Number:</span>
-                      <span className="font-mono font-bold text-slate-900">{myProfile.aadhaarNumber || '9876 5432 1098'}</span>
+                      <span className="font-mono font-bold text-slate-900">{myProfile.aadhaarNumber || '—'}</span>
                     </div>
                     <div className="flex justify-between py-1.5 border-b border-slate-200">
                       <span className="text-slate-500">PF Nominee Name:</span>
-                      <span className="font-semibold text-slate-900">{myProfile.pfNomineeName || 'Sunita Kumar'}</span>
+                      <span className="font-semibold text-slate-900">{myProfile.pfNomineeName || '—'}</span>
                     </div>
                     <div className="flex justify-between py-1.5 border-b border-slate-200">
                       <span className="text-slate-500">Nominee Relationship:</span>
-                      <span className="font-semibold text-slate-900">{myProfile.pfNomineeRelationship || 'Spouse'}</span>
+                      <span className="font-semibold text-slate-900">{myProfile.pfNomineeRelationship || '—'}</span>
                     </div>
                     <div className="flex justify-between py-1.5 border-b border-slate-200">
                       <span className="text-slate-500">PF Enrolment Date:</span>
-                      <span className="font-mono font-semibold text-slate-900">{myProfile.pfJoiningDate || myProfile.joiningDate || '2023-01-15'}</span>
+                      <span className="font-mono font-semibold text-slate-900">{myProfile.pfJoiningDate || myProfile.joiningDate || '—'}</span>
                     </div>
                   </div>
                 </div>
@@ -2053,23 +2092,23 @@ export const EmployeesPage: React.FC = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
                     <div className="flex justify-between py-1.5 border-b border-slate-200">
                       <span className="text-slate-500">Bank Name:</span>
-                      <span className="font-bold text-slate-900">{myProfile.bankName || 'HDFC Bank'}</span>
+                      <span className="font-bold text-slate-900">{myProfile.bankName || '—'}</span>
                     </div>
                     <div className="flex justify-between py-1.5 border-b border-slate-200">
                       <span className="text-slate-500">Branch Name:</span>
-                      <span className="font-semibold text-slate-900">{myProfile.bankBranch || 'Noida Sector 62 Branch'}</span>
+                      <span className="font-semibold text-slate-900">{myProfile.bankBranch || '—'}</span>
                     </div>
                     <div className="flex justify-between py-1.5 border-b border-slate-200">
                       <span className="text-slate-500">Account Number:</span>
-                      <span className="font-mono font-bold text-emerald-800">{myProfile.bankAccountNumber || '5010098234123'}</span>
+                      <span className="font-mono font-bold text-emerald-800">{myProfile.bankAccountNumber || '—'}</span>
                     </div>
                     <div className="flex justify-between py-1.5 border-b border-slate-200">
                       <span className="text-slate-500">IFSC Code:</span>
-                      <span className="font-mono font-bold text-slate-900">{myProfile.bankIfsc || 'HDFC0000128'}</span>
+                      <span className="font-mono font-bold text-slate-900">{myProfile.bankIfsc || '—'}</span>
                     </div>
                     <div className="flex justify-between py-1.5">
                       <span className="text-slate-500">Account Type:</span>
-                      <span className="font-semibold text-slate-900">{myProfile.bankAccountType || 'SALARY'}</span>
+                      <span className="font-semibold text-slate-900">{myProfile.bankAccountType || '—'}</span>
                     </div>
                   </div>
                   <p className="text-[11px] text-slate-400 pt-1">
@@ -2089,15 +2128,15 @@ export const EmployeesPage: React.FC = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
                     <div className="flex justify-between py-1.5 border-b border-slate-200">
                       <span className="text-slate-500">Contact Person:</span>
-                      <span className="font-bold text-slate-900">{myProfile.emergencyContactName || 'Sunita Kumar'}</span>
+                      <span className="font-bold text-slate-900">{myProfile.emergencyContactName || '—'}</span>
                     </div>
                     <div className="flex justify-between py-1.5 border-b border-slate-200">
                       <span className="text-slate-500">Relationship:</span>
-                      <span className="font-semibold text-slate-900">{myProfile.emergencyContactRelationship || 'Spouse'}</span>
+                      <span className="font-semibold text-slate-900">{myProfile.emergencyContactRelationship || '—'}</span>
                     </div>
                     <div className="flex justify-between py-1.5">
                       <span className="text-slate-500">Contact Phone:</span>
-                      <span className="font-mono font-bold text-rose-700">{myProfile.emergencyContactPhone || '+91 9876543299'}</span>
+                      <span className="font-mono font-bold text-rose-700">{myProfile.emergencyContactPhone || '—'}</span>
                     </div>
                   </div>
                 </div>
