@@ -45,6 +45,7 @@ import {
 } from 'lucide-react';
 import { InitiateOnboardingModal } from '../components/onboarding/InitiateOnboardingModal';
 import { OnboardingPipelineTab } from '../components/onboarding/OnboardingPipelineTab';
+import { ProfileImageHover } from '../components/common/ProfileImageHover';
 
 export interface Employee {
   id: string | number;
@@ -911,21 +912,16 @@ export const EmployeesPage: React.FC = () => {
                     <tr key={emp.id} className="hover:bg-emerald-50/30 transition-colors">
                       <td className="py-3.5 px-5">
                         <div className="flex items-center gap-3">
-                          {emp.photoUrl ? (
-                            <img
-                              src={emp.photoUrl}
-                              alt={`${emp.firstName} ${emp.lastName}`}
-                              className="w-10 h-10 rounded-full object-cover shadow-xs border border-emerald-300"
-                              onError={(e) => {
-                                (e.target as HTMLElement).style.display = 'none';
-                              }}
-                            />
-                          ) : null}
-                          {(!emp.photoUrl) && (
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-xs">
-                              {emp.firstName ? emp.firstName.charAt(0) : 'E'}
-                            </div>
-                          )}
+                          <ProfileImageHover
+                            src={emp.photoUrl}
+                            alt={`${emp.firstName} ${emp.lastName}`}
+                            name={`${emp.firstName} ${emp.lastName}`}
+                            employeeCode={emp.employeeCode}
+                            designation={emp.designationName}
+                            department={emp.departmentName}
+                            size="md"
+                            imageClassName="border border-emerald-300 shadow-xs"
+                          />
                           <div className="flex flex-col">
                             <div className="flex items-center gap-1.5">
                               <span className="font-semibold text-slate-900">{emp.firstName} {emp.lastName}</span>
@@ -1372,18 +1368,16 @@ export const EmployeesPage: React.FC = () => {
             <div className="flex items-center justify-between p-5 border-b border-slate-200 shrink-0">
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-3">
-                  {viewEmployee.photoUrl ? (
-                    <img
-                      src={viewEmployee.photoUrl}
-                      alt={`${viewEmployee.firstName} ${viewEmployee.lastName}`}
-                      className="w-12 h-12 rounded-full object-cover shadow-xs border-2 border-emerald-400"
-                      onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
-                    />
-                  ) : (
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white text-lg font-bold shadow-xs">
-                      {viewEmployee.firstName ? viewEmployee.firstName.charAt(0) : 'E'}
-                    </div>
-                  )}
+                  <ProfileImageHover
+                    src={viewEmployee.photoUrl}
+                    alt={`${viewEmployee.firstName} ${viewEmployee.lastName}`}
+                    name={`${viewEmployee.firstName} ${viewEmployee.lastName}`}
+                    employeeCode={viewEmployee.employeeCode}
+                    designation={viewEmployee.designationName}
+                    department={viewEmployee.departmentName}
+                    size="lg"
+                    imageClassName="border-2 border-emerald-400 shadow-xs"
+                  />
                   <div>
                     <h3 className="text-base font-bold text-slate-900">{viewEmployee.firstName} {viewEmployee.lastName}</h3>
                     <p className="text-xs text-emerald-700 font-mono font-semibold">{viewEmployee.employeeCode} • {viewEmployee.designationName || 'Software Engineer'}</p>
@@ -1776,23 +1770,21 @@ export const EmployeesPage: React.FC = () => {
             {/* Profile Avatar Card with Action Buttons */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 bg-slate-50 border-b border-slate-200 shrink-0">
               <div className="flex items-center gap-3.5">
-                <div className="relative group shrink-0">
-                  {myProfile.photoUrl ? (
-                    <img
-                      src={myProfile.photoUrl}
-                      alt={`${myProfile.firstName} ${myProfile.lastName}`}
-                      className="w-14 h-14 rounded-full object-cover shadow-xs border-2 border-emerald-500"
-                      onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
-                    />
-                  ) : (
-                    <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white text-xl font-bold shadow-xs">
-                      {myProfile.firstName ? myProfile.firstName.charAt(0) : 'U'}
-                    </div>
-                  )}
+                <ProfileImageHover
+                  src={myProfile.photoUrl}
+                  alt={`${myProfile.firstName} ${myProfile.lastName}`}
+                  name={`${myProfile.firstName} ${myProfile.lastName}`}
+                  employeeCode={myProfile.employeeCode}
+                  designation={myProfile.designationName || 'Lead Architect'}
+                  department={myProfile.departmentName || 'Engineering'}
+                  size="xl"
+                  imageClassName="border-2 border-emerald-500 shadow-xs"
+                >
                   {/* Instant Upload Camera Overlay Badge */}
                   <label
-                    className="absolute -bottom-1 -right-1 p-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-md cursor-pointer transition transform hover:scale-110 border-2 border-white flex items-center justify-center"
+                    className="absolute -bottom-1 -right-1 p-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-md cursor-pointer transition transform hover:scale-110 border-2 border-white flex items-center justify-center z-10"
                     title="Click to instantly upload new profile photo"
+                    onClick={(e) => e.stopPropagation()}
                   >
                     <Camera className="w-3 h-3" />
                     <input
@@ -1805,7 +1797,7 @@ export const EmployeesPage: React.FC = () => {
                       }}
                     />
                   </label>
-                </div>
+                </ProfileImageHover>
                 <div>
                   <h3 className="text-base font-bold text-slate-900">{myProfile.firstName} {myProfile.lastName}</h3>
                   <span className="text-xs font-mono font-semibold text-emerald-700">{myProfile.employeeCode}</span>
@@ -2277,28 +2269,21 @@ export const EmployeesPage: React.FC = () => {
                 
                 <div className="flex flex-col sm:flex-row items-center gap-4">
                   {/* Photo Preview Circle */}
-                  <div className="relative group shrink-0">
-                    <div className="w-20 h-20 rounded-full p-1 bg-gradient-to-tr from-emerald-500 to-teal-500 shadow-md">
-                      <div className="w-full h-full rounded-full bg-white flex items-center justify-center overflow-hidden">
-                        {selfEditData.photoUrl ? (
-                          <img
-                            src={selfEditData.photoUrl}
-                            alt="Avatar Preview"
-                            className="w-full h-full object-cover rounded-full"
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-slate-100 flex items-center justify-center text-slate-400">
-                            <User className="w-8 h-8" />
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                  <ProfileImageHover
+                    src={selfEditData.photoUrl}
+                    alt="Avatar Preview"
+                    name={myProfile ? `${myProfile.firstName} ${myProfile.lastName}` : 'My Profile'}
+                    employeeCode={myProfile?.employeeCode}
+                    size="custom"
+                    className="shrink-0"
+                    imageClassName="w-20 h-20 border-2 border-emerald-500 p-0.5 shadow-md"
+                  >
                     {isUploadingPhoto && (
-                      <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center backdrop-blur-xs">
+                      <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center backdrop-blur-xs z-10">
                         <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                       </div>
                     )}
-                  </div>
+                  </ProfileImageHover>
 
                   {/* Upload Controls & Actions */}
                   <div className="flex-1 w-full space-y-2 text-center sm:text-left">
