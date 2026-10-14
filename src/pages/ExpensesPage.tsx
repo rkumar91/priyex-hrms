@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import { isHrAdmin } from '../utils/rbac';
@@ -26,7 +26,11 @@ import {
   Sparkles,
   ChevronRight,
   TrendingUp,
-  Tag
+  Tag,
+  UploadCloud,
+  Trash2,
+  Image as ImageIcon,
+  Paperclip
 } from 'lucide-react';
 
 export interface ExpenseClaim {
@@ -165,8 +169,9 @@ export const ExpensesPage: React.FC = () => {
 
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
   const [selectedReceiptClaim, setSelectedReceiptClaim] = useState<ExpenseClaim | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // New claim form state
+  // New claim form state with real file upload
   const [claimForm, setClaimForm] = useState({
     category: 'TRAVEL' as ExpenseClaim['category'],
     merchant: '',
@@ -175,9 +180,59 @@ export const ExpensesPage: React.FC = () => {
     projectCode: '',
     gstin: '',
     description: '',
-    receiptFileName: 'Vendor_Tax_Invoice_Sample.pdf'
+    receiptFileName: '',
+    receiptFileSize: '',
+    receiptPreviewUrl: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // File selection handler
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      alert('File size exceeds the 10MB limit. Please upload a smaller document.');
+      return;
+    }
+
+    const sizeStr = file.size > 1024 * 1024
+      ? `${(file.size / (1024 * 1024)).toFixed(1)} MB`
+      : `${Math.round(file.size / 1024)} KB`;
+
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setClaimForm((prev) => ({
+          ...prev,
+          receiptFileName: file.name,
+          receiptFileSize: sizeStr,
+          receiptPreviewUrl: event.target?.result as string,
+        }));
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setClaimForm((prev) => ({
+        ...prev,
+        receiptFileName: file.name,
+        receiptFileSize: sizeStr,
+        receiptPreviewUrl: '',
+      }));
+    }
+  };
+
+  const handleRemoveFile = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setClaimForm((prev) => ({
+      ...prev,
+      receiptFileName: '',
+      receiptFileSize: '',
+      receiptPreviewUrl: '',
+    }));
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
 
   // Save changes locally
   useEffect(() => {
@@ -263,7 +318,8 @@ export const ExpensesPage: React.FC = () => {
         description: claimForm.description,
         projectCode: claimForm.projectCode || 'GENERAL-OPEX',
         gstin: claimForm.gstin,
-        receiptName: claimForm.receiptFileName,
+        receiptName: claimForm.receiptFileName || 'Vendor_Invoice.pdf',
+        receiptUrl: claimForm.receiptPreviewUrl || undefined,
         status: 'PENDING'
       };
 
@@ -278,8 +334,11 @@ export const ExpensesPage: React.FC = () => {
         projectCode: '',
         gstin: '',
         description: '',
-        receiptFileName: 'Vendor_Tax_Invoice_Sample.pdf'
+        receiptFileName: '',
+        receiptFileSize: '',
+        receiptPreviewUrl: ''
       });
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }, 400);
   };
 
@@ -710,18 +769,90 @@ export const ExpensesPage: React.FC = () => {
                 />
               </div>
 
-              {/* Receipt File Upload Simulator */}
+              {/* Real Receipt File Upload Dropzone */}
               <div>
-                <label className="block text-slate-700 font-bold mb-1">Attach Tax Invoice / Bill (PDF / PNG / JPG)</label>
-                <div className="p-3 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/60 flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-2 text-slate-600">
-                    <FileText className="w-4 h-4 text-blue-600 shrink-0" />
-                    <span className="font-medium truncate max-w-xs">{claimForm.receiptFileName}</span>
-                  </div>
-                  <span className="px-2 py-1 rounded-md bg-white border border-slate-200 text-[10px] font-bold text-slate-600 cursor-pointer hover:bg-slate-100">
-                    Attached ✓
-                  </span>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-slate-700 font-bold">
+                    Attach Tax Invoice / Bill (PDF / PNG / JPG) *
+                  </label>
+                  <span className="text-[10px] text-slate-400 font-medium">Max 10MB</span>
                 </div>
+
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  accept=".pdf,.png,.jpg,.jpeg"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+
+                {!claimForm.receiptFileName ? (
+                  <div
+                    onClick={() => fileInputRef.current?.click()}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      const file = e.dataTransfer.files?.[0];
+                      if (file) {
+                        const fakeEvent = { target: { files: [file] } } as any;
+                        handleFileChange(fakeEvent);
+                      }
+                    }}
+                    className="p-5 border-2 border-dashed border-blue-300 hover:border-blue-500 rounded-2xl bg-blue-50/40 hover:bg-blue-50/70 transition cursor-pointer flex flex-col items-center justify-center text-center gap-2 group"
+                  >
+                    <div className="p-3 rounded-full bg-blue-100 text-blue-600 group-hover:scale-110 transition-transform">
+                      <UploadCloud className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold text-blue-700 group-hover:underline">
+                        Click here to browse and upload bill
+                      </span>
+                      <span className="text-xs text-slate-500"> or drag file here</span>
+                    </div>
+                    <p className="text-[11px] text-slate-400">
+                      Supports PDF, PNG, JPG, JPEG documents up to 10MB
+                    </p>
+                  </div>
+                ) : (
+                  <div className="p-3.5 border-2 border-emerald-300 rounded-2xl bg-emerald-50/70 flex items-center justify-between gap-3 animate-in fade-in duration-150">
+                    <div className="flex items-center gap-3 overflow-hidden">
+                      <div className="p-2.5 rounded-xl bg-emerald-600 text-white shrink-0">
+                        {claimForm.receiptPreviewUrl ? (
+                          <ImageIcon className="w-4 h-4" />
+                        ) : (
+                          <FileText className="w-4 h-4" />
+                        )}
+                      </div>
+                      <div className="overflow-hidden">
+                        <p className="text-xs font-bold text-slate-900 truncate max-w-xs">
+                          {claimForm.receiptFileName}
+                        </p>
+                        <p className="text-[10px] text-emerald-800 font-semibold flex items-center gap-1 mt-0.5">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                          <span>{claimForm.receiptFileSize || 'Attached'} • Ready for audit review</span>
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 text-[11px] font-semibold transition cursor-pointer shadow-xs"
+                      >
+                        Change
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleRemoveFile}
+                        className="p-1 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-100 transition cursor-pointer"
+                        title="Remove file"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="pt-3 flex items-center justify-end gap-3 border-t border-slate-200">
@@ -749,10 +880,10 @@ export const ExpensesPage: React.FC = () => {
       {/* Receipt Preview Modal */}
       {selectedReceiptClaim && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="w-full max-w-md bg-white border border-slate-200 rounded-3xl p-6 shadow-2xl relative space-y-4 text-slate-900">
+          <div className="w-full max-w-lg bg-white border border-slate-200 rounded-3xl p-6 shadow-2xl relative space-y-4 text-slate-900">
             <div className="flex items-center justify-between pb-3 border-b border-slate-200">
               <div>
-                <h3 className="text-sm font-bold text-slate-900">{selectedReceiptClaim.claimNumber} Receipt</h3>
+                <h3 className="text-sm font-bold text-slate-900">{selectedReceiptClaim.claimNumber} Digital Invoice</h3>
                 <p className="text-xs text-slate-500">{selectedReceiptClaim.merchant}</p>
               </div>
               <button
@@ -764,14 +895,25 @@ export const ExpensesPage: React.FC = () => {
               </button>
             </div>
 
+            {/* If uploaded image exists, display it directly */}
+            {selectedReceiptClaim.receiptUrl ? (
+              <div className="rounded-2xl overflow-hidden border border-slate-200 bg-slate-950 flex items-center justify-center max-h-72">
+                <img
+                  src={selectedReceiptClaim.receiptUrl}
+                  alt="Uploaded Receipt"
+                  className="max-h-72 w-auto object-contain"
+                />
+              </div>
+            ) : null}
+
             {/* Simulated Digital Tax Invoice Preview Card */}
-            <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3 font-mono text-xs">
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2.5 font-mono text-xs">
               <div className="flex justify-between border-b border-slate-200 pb-2">
-                <span className="font-bold text-slate-800">TAX INVOICE</span>
+                <span className="font-bold text-slate-800">TAX INVOICE AUDIT RECORD</span>
                 <span className="text-slate-500">{selectedReceiptClaim.expenseDate}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">Vendor:</span>
+                <span className="text-slate-500">Merchant:</span>
                 <span className="font-bold text-slate-900">{selectedReceiptClaim.merchant}</span>
               </div>
               <div className="flex justify-between">
@@ -783,16 +925,16 @@ export const ExpensesPage: React.FC = () => {
                 <span className="text-slate-800">{selectedReceiptClaim.category}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">File:</span>
-                <span className="text-blue-600 underline truncate max-w-[200px]">{selectedReceiptClaim.receiptName}</span>
+                <span className="text-slate-500">Document:</span>
+                <span className="text-blue-600 underline truncate max-w-[220px]">{selectedReceiptClaim.receiptName}</span>
               </div>
               <div className="pt-2 border-t border-slate-200 flex justify-between text-sm font-bold">
-                <span>Total Amount:</span>
+                <span>Total Reimbursable:</span>
                 <span className="text-emerald-700">₹{selectedReceiptClaim.amount.toFixed(2)}</span>
               </div>
             </div>
 
-            <div className="flex justify-end pt-2">
+            <div className="flex justify-end pt-1">
               <button
                 type="button"
                 onClick={() => setSelectedReceiptClaim(null)}
