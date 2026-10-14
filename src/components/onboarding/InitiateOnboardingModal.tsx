@@ -13,7 +13,9 @@ import {
   Building,
   Briefcase,
   Calendar,
-  Phone
+  Phone,
+  Sparkles,
+  RefreshCw
 } from 'lucide-react';
 import api from '../../api/client';
 
@@ -39,6 +41,7 @@ export const InitiateOnboardingModal: React.FC<InitiateOnboardingModalProps> = (
     middleName: '',
     lastName: '',
     workEmail: '',
+    alternativeEmail: '',
     personalPhone: '',
     departmentId: 1,
     designationId: 1,
@@ -50,6 +53,8 @@ export const InitiateOnboardingModal: React.FC<InitiateOnboardingModalProps> = (
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGeneratingEmail, setIsGeneratingEmail] = useState(false);
+  const [emailGenerated, setEmailGenerated] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successResult, setSuccessResult] = useState<any | null>(null);
   const [hasCopied, setHasCopied] = useState(false);
@@ -58,6 +63,7 @@ export const InitiateOnboardingModal: React.FC<InitiateOnboardingModalProps> = (
     if (isOpen) {
       setSuccessResult(null);
       setError(null);
+      setEmailGenerated(false);
       api.get('/organization/departments')
         .then((res: any) => {
           if (res.success && Array.isArray(res.data) && res.data.length > 0) {
@@ -71,10 +77,52 @@ export const InitiateOnboardingModal: React.FC<InitiateOnboardingModalProps> = (
 
   if (!isOpen) return null;
 
+  const handleGenerateWorkEmail = async (overrideFirst?: string, overrideLast?: string) => {
+    const fName = (overrideFirst !== undefined ? overrideFirst : formData.firstName).trim();
+    const lName = (overrideLast !== undefined ? overrideLast : formData.lastName).trim();
+    if (!fName) {
+      setError('Please enter at least First Name to generate work email');
+      return;
+    }
+
+    setIsGeneratingEmail(true);
+    setError(null);
+
+    try {
+      const res: any = await api.get('/employees/onboarding/generate-email', {
+        params: { firstName: fName, lastName: lName }
+      });
+      const generated = res?.data?.email || res?.email;
+      if (generated) {
+        setFormData((prev) => ({ ...prev, workEmail: generated }));
+        setEmailGenerated(true);
+      } else {
+        const cleanFirst = fName.toLowerCase().replace(/[^a-z0-9]/g, '');
+        const cleanLast = lName ? lName.toLowerCase().replace(/[^a-z0-9]/g, '') : '';
+        const email = `${cleanFirst}${cleanLast ? '.' + cleanLast : ''}@priyex.com`;
+        setFormData((prev) => ({ ...prev, workEmail: email }));
+        setEmailGenerated(true);
+      }
+    } catch {
+      const cleanFirst = fName.toLowerCase().replace(/[^a-z0-9]/g, '');
+      const cleanLast = lName ? lName.toLowerCase().replace(/[^a-z0-9]/g, '') : '';
+      const email = `${cleanFirst}${cleanLast ? '.' + cleanLast : ''}@priyex.com`;
+      setFormData((prev) => ({ ...prev, workEmail: email }));
+      setEmailGenerated(true);
+    } finally {
+      setIsGeneratingEmail(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.firstName.trim() || !formData.lastName.trim() || !formData.workEmail.trim()) {
-      setError('First name, last name, and work email are required');
+    if (
+      !formData.firstName.trim() ||
+      !formData.lastName.trim() ||
+      !formData.workEmail.trim() ||
+      !formData.alternativeEmail.trim()
+    ) {
+      setError('First name, last name, official work email, and alternative email are required');
       return;
     }
 
@@ -87,6 +135,7 @@ export const InitiateOnboardingModal: React.FC<InitiateOnboardingModalProps> = (
         middleName: formData.middleName ? formData.middleName.trim() : null,
         lastName: formData.lastName.trim(),
         workEmail: formData.workEmail.trim().toLowerCase(),
+        alternativeEmail: formData.alternativeEmail.trim().toLowerCase(),
         personalPhone: formData.personalPhone.trim(),
         departmentId: Number(formData.departmentId),
         designationId: Number(formData.designationId),
@@ -111,7 +160,7 @@ export const InitiateOnboardingModal: React.FC<InitiateOnboardingModalProps> = (
 
   const handleCopyCredentials = () => {
     if (!successResult) return;
-    const text = `Priyex People HRMS — Onboarding Credentials\nPortal URL: ${successResult.inviteUrl}\nEmail: ${successResult.workEmail}\nTemporary Password: ${successResult.tempPassword}\n\n*Please login and set your new permanent password.*`;
+    const text = `Priyex People HRMS — Onboarding Credentials\nPortal URL: ${successResult.inviteUrl}\nLogin ID (Work Email): ${successResult.workEmail}\nAlternative Email: ${successResult.alternativeEmail || formData.alternativeEmail}\nTemporary Password: ${successResult.tempPassword}\n\n*Please login with your Work Email and set your new permanent password.*`;
     navigator.clipboard.writeText(text);
     setHasCopied(true);
     setTimeout(() => setHasCopied(false), 2500);
@@ -151,8 +200,10 @@ export const InitiateOnboardingModal: React.FC<InitiateOnboardingModalProps> = (
               <h3 className="text-lg font-bold text-slate-900">Onboarding Initiated Successfully!</h3>
               <p className="text-xs text-slate-500 mt-1">
                 An invitation email with temporary login credentials has been dispatched to{' '}
-                <strong className="text-slate-800">{successResult.workEmail}</strong> from{' '}
-                <strong className="text-blue-600">tech.priyex@gmail.com</strong>.
+                <strong className="text-blue-700">
+                  {successResult.alternativeEmail || formData.alternativeEmail}
+                </strong>{' '}
+                from <strong className="text-slate-800">tech.priyex@gmail.com</strong>.
               </p>
             </div>
 
@@ -165,8 +216,14 @@ export const InitiateOnboardingModal: React.FC<InitiateOnboardingModalProps> = (
                 </span>
               </div>
               <div className="flex justify-between items-center pb-2 border-b border-slate-200/70">
-                <span className="text-slate-500 font-medium">Work Email</span>
+                <span className="text-slate-500 font-medium">Work Email (Login ID)</span>
                 <span className="font-semibold text-slate-900">{successResult.workEmail}</span>
+              </div>
+              <div className="flex justify-between items-center pb-2 border-b border-slate-200/70">
+                <span className="text-slate-500 font-medium">Alternative Email (Sent To)</span>
+                <span className="font-semibold text-blue-700">
+                  {successResult.alternativeEmail || formData.alternativeEmail}
+                </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-slate-500 font-medium">Temporary Password</span>
@@ -177,7 +234,7 @@ export const InitiateOnboardingModal: React.FC<InitiateOnboardingModalProps> = (
             </div>
 
             <p className="text-[11px] text-slate-400">
-              Upon initial login, the candidate will be prompted to change their temporary password and submit their personal & banking verification documents.
+              Upon initial login with their Work Email, the candidate will be prompted to change their temporary password and submit their personal & banking verification documents.
             </p>
 
             <div className="flex items-center gap-3 pt-2">
@@ -208,12 +265,14 @@ export const InitiateOnboardingModal: React.FC<InitiateOnboardingModalProps> = (
             )}
 
             {/* Email Dispatch Notice */}
-            <div className="p-3 rounded-xl bg-blue-50/70 border border-blue-200 text-blue-900 flex items-center gap-2.5">
-              <Mail className="w-4 h-4 text-blue-600 shrink-0" />
-              <span>
-                Invitation email with auto-generated temporary password will be dispatched from{' '}
-                <strong className="font-semibold text-blue-700">tech.priyex@gmail.com</strong>.
-              </span>
+            <div className="p-3 rounded-xl bg-blue-50/70 border border-blue-200 text-blue-900 flex items-start gap-2.5">
+              <Mail className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+              <div className="text-[11px] leading-relaxed">
+                <span>Invitation email with temporary credentials will be dispatched to the candidate's </span>
+                <strong className="font-bold text-blue-800">Alternative Email</strong>.
+                <span> Official system Login ID will always be set to their unique corporate </span>
+                <strong className="font-bold text-blue-800">Work Email</strong>.
+              </div>
             </div>
 
             {/* Name Fields */}
@@ -226,7 +285,7 @@ export const InitiateOnboardingModal: React.FC<InitiateOnboardingModalProps> = (
                   value={formData.firstName}
                   onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
                   placeholder="e.g. Arun"
-                  className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2 border border-slate-200 focus:bg-white focus:outline-none focus:border-blue-500"
+                  className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2 border border-slate-200 focus:bg-white focus:outline-none focus:border-blue-500 font-medium"
                 />
               </div>
               <div>
@@ -237,24 +296,76 @@ export const InitiateOnboardingModal: React.FC<InitiateOnboardingModalProps> = (
                   value={formData.lastName}
                   onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
                   placeholder="e.g. Patel"
-                  className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2 border border-slate-200 focus:bg-white focus:outline-none focus:border-blue-500"
+                  className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2 border border-slate-200 focus:bg-white focus:outline-none focus:border-blue-500 font-medium"
                 />
               </div>
             </div>
 
-            {/* Contact Fields */}
+            {/* Email Fields: Official Work Email (Login ID) + Alternative Email (Communication) */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-slate-700 font-bold mb-1">Work Email (Login ID) *</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-slate-700 font-bold">Work Email (Login ID) *</label>
+                  <button
+                    type="button"
+                    onClick={() => handleGenerateWorkEmail()}
+                    disabled={!formData.firstName.trim() || isGeneratingEmail}
+                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-600 hover:text-blue-700 hover:bg-blue-100/70 px-2 py-0.5 rounded-lg transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                    title="Auto-generate unique firstname.lastname@priyex.com"
+                  >
+                    {isGeneratingEmail ? (
+                      <RefreshCw className="w-3 h-3 animate-spin text-blue-600" />
+                    ) : (
+                      <Sparkles className="w-3 h-3 text-amber-500 fill-amber-400" />
+                    )}
+                    <span>{isGeneratingEmail ? 'Generating...' : 'Auto-Generate'}</span>
+                  </button>
+                </div>
+                <div className="relative">
+                  <input
+                    type="email"
+                    required
+                    value={formData.workEmail}
+                    onChange={(e) => {
+                      setFormData({ ...formData, workEmail: e.target.value });
+                      setEmailGenerated(false);
+                    }}
+                    placeholder="e.g. arun.patel@priyex.com"
+                    className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2 border border-slate-200 focus:bg-white focus:outline-none focus:border-blue-500 font-medium"
+                  />
+                </div>
+                {emailGenerated ? (
+                  <p className="text-[10px] text-emerald-600 font-medium mt-1 flex items-center gap-1">
+                    <Check className="w-3 h-3 inline text-emerald-600 stroke-[3]" /> Unique official email generated
+                  </p>
+                ) : (
+                  <p className="text-[10px] text-slate-400 mt-1">Official unique enterprise login ID</p>
+                )}
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-slate-700 font-bold">Alternative Email *</label>
+                  <span className="text-[10px] text-blue-600 font-medium bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200">
+                    Invite recipient
+                  </span>
+                </div>
                 <input
                   type="email"
                   required
-                  value={formData.workEmail}
-                  onChange={(e) => setFormData({ ...formData, workEmail: e.target.value })}
-                  placeholder="arun.patel@priyex.com"
-                  className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2 border border-slate-200 focus:bg-white focus:outline-none focus:border-blue-500"
+                  value={formData.alternativeEmail}
+                  onChange={(e) => setFormData({ ...formData, alternativeEmail: e.target.value })}
+                  placeholder="e.g. arun.patel@gmail.com"
+                  className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2 border border-slate-200 focus:bg-white focus:outline-none focus:border-blue-500 font-medium"
                 />
+                <p className="text-[10px] text-slate-400 mt-1">
+                  Receives invite credentials & password resets
+                </p>
               </div>
+            </div>
+
+            {/* Phone & Designation */}
+            <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-slate-700 font-bold mb-1">Personal Phone *</label>
                 <input
@@ -263,12 +374,23 @@ export const InitiateOnboardingModal: React.FC<InitiateOnboardingModalProps> = (
                   value={formData.personalPhone}
                   onChange={(e) => setFormData({ ...formData, personalPhone: e.target.value })}
                   placeholder="+91 98765 43210"
-                  className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2 border border-slate-200 focus:bg-white focus:outline-none focus:border-blue-500"
+                  className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2 border border-slate-200 focus:bg-white focus:outline-none focus:border-blue-500 font-medium"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-700 font-bold mb-1">Designation Title</label>
+                <input
+                  type="text"
+                  value={formData.designationName}
+                  onChange={(e) => setFormData({ ...formData, designationName: e.target.value })}
+                  placeholder="e.g. Associate Software Engineer"
+                  className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2 border border-slate-200 focus:bg-white focus:outline-none focus:border-blue-500 font-medium"
                 />
               </div>
             </div>
 
-            {/* Department & Role */}
+            {/* Department & Joining Date */}
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-slate-700 font-bold mb-1">Department *</label>
@@ -295,30 +417,19 @@ export const InitiateOnboardingModal: React.FC<InitiateOnboardingModalProps> = (
               </div>
 
               <div>
-                <label className="block text-slate-700 font-bold mb-1">Designation Title</label>
-                <input
-                  type="text"
-                  value={formData.designationName}
-                  onChange={(e) => setFormData({ ...formData, designationName: e.target.value })}
-                  placeholder="e.g. Associate Software Engineer"
-                  className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2 border border-slate-200 focus:bg-white focus:outline-none focus:border-blue-500 font-medium"
-                />
-              </div>
-            </div>
-
-            {/* Joining Date & Type */}
-            <div className="grid grid-cols-2 gap-3">
-              <div>
                 <label className="block text-slate-700 font-bold mb-1">Joining Date *</label>
                 <input
                   type="date"
                   required
                   value={formData.joiningDate}
                   onChange={(e) => setFormData({ ...formData, joiningDate: e.target.value })}
-                  className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2 border border-slate-200 focus:bg-white focus:outline-none focus:border-blue-500"
+                  className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2 border border-slate-200 focus:bg-white focus:outline-none focus:border-blue-500 font-medium"
                 />
               </div>
+            </div>
 
+            {/* Employment Type & Work Location */}
+            <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-slate-700 font-bold mb-1">Employment Type</label>
                 <select
@@ -332,10 +443,7 @@ export const InitiateOnboardingModal: React.FC<InitiateOnboardingModalProps> = (
                   <option value="INTERN">Internship</option>
                 </select>
               </div>
-            </div>
 
-            {/* Location & Annual CTC */}
-            <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-slate-700 font-bold mb-1">Work Location</label>
                 <select
@@ -349,16 +457,17 @@ export const InitiateOnboardingModal: React.FC<InitiateOnboardingModalProps> = (
                   <option value="Remote">Remote</option>
                 </select>
               </div>
+            </div>
 
-              <div>
-                <label className="block text-slate-700 font-bold mb-1">Annual CTC (₹)</label>
-                <input
-                  type="number"
-                  value={formData.annualCtc}
-                  onChange={(e) => setFormData({ ...formData, annualCtc: Number(e.target.value) || 0 })}
-                  className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2 border border-slate-200 focus:bg-white focus:outline-none focus:border-blue-500 font-medium"
-                />
-              </div>
+            {/* Annual CTC */}
+            <div>
+              <label className="block text-slate-700 font-bold mb-1">Annual CTC (₹)</label>
+              <input
+                type="number"
+                value={formData.annualCtc}
+                onChange={(e) => setFormData({ ...formData, annualCtc: Number(e.target.value) || 0 })}
+                className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2 border border-slate-200 focus:bg-white focus:outline-none focus:border-blue-500 font-medium"
+              />
             </div>
 
             <div className="pt-3 flex items-center justify-end gap-2.5 border-t border-slate-100">
