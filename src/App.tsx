@@ -18,6 +18,7 @@ const AuditLogsPage = lazy(() => import('./pages/AuditLogsPage').then(m => ({ de
 const SupportDeskPage = lazy(() => import('./pages/SupportDeskPage').then(m => ({ default: m.SupportDeskPage })));
 const OnboardingPage = lazy(() => import('./pages/OnboardingPage').then(m => ({ default: m.OnboardingPage })));
 const BannerNotificationsPage = lazy(() => import('./pages/BannerNotificationsPage').then(m => ({ default: m.BannerNotificationsPage })));
+const ExpensesPage = lazy(() => import('./pages/ExpensesPage').then(m => ({ default: m.ExpensesPage })));
 
 export const App: React.FC = () => {
   useEffect(() => {
@@ -45,6 +46,7 @@ export const App: React.FC = () => {
                 <Route path="/requests" element={<ProfileRequestsPage />} />
                 <Route path="/attendance" element={<AttendancePage />} />
                 <Route path="/payroll" element={<PayrollPage />} />
+                <Route path="/expenses" element={<ExpensesPage />} />
                 <Route path="/organization" element={<OrganizationPage />} />
                 <Route path="/support-desk" element={<SupportDeskPage />} />
                 <Route path="/admin/users" element={<UsersRolesPage />} />

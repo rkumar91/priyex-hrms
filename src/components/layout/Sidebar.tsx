@@ -15,6 +15,7 @@ import {
   UserCog,
   Headphones,
   Megaphone,
+  Receipt,
   X
 } from 'lucide-react';
 
@@ -42,6 +43,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen = false, onCloseMob
     { name: t('nav.requests', 'Requests & Approvals'), path: '/requests', icon: ClipboardCheck, show: true },
     { name: t('nav.attendance', 'Attendance & Leave'), path: '/attendance', icon: CalendarCheck, show: true },
     { name: t('nav.payroll', 'Payroll & Compensation'), path: '/payroll', icon: CircleDollarSign, show: true },
+    { name: t('nav.expenses', 'Expense Claims'), path: '/expenses', icon: Receipt, show: true },
     { name: t('nav.organization', 'Organization'), path: '/organization', icon: Building, show: canManageOrganization(user) },
     { name: t('nav.bannerNotifications', 'Banner Notifications'), path: '/banner-notifications', icon: Megaphone, show: canManageAnnouncements(user) },
     { name: t('nav.usersRoles', 'User & Roles'), path: '/admin/users', icon: UserCog, show: canManageUserRoles(user) },
