@@ -124,7 +124,19 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu, onAnnouncement
   }, []);
 
   const primaryRole = user?.roles?.[0] || 'EMPLOYEE';
-  const displayName = user?.fullName || user?.displayName || (user?.roles?.includes('SUPER_ADMIN') ? 'Super Admin' : user?.email?.split('@')[0] || 'User');
+  const rawDisplayName = user?.fullName || user?.displayName || (user?.roles?.includes('SUPER_ADMIN') ? 'Super Admin' : user?.email?.split('@')[0] || 'User');
+  // Strip trailing role hints like "(Employee)" or "(HR Manager)" if present, since role badge is displayed separately
+  const displayName = rawDisplayName.replace(/\s*\([^)]*\)\s*$/, '').trim() || rawDisplayName;
+
+  const getInitials = (name: string) => {
+    const parts = name.trim().split(/\s+/).filter(Boolean);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+    return name.slice(0, 2).toUpperCase();
+  };
+  const initials = getInitials(displayName);
+
   const roleConfig = getRoleConfig(primaryRole);
   const RoleIcon = roleConfig.icon;
 
@@ -237,11 +249,11 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu, onAnnouncement
               className="flex items-center gap-2 sm:gap-2.5 px-2 py-1.5 rounded-xl border border-transparent hover:border-slate-200 hover:bg-slate-50 transition-all duration-200 cursor-pointer group"
             >
               {/* Name & Role */}
-              <div className="hidden sm:flex flex-col text-right gap-0.5">
-                <span className="text-[13px] font-bold text-slate-800 group-hover:text-slate-950 transition-colors truncate max-w-[130px] leading-tight">
+              <div className="hidden sm:flex flex-col text-right gap-0.5 max-w-[190px] lg:max-w-[230px]">
+                <span className="text-[13px] font-bold text-slate-800 group-hover:text-slate-950 transition-colors truncate leading-tight tracking-tight" title={displayName}>
                   {displayName}
                 </span>
-                <span className={`inline-flex items-center justify-end gap-1 text-[9px] font-extrabold tracking-widest uppercase ${roleConfig.text} ${roleConfig.bg} self-end px-1.5 py-0.5 rounded-md border ${roleConfig.border} leading-tight`}>
+                <span className={`inline-flex items-center justify-end gap-1 text-[9px] font-extrabold tracking-wider uppercase ${roleConfig.text} ${roleConfig.bg} self-end px-1.5 py-0.5 rounded-md border ${roleConfig.border} leading-tight`}>
                   <RoleIcon className="w-2.5 h-2.5" strokeWidth={3} />
                   {roleConfig.label}
                 </span>
@@ -258,8 +270,8 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu, onAnnouncement
                         className="w-full h-full object-cover rounded-full"
                       />
                     ) : (
-                      <span className={`font-extrabold text-sm bg-gradient-to-br ${roleConfig.gradient} bg-clip-text text-transparent`}>
-                        {displayName ? displayName.charAt(0).toUpperCase() : <User className="w-4 h-4 text-slate-500" />}
+                      <span className={`font-extrabold text-xs tracking-wider bg-gradient-to-br ${roleConfig.gradient} bg-clip-text text-transparent`}>
+                        {initials || <User className="w-4 h-4 text-slate-500" />}
                       </span>
                     )}
                   </div>
@@ -294,8 +306,8 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu, onAnnouncement
                         />
                       </div>
                     ) : (
-                      <div className="w-9 h-9 rounded-full bg-white/25 backdrop-blur-md flex items-center justify-center text-white text-sm font-black shadow-md mb-2">
-                        {displayName ? displayName.charAt(0).toUpperCase() : 'U'}
+                      <div className="w-9 h-9 rounded-full bg-white/25 backdrop-blur-md flex items-center justify-center text-white text-xs font-black shadow-md mb-2 tracking-wider">
+                        {initials || 'U'}
                       </div>
                     )}
                     <h3 className="text-sm font-extrabold text-white leading-tight">{displayName}</h3>

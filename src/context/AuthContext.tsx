@@ -27,12 +27,28 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const cleanDisplayName = (name?: string | null): string => {
+  if (!name) return '';
+  return name.replace(/\s*\([^)]*\)\s*$/, '').trim();
+};
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<UserProfile | null>(() => {
     const token = localStorage.getItem('accessToken');
     if (!token) return null;
     const saved = localStorage.getItem('user');
-    return saved ? JSON.parse(saved) : null;
+    if (!saved) return null;
+    try {
+      const parsed = JSON.parse(saved);
+      if (parsed) {
+        const clean = cleanDisplayName(parsed.displayName || parsed.fullName || parsed.email);
+        parsed.displayName = clean;
+        parsed.fullName = clean;
+      }
+      return parsed;
+    } catch {
+      return null;
+    }
   });
 
   // Only show full loading screen if there is an active token but no cached user profile yet
@@ -56,10 +72,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         const res: any = await api.get('/auth/me');
         if (res.success && res.data) {
+          const rawName = res.data.displayName || res.data.fullName || res.data.email;
+          const sanitizedName = cleanDisplayName(rawName);
           const profile: UserProfile = {
             ...res.data,
-            fullName: res.data.displayName || res.data.fullName || res.data.email,
-            displayName: res.data.displayName || res.data.fullName || res.data.email,
+            fullName: sanitizedName,
+            displayName: sanitizedName,
           };
           setUser(profile);
           localStorage.setItem('user', JSON.stringify(profile));
@@ -91,10 +109,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         localStorage.setItem('accessToken', accessToken);
       }
       const rawUser = userProfile || res.data;
+      const rawName = rawUser.displayName || rawUser.fullName || rawUser.email;
+      const sanitizedName = cleanDisplayName(rawName);
       const activeUser: UserProfile = {
         ...rawUser,
-        fullName: rawUser.displayName || rawUser.fullName || rawUser.email,
-        displayName: rawUser.displayName || rawUser.fullName || rawUser.email,
+        fullName: sanitizedName,
+        displayName: sanitizedName,
       };
       setUser(activeUser);
       localStorage.setItem('user', JSON.stringify(activeUser));
