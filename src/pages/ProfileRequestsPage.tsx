@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { canApproveProfileRequests } from '../utils/rbac';
 import api from '../api/client';
-import { FeatureCardTabs } from '../components/common/FeatureCardTabs';
 import {
   ClipboardCheck,
   PlusCircle,
@@ -69,8 +69,22 @@ export const ProfileRequestsPage: React.FC = () => {
   const { user } = useAuth();
   const canApprove = canApproveProfileRequests(user);
 
+  const [searchParams] = useSearchParams();
+  const rawTab = searchParams.get('tab')?.toLowerCase();
+
+  const getRequestsTab = (key?: string | null): 'PROFILE_REQUESTS' | 'HR_QUERIES' => {
+    if (key === 'hr_queries' || key === 'queries') return 'HR_QUERIES';
+    return 'PROFILE_REQUESTS';
+  };
+
   // Tabs: 'PROFILE_REQUESTS' vs 'HR_QUERIES'
-  const [activeTab, setActiveTab] = useState<'PROFILE_REQUESTS' | 'HR_QUERIES'>('PROFILE_REQUESTS');
+  const [activeTab, setActiveTab] = useState<'PROFILE_REQUESTS' | 'HR_QUERIES'>(() => getRequestsTab(rawTab));
+
+  useEffect(() => {
+    if (rawTab) {
+      setActiveTab(getRequestsTab(rawTab));
+    }
+  }, [rawTab]);
 
   // Profile Requests State
   const [requests, setRequests] = useState<ProfileRequest[]>([]);
@@ -233,47 +247,44 @@ export const ProfileRequestsPage: React.FC = () => {
   const pendingRequestsCount = requests.filter(r => r.status === 'PENDING').length;
   const openQueriesCount = queries.filter(q => q.status === 'OPEN' || q.status === 'IN_PROGRESS').length;
 
+  const tabMetaMap = {
+    PROFILE_REQUESTS: {
+      title: 'Profile Update Requests',
+      subtitle: 'Review and approve employee personal, address & banking detail updates',
+      badge: pendingRequestsCount > 0 ? `${pendingRequestsCount} Pending` : null
+    },
+    HR_QUERIES: {
+      title: 'HR Helpdesk & Queries',
+      subtitle: 'Confidential employee questions & HR ticketing support',
+      badge: openQueriesCount > 0 ? `${openQueriesCount} Active` : null
+    }
+  };
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Page Header */}
-      {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
-            <ClipboardCheck className="w-6 h-6 text-emerald-600" />
-            <span>HR Operations & Request Desk</span>
-          </h1>
+          <div className="flex flex-wrap items-center gap-2.5">
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
+              <ClipboardCheck className="w-6 h-6 text-emerald-600" />
+              <span>HR Operations & Request Desk</span>
+            </h1>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200/80 shadow-2xs">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+              {tabMetaMap[activeTab].title}
+            </span>
+            {tabMetaMap[activeTab].badge && (
+              <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                {tabMetaMap[activeTab].badge}
+              </span>
+            )}
+          </div>
           <p className="text-sm text-slate-500 mt-1 font-normal">
-            Review employee profile update approvals and respond to employee HR inquiries.
+            {tabMetaMap[activeTab].subtitle}
           </p>
         </div>
       </div>
-
-      {/* Navigation Switcher Tabs */}
-      <FeatureCardTabs
-        activeTab={activeTab}
-        onChange={setActiveTab}
-        tabs={[
-          {
-            id: 'PROFILE_REQUESTS',
-            label: 'Profile Update Requests',
-            description: 'Employee personal, address & banking detail modifications',
-            icon: CreditCard,
-            color: 'emerald',
-            badge: pendingRequestsCount > 0 ? `${pendingRequestsCount} Pending` : null,
-            badgeVariant: 'warning'
-          },
-          {
-            id: 'HR_QUERIES',
-            label: 'HR Helpdesk & Queries',
-            description: 'Confidential employee questions & HR ticketing support',
-            icon: MessageSquare,
-            color: 'indigo',
-            badge: openQueriesCount > 0 ? `${openQueriesCount} Active` : null,
-            badgeVariant: 'primary'
-          }
-        ]}
-      />
 
       {feedback && (
         <div className={`p-4 rounded-2xl text-xs font-semibold flex items-center justify-between ${

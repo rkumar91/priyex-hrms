@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { isSuperAdmin } from '../utils/rbac';
 import api from '../api/client';
-import { FeatureCardTabs } from '../components/common/FeatureCardTabs';
 import {
   UserCog,
   ShieldCheck,
@@ -56,8 +56,23 @@ export const UsersRolesPage: React.FC = () => {
   const { user } = useAuth();
   const isAdmin = isSuperAdmin(user);
 
+  const [searchParams] = useSearchParams();
+  const rawTab = searchParams.get('tab')?.toLowerCase();
+
+  const getRolesTab = (key?: string | null): 'EMPLOYEE_ROLES' | 'SYSTEM_ACCOUNTS' => {
+    if (key === 'logins' || key === 'accounts' || key === 'system_accounts') return 'SYSTEM_ACCOUNTS';
+    return 'EMPLOYEE_ROLES';
+  };
+
   // Tab State: 'EMPLOYEE_ROLES' vs 'SYSTEM_ACCOUNTS'
-  const [activeTab, setActiveTab] = useState<'EMPLOYEE_ROLES' | 'SYSTEM_ACCOUNTS'>('EMPLOYEE_ROLES');
+  const [activeTab, setActiveTab] = useState<'EMPLOYEE_ROLES' | 'SYSTEM_ACCOUNTS'>(() => getRolesTab(rawTab));
+
+  useEffect(() => {
+    if (rawTab) {
+      setActiveTab(getRolesTab(rawTab));
+      setSearchTerm('');
+    }
+  }, [rawTab]);
 
   // Employee Roles State
   const [employeeRoles, setEmployeeRoles] = useState<EmployeeUserRole[]>([]);
@@ -199,50 +214,42 @@ export const UsersRolesPage: React.FC = () => {
     );
   }
 
+  const tabMetaMap = {
+    EMPLOYEE_ROLES: {
+      title: 'Employee Roles & Permissions',
+      subtitle: 'Employee access levels, HR Manager promotion & permissions',
+      badge: `${employeeRoles.length} Employees`
+    },
+    SYSTEM_ACCOUNTS: {
+      title: 'System Login Accounts',
+      subtitle: 'Platform credentials, status & super admin account access',
+      badge: `${usersList.length} Logins`
+    }
+  };
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Page Header */}
-      {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
-            <UserCog className="w-6 h-6 text-emerald-600" />
-            <span>Admin Role & User Governance</span>
-          </h1>
+          <div className="flex flex-wrap items-center gap-2.5">
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
+              <UserCog className="w-6 h-6 text-emerald-600" />
+              <span>User & Role Governance</span>
+            </h1>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200/80 shadow-2xs">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+              {tabMetaMap[activeTab].title}
+            </span>
+            <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+              {tabMetaMap[activeTab].badge}
+            </span>
+          </div>
           <p className="text-sm text-slate-500 mt-1 font-normal">
-            Manage system roles for every employee in the company, promote to HR Manager, and configure access permissions.
+            {tabMetaMap[activeTab].subtitle}
           </p>
         </div>
       </div>
-
-      {/* Navigation Switcher Tabs */}
-      <FeatureCardTabs
-        activeTab={activeTab}
-        onChange={(tab) => {
-          setActiveTab(tab);
-          setSearchTerm('');
-        }}
-        tabs={[
-          {
-            id: 'EMPLOYEE_ROLES',
-            label: 'All Employees & System Roles',
-            description: 'Employee access levels, HR Manager promotion & permissions',
-            icon: Users,
-            color: 'blue',
-            badge: `${employeeRoles.length} Employees`,
-            badgeVariant: 'primary'
-          },
-          {
-            id: 'SYSTEM_ACCOUNTS',
-            label: 'System Login Accounts',
-            description: 'Platform credentials, status & super admin account access',
-            icon: KeyRound,
-            color: 'purple',
-            badge: `${usersList.length} Logins`,
-            badgeVariant: 'slate'
-          }
-        ]}
-      />
 
       {message && (
         <div className={`p-4 rounded-2xl text-xs font-semibold flex items-center justify-between ${

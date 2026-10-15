@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/client';
-import { FeatureCardTabs } from '../components/common/FeatureCardTabs';
 import {
   Headphones,
   Clock,
@@ -46,7 +46,22 @@ interface MessageItem {
 
 export const SupportDeskPage: React.FC = () => {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<'pool' | 'active' | 'history'>('pool');
+  const [searchParams] = useSearchParams();
+  const rawTab = searchParams.get('tab')?.toLowerCase();
+
+  const getSupportTab = (key?: string | null): 'pool' | 'active' | 'history' => {
+    if (key === 'active') return 'active';
+    if (key === 'history') return 'history';
+    return 'pool';
+  };
+
+  const [activeTab, setActiveTab] = useState<'pool' | 'active' | 'history'>(() => getSupportTab(rawTab));
+
+  useEffect(() => {
+    if (rawTab) {
+      setActiveTab(getSupportTab(rawTab));
+    }
+  }, [rawTab]);
 
   // Pool state
   const [poolQueries, setPoolQueries] = useState<PoolQuery[]>([]);
@@ -246,6 +261,24 @@ export const SupportDeskPage: React.FC = () => {
     'This policy query has been approved as per enterprise guidelines.',
   ];
 
+  const tabMetaMap = {
+    pool: {
+      title: 'Live Available Pool',
+      subtitle: 'Unassigned inquiries awaiting support agent pickup',
+      badge: poolQueries.length > 0 ? `${poolQueries.length} Unclaimed` : null
+    },
+    active: {
+      title: 'My Active Chats',
+      subtitle: 'Direct conversations currently under active resolution',
+      badge: myChats.length > 0 ? `${myChats.length} Active` : null
+    },
+    history: {
+      title: 'Resolved Transcripts',
+      subtitle: 'Historical support logs & archived query resolutions',
+      badge: `${historyQueries.length} Done`
+    }
+  };
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Top Page Header */}
@@ -255,11 +288,22 @@ export const SupportDeskPage: React.FC = () => {
             <Headphones className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
-              Live HR Support Desk & Helpdesk Pool
-            </h1>
+            <div className="flex flex-wrap items-center gap-2.5">
+              <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
+                Live HR Support Desk
+              </h1>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200/80 shadow-2xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+                {tabMetaMap[activeTab].title}
+              </span>
+              {tabMetaMap[activeTab].badge && (
+                <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                  {tabMetaMap[activeTab].badge}
+                </span>
+              )}
+            </div>
             <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-              Real-time incoming employee questions, ticket claim queue, and live chat assistance.
+              {tabMetaMap[activeTab].subtitle}
             </p>
           </div>
         </div>
@@ -272,48 +316,13 @@ export const SupportDeskPage: React.FC = () => {
               fetchMyChats();
               fetchHistory();
             }}
-            className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer"
+            className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer active:scale-95"
           >
             <RefreshCw className="w-3.5 h-3.5" />
             <span>Refresh</span>
           </button>
         </div>
       </div>
-
-      {/* Navigation Switcher Tabs */}
-      <FeatureCardTabs
-        activeTab={activeTab}
-        onChange={setActiveTab}
-        tabs={[
-          {
-            id: 'pool',
-            label: 'Live Available Pool',
-            description: 'Unassigned inquiries awaiting support agent pickup',
-            icon: Inbox,
-            color: 'amber',
-            badge: poolQueries.length > 0 ? `${poolQueries.length} Unclaimed` : null,
-            badgeVariant: 'warning'
-          },
-          {
-            id: 'active',
-            label: 'My Active Chats',
-            description: 'Direct conversations currently under active resolution',
-            icon: MessageSquare,
-            color: 'blue',
-            badge: myChats.length > 0 ? `${myChats.length} Active` : null,
-            badgeVariant: 'primary'
-          },
-          {
-            id: 'history',
-            label: 'Resolved Transcripts',
-            description: 'Historical support logs & archived query resolutions',
-            icon: CheckCircle2,
-            color: 'emerald',
-            badge: `${historyQueries.length} Done`,
-            badgeVariant: 'success'
-          }
-        ]}
-      />
 
       {/* Tab 1: Live Pool (Unassigned Questions) */}
       {activeTab === 'pool' && (

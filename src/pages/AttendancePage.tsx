@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { canApproveLeaves, isHrAdmin } from '../utils/rbac';
 import api from '../api/client';
-import { FeatureCardTabs } from '../components/common/FeatureCardTabs';
 import {
   CalendarCheck,
   Clock,
@@ -103,8 +102,22 @@ export const AttendancePage: React.FC = () => {
   const canApprove = canApproveLeaves(user);
   const isHr = isHrAdmin(user);
 
-  // Active module tab
-  const [activeTab, setActiveTab] = useState<'ATTENDANCE' | 'OVERTIME' | 'COFF' | 'LEAVES' | 'GEOFENCES'>('ATTENDANCE');
+  const [searchParams] = useSearchParams();
+  const urlTab = searchParams.get('tab')?.toUpperCase();
+
+  // Active module tab synced with URL query param from cascading sidebar
+  const [activeTab, setActiveTab] = useState<'ATTENDANCE' | 'OVERTIME' | 'COFF' | 'LEAVES' | 'GEOFENCES'>(() => {
+    if (urlTab && ['ATTENDANCE', 'OVERTIME', 'COFF', 'LEAVES', 'GEOFENCES'].includes(urlTab)) {
+      return urlTab as any;
+    }
+    return 'ATTENDANCE';
+  });
+
+  useEffect(() => {
+    if (urlTab && ['ATTENDANCE', 'OVERTIME', 'COFF', 'LEAVES', 'GEOFENCES'].includes(urlTab)) {
+      setActiveTab(urlTab as any);
+    }
+  }, [urlTab]);
 
   // --- TAB 1: ATTENDANCE & REAL-TIME GEO-FENCING STATE ---
   const [isClockedIn, setIsClockedIn] = useState<boolean>(() => {
@@ -571,6 +584,14 @@ export const AttendancePage: React.FC = () => {
   const approvedLeavesCount = leaveRequests.filter(l => l.status === 'APPROVED').length;
   const activeGeofencesCount = geofences.filter(g => g.isActive).length;
 
+  const tabMetaMap: Record<string, { title: string; subtitle: string }> = {
+    ATTENDANCE: { title: 'Biometric & Punch', subtitle: 'Enterprise GPS Geo-fencing & real-time punch tracking' },
+    LEAVES: { title: 'Leave Management', subtitle: 'Employee leave requests, approvals, team calendar & balances' },
+    OVERTIME: { title: 'Overtime (OT)', subtitle: 'Overtime hours submission, manager authorization & rate computation' },
+    COFF: { title: 'C-Off Wallet', subtitle: 'Compensatory off wallet accrual, approval & leave redemption' },
+    GEOFENCES: { title: 'Geo-Perimeters', subtitle: 'Corporate campus radius coordinates & fence boundaries' }
+  };
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Page Header */}
@@ -579,8 +600,12 @@ export const AttendancePage: React.FC = () => {
           <div className="flex items-center gap-2.5 flex-wrap">
             <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
               <CalendarCheck className="w-6 h-6 text-emerald-600" />
-              <span>Attendance, Leave & Geo-Governance</span>
+              <span>Attendance & Leave</span>
             </h1>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200/80 shadow-2xs">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+              {tabMetaMap[activeTab]?.title || 'Attendance'}
+            </span>
             <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/90 shadow-xs">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -590,7 +615,7 @@ export const AttendancePage: React.FC = () => {
             </span>
           </div>
           <p className="text-sm text-slate-500 mt-1 font-normal">
-            Enterprise GPS Geo-fencing · Biometric punch tracking · Leave management · Multi-rate Overtime · C-Off credit wallet
+            {tabMetaMap[activeTab]?.subtitle || 'Enterprise GPS Geo-fencing · Biometric punch tracking · Leave management'}
           </p>
         </div>
 
@@ -659,59 +684,6 @@ export const AttendancePage: React.FC = () => {
         </div>
       </div>
 
-      {/* Navigation Switcher Tabs */}
-      <FeatureCardTabs
-        activeTab={activeTab}
-        onChange={setActiveTab}
-        tabs={[
-          {
-            id: 'ATTENDANCE',
-            label: 'Biometric Attendance',
-            description: 'GPS geofencing & biometric punch tracking',
-            icon: MapPin,
-            color: 'blue',
-            badge: isClockedIn ? 'On Shift' : 'Off Shift',
-            badgeVariant: isClockedIn ? 'success' : 'slate'
-          },
-          {
-            id: 'LEAVES',
-            label: 'Leave Management',
-            description: 'Leave applications, quotas & manager approvals',
-            icon: CalendarCheck,
-            color: 'emerald',
-            badge: pendingLeavesCount > 0 ? `${pendingLeavesCount} Pending` : null,
-            badgeVariant: 'warning'
-          },
-          {
-            id: 'OVERTIME',
-            label: 'Overtime (OT)',
-            description: 'Work timesheets & statutory overtime payouts',
-            icon: Timer,
-            color: 'amber',
-            badge: pendingOtCount > 0 ? `${pendingOtCount} Pending` : null,
-            badgeVariant: 'warning'
-          },
-          {
-            id: 'COFF',
-            label: 'C-Off Wallet',
-            description: 'Weekend worked credits & leave redemption',
-            icon: Award,
-            color: 'teal',
-            badge: availableCoffCredits > 0 ? `${availableCoffCredits.toFixed(1)}d Avail` : null,
-            badgeVariant: 'success'
-          },
-          {
-            id: 'GEOFENCES',
-            label: 'Office Geo-Fences',
-            description: 'Perimeter boundaries & GPS radius governance',
-            icon: Building2,
-            color: 'purple',
-            badge: `${geofences.length} Sites`,
-            badgeVariant: 'slate',
-            show: isHr
-          }
-        ]}
-      />
 
       {/* ======================================================== */}
       {/* TAB 1: GEO-FENCE & LIVE BIOMETRIC PUNCH                 */}

@@ -17,10 +17,10 @@ import {
   Search,
   Check
 } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { isHrAdmin } from '../utils/rbac';
 import api from '../api/client';
-import { FeatureCardTabs } from '../components/common/FeatureCardTabs';
 
 export interface OrgLeavePolicy {
   id: number;
@@ -116,7 +116,21 @@ export const OrganizationPage: React.FC = () => {
   const { user } = useAuth();
   const canManage = isHrAdmin(user);
 
-  const [activeTab, setActiveTab] = useState<'DEPARTMENTS' | 'LEAVE_POLICIES'>('LEAVE_POLICIES');
+  const [searchParams] = useSearchParams();
+  const rawTab = searchParams.get('tab')?.toLowerCase();
+
+  const getOrgTab = (key?: string | null): 'DEPARTMENTS' | 'LEAVE_POLICIES' => {
+    if (key === 'entities' || key === 'departments') return 'DEPARTMENTS';
+    return 'LEAVE_POLICIES';
+  };
+
+  const [activeTab, setActiveTab] = useState<'DEPARTMENTS' | 'LEAVE_POLICIES'>(() => getOrgTab(rawTab));
+
+  useEffect(() => {
+    if (rawTab) {
+      setActiveTab(getOrgTab(rawTab));
+    }
+  }, [rawTab]);
   const [policies, setPolicies] = useState<OrgLeavePolicy[]>([]);
   const [isLoadingPolicies, setIsLoadingPolicies] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -268,17 +282,28 @@ export const OrganizationPage: React.FC = () => {
 
   const carryForwardCount = policies.filter((p) => p.carryForwardAllowed).length;
 
+  const tabMetaMap = {
+    LEAVE_POLICIES: { title: 'Annual Leave Quotas', subtitle: 'Statutory leave entitlements, quotas & carry forward rules' },
+    DEPARTMENTS: { title: 'Departments & Entities', subtitle: 'Corporate branches, legal entities & departmental cost centers' },
+  };
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
-            <Building className="w-6 h-6 text-emerald-600" />
-            <span>Organization Architecture & Policy Center</span>
-          </h1>
+          <div className="flex flex-wrap items-center gap-2.5">
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
+              <Building className="w-6 h-6 text-emerald-600" />
+              <span>Organization & Policies</span>
+            </h1>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200/80 shadow-2xs">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+              {tabMetaMap[activeTab].title}
+            </span>
+          </div>
           <p className="text-sm text-slate-500 mt-1 font-normal">
-            Configure legal entities, organizational branches, departments, and annual leave quotas
+            {tabMetaMap[activeTab].subtitle}
           </p>
         </div>
 
@@ -293,32 +318,6 @@ export const OrganizationPage: React.FC = () => {
           </button>
         )}
       </div>
-
-      {/* Navigation Switcher Tabs */}
-      <FeatureCardTabs
-        activeTab={activeTab}
-        onChange={setActiveTab}
-        tabs={[
-          {
-            id: 'LEAVE_POLICIES',
-            label: 'Annual Leave Quotas',
-            description: 'Statutory leave entitlements, quotas & carry forward rules',
-            icon: CalendarCheck2,
-            color: 'emerald',
-            badge: `${policies.length} Policies`,
-            badgeVariant: 'success'
-          },
-          {
-            id: 'DEPARTMENTS',
-            label: 'Departments & Entities',
-            description: 'Corporate branches, legal entities & departmental cost centers',
-            icon: Layers,
-            color: 'blue',
-            badge: `${departments.length} Units`,
-            badgeVariant: 'primary'
-          }
-        ]}
-      />
 
       {/* ─── TAB 1: ANNUAL LEAVE POLICIES & QUOTAS ─── */}
       {activeTab === 'LEAVE_POLICIES' && (

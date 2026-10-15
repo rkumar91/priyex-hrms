@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { isHrAdmin } from '../utils/rbac';
 import api from '../api/client';
-import { FeatureCardTabs } from '../components/common/FeatureCardTabs';
 import {
   CircleDollarSign,
   Play,
@@ -137,10 +137,32 @@ export const PayrollPage: React.FC = () => {
   const { user } = useAuth();
   const canManage = isHrAdmin(user);
 
+  const [searchParams] = useSearchParams();
+  const rawTab = searchParams.get('tab')?.toLowerCase();
+
+  const getPayrollTabFromKey = (key?: string | null): 'OPERATIONS' | 'COMPENSATION_REGISTER' | 'MY_CTC_PAYSLIPS' | 'TAX_DECLARATION' | 'TAX_CALCULATOR' | 'FORMS_DOWNLOAD' | 'DECLARATIONS_REVIEW' => {
+    switch (key) {
+      case 'operations': return 'OPERATIONS';
+      case 'ctc_register': return 'COMPENSATION_REGISTER';
+      case 'declarations': return 'DECLARATIONS_REVIEW';
+      case 'forms': return 'FORMS_DOWNLOAD';
+      case 'investment_declaration': return 'TAX_DECLARATION';
+      case 'calculator': return 'TAX_CALCULATOR';
+      case 'my_payslips': return 'MY_CTC_PAYSLIPS';
+      default: return canManage ? 'OPERATIONS' : 'MY_CTC_PAYSLIPS';
+    }
+  };
+
   // Tab options: Operations, Compensation Register, Declarations Review, Forms Download, Tax Declaration, Tax Calculator, and My Payslips
   const [activeTab, setActiveTab] = useState<
     'OPERATIONS' | 'COMPENSATION_REGISTER' | 'MY_CTC_PAYSLIPS' | 'TAX_DECLARATION' | 'TAX_CALCULATOR' | 'FORMS_DOWNLOAD' | 'DECLARATIONS_REVIEW'
-  >(canManage ? 'OPERATIONS' : 'MY_CTC_PAYSLIPS');
+  >(() => getPayrollTabFromKey(rawTab));
+
+  useEffect(() => {
+    if (rawTab) {
+      setActiveTab(getPayrollTabFromKey(rawTab));
+    }
+  }, [rawTab]);
 
   // Modals state
   const [isExecuteModalOpen, setIsExecuteModalOpen] = useState(false);
@@ -355,17 +377,33 @@ export const PayrollPage: React.FC = () => {
     return '₹ ' + num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
 
+  const tabMetaMap = {
+    OPERATIONS: { title: 'Company Operations', subtitle: 'Monthly payroll run & statutory compliance execution' },
+    COMPENSATION_REGISTER: { title: 'CTC Register', subtitle: 'Employee gross earnings, deductions & net payouts' },
+    DECLARATIONS_REVIEW: { title: 'Declarations Review', subtitle: 'Employee 80C/80D tax proofs audit & approval' },
+    FORMS_DOWNLOAD: { title: 'Forms & Payslips', subtitle: 'Signed payslip PDFs & statutory Form 16 certificates' },
+    TAX_DECLARATION: { title: 'Investment Declaration', subtitle: 'Regime election & Chapter VI-A investment proofs' },
+    TAX_CALCULATOR: { title: 'Tax Calculator', subtitle: 'Dual tax regime comparison & take-home simulation' },
+    MY_CTC_PAYSLIPS: { title: 'My CTC & Payslips', subtitle: 'Personal salary structure, deductions & pay history' },
+  };
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
-            <CircleDollarSign className="w-6 h-6 text-emerald-600" />
-            <span>Payroll, CTC & Compensation</span>
-          </h1>
+          <div className="flex flex-wrap items-center gap-2.5">
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
+              <CircleDollarSign className="w-6 h-6 text-emerald-600" />
+              <span>Payroll & Compensation</span>
+            </h1>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200/80 shadow-2xs">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+              {tabMetaMap[activeTab]?.title || 'Operations'}
+            </span>
+          </div>
           <p className="text-sm text-slate-500 mt-1 font-normal">
-            India-ready statutory compliance (EPF, ESI, Professional Tax, TDS) & Employee Compensation
+            {tabMetaMap[activeTab]?.subtitle || 'India-ready statutory compliance & Employee Compensation'}
           </p>
         </div>
 
@@ -393,66 +431,6 @@ export const PayrollPage: React.FC = () => {
           </button>
         </div>
       )}
-
-      {/* Navigation Switcher Tabs */}
-      <FeatureCardTabs
-        activeTab={activeTab}
-        onChange={setActiveTab}
-        tabs={[
-          {
-            id: 'OPERATIONS',
-            label: 'Company Operations',
-            description: 'Monthly payroll run & statutory compliance execution',
-            icon: Building2,
-            color: 'blue',
-            show: canManage
-          },
-          {
-            id: 'COMPENSATION_REGISTER',
-            label: 'CTC Register',
-            description: 'Employee gross earnings, deductions & net payouts',
-            icon: CircleDollarSign,
-            color: 'emerald',
-            show: canManage
-          },
-          {
-            id: 'DECLARATIONS_REVIEW',
-            label: 'Declarations Review',
-            description: 'Employee 80C/80D tax proofs audit & approval',
-            icon: ShieldCheck,
-            color: 'indigo',
-            show: canManage
-          },
-          {
-            id: 'FORMS_DOWNLOAD',
-            label: 'Forms & Payslips',
-            description: 'Signed payslip PDFs & statutory Form 16 certificates',
-            icon: Download,
-            color: 'teal'
-          },
-          {
-            id: 'TAX_DECLARATION',
-            label: 'Investment Declaration',
-            description: 'Regime election & Chapter VI-A investment proofs',
-            icon: Shield,
-            color: 'purple'
-          },
-          {
-            id: 'TAX_CALCULATOR',
-            label: 'Tax Calculator',
-            description: 'Dual tax regime comparison & take-home simulation',
-            icon: Calculator,
-            color: 'amber'
-          },
-          {
-            id: 'MY_CTC_PAYSLIPS',
-            label: 'My CTC & Payslips',
-            description: 'Personal salary structure, deductions & pay history',
-            icon: Wallet,
-            color: 'sky'
-          }
-        ]}
-      />
 
       {/* ═════════════════════════════════════════════════════════════════════════ */}
       {/* VIEW 1: HR & Admin Company Payroll Operations Dashboard                  */}
