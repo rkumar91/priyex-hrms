@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { canApproveLeaves, isHrAdmin } from '../utils/rbac';
 import api from '../api/client';
+import { FeatureCardTabs } from '../components/common/FeatureCardTabs';
 import {
   CalendarCheck,
   Clock,
@@ -572,61 +573,46 @@ export const AttendancePage: React.FC = () => {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
-      {/* Page Header with Telemetry & Quick Action */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200/80 pb-5">
-        <div className="space-y-1">
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-linear-to-tr from-blue-600 via-indigo-600 to-sky-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/25 ring-4 ring-blue-500/10">
-              <CalendarCheck className="w-5 h-5" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2.5 flex-wrap">
-                <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-                  Attendance, Overtime & Geo-Governance
-                </h1>
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/90 shadow-xs">
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                  </span>
-                  Radar Active
-                </span>
-              </div>
-              <p className="text-xs sm:text-sm text-slate-500 font-medium">
-                Enterprise GPS Geo-fencing · Biometric punch tracking · Multi-rate Overtime · C-Off credit wallet
-              </p>
-            </div>
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
+        <div>
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
+              <CalendarCheck className="w-6 h-6 text-emerald-600" />
+              <span>Attendance, Leave & Geo-Governance</span>
+            </h1>
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/90 shadow-xs">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              Radar Active
+            </span>
           </div>
+          <p className="text-sm text-slate-500 mt-1 font-normal">
+            Enterprise GPS Geo-fencing · Biometric punch tracking · Leave management · Multi-rate Overtime · C-Off credit wallet
+          </p>
         </div>
 
         {/* Action Buttons based on tab */}
-        <div className="flex items-center gap-2.5 self-start md:self-auto flex-wrap">
+        <div className="flex items-center gap-2.5 self-start sm:self-auto flex-wrap">
           {activeTab === 'ATTENDANCE' && (
             <button
               onClick={detectUserLocation}
               disabled={isLocating}
-              className="group px-4 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50/90 hover:border-slate-300 text-slate-700 text-xs font-semibold shadow-xs hover:shadow-md transition-all duration-200 flex items-center gap-2.5 cursor-pointer active:scale-95 disabled:opacity-60"
+              className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50/90 text-slate-700 text-xs font-semibold shadow-xs transition-all flex items-center gap-2 cursor-pointer active:scale-95 disabled:opacity-60"
             >
-              <div className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${
-                isLocating ? 'bg-blue-100 text-blue-700' : 'bg-blue-50 text-blue-600 group-hover:bg-blue-100'
-              }`}>
-                <Compass className={`w-4 h-4 ${isLocating ? 'animate-spin' : ''}`} />
-              </div>
-              <div className="text-left">
-                <div className="font-bold text-slate-900 leading-tight">{isLocating ? 'Calibrating GPS...' : 'Refresh Geo-Fence'}</div>
-                <div className="text-[10px] text-slate-400 font-medium leading-none mt-0.5">
-                  {userCoords.insideFence ? 'Inside Office Zone' : 'High Precision'}
-                </div>
-              </div>
+              <Compass className={`w-3.5 h-3.5 text-blue-600 ${isLocating ? 'animate-spin' : ''}`} />
+              <span>{isLocating ? 'Calibrating GPS...' : 'Refresh Geo-Fence'}</span>
             </button>
           )}
 
           {activeTab === 'OVERTIME' && (
             <button
               onClick={() => setIsOtModalOpen(true)}
-              className="px-4 py-2.5 rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-bold shadow-md shadow-blue-500/20 transition-all flex items-center gap-2 cursor-pointer active:scale-95"
+              className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-sm transition flex items-center gap-2 cursor-pointer active:scale-95"
             >
-              <Zap className="w-4 h-4" />
+              <Zap className="w-3.5 h-3.5" />
               <span>Submit Overtime Request</span>
             </button>
           )}
@@ -636,14 +622,14 @@ export const AttendancePage: React.FC = () => {
               <button
                 onClick={() => setIsAvailCoffModalOpen(true)}
                 disabled={availableCoffCredits <= 0}
-                className="px-4 py-2.5 rounded-xl border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                className="px-3.5 py-2 rounded-xl border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
               >
                 <Award className="w-3.5 h-3.5 text-emerald-600" />
                 <span>Avail C-Off as Leave</span>
               </button>
               <button
                 onClick={() => setIsCoffModalOpen(true)}
-                className="px-4 py-2.5 rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-bold shadow-md shadow-blue-500/20 transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
+                className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-sm transition flex items-center gap-1.5 cursor-pointer active:scale-95"
               >
                 <PlusCircle className="w-3.5 h-3.5" />
                 <span>Claim C-Off Credit</span>
@@ -654,9 +640,9 @@ export const AttendancePage: React.FC = () => {
           {activeTab === 'LEAVES' && (
             <button
               onClick={() => setIsLeaveModalOpen(true)}
-              className="px-5 py-2.5 rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-bold shadow-md shadow-blue-500/20 transition-all flex items-center gap-2 cursor-pointer active:scale-95"
+              className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-sm transition flex items-center gap-2 cursor-pointer active:scale-95"
             >
-              <PlusCircle className="w-4 h-4" />
+              <PlusCircle className="w-3.5 h-3.5" />
               <span>Apply Leave Application</span>
             </button>
           )}
@@ -664,7 +650,7 @@ export const AttendancePage: React.FC = () => {
           {activeTab === 'GEOFENCES' && isHr && (
             <button
               onClick={() => setIsGeofenceModalOpen(true)}
-              className="px-4 py-2.5 rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-bold shadow-md shadow-blue-500/20 transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
+              className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-sm transition flex items-center gap-1.5 cursor-pointer active:scale-95"
             >
               <PlusCircle className="w-3.5 h-3.5" />
               <span>Add Office Geo-Perimeter</span>
@@ -673,260 +659,54 @@ export const AttendancePage: React.FC = () => {
         </div>
       </div>
 
-      {/* Interactive Module KPI Command Deck */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3.5">
-        {/* Card 1: Attendance & Live Punch */}
-        <button
-          type="button"
-          onClick={() => setActiveTab('ATTENDANCE')}
-          className={`relative rounded-2xl p-4 sm:p-4.5 text-left transition-all duration-200 cursor-pointer border group overflow-hidden ${
-            activeTab === 'ATTENDANCE'
-              ? 'border-blue-500 bg-linear-to-b from-blue-50/80 via-white to-white shadow-lg shadow-blue-500/10 ring-2 ring-blue-500/25 -translate-y-0.5'
-              : 'border-slate-200/80 bg-white hover:border-slate-300 hover:bg-slate-50/60 hover:shadow-md hover:shadow-slate-200/50 hover:-translate-y-0.5'
-          }`}
-        >
-          {activeTab === 'ATTENDANCE' && (
-            <div className="absolute top-0 inset-x-0 h-1 bg-linear-to-r from-blue-500 via-indigo-500 to-sky-400" />
-          )}
-          <div className="flex items-center justify-between gap-2 mb-3">
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 ${
-              activeTab === 'ATTENDANCE'
-                ? 'bg-linear-to-br from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/30 scale-105'
-                : 'bg-blue-50/80 text-blue-600 group-hover:bg-blue-100 group-hover:scale-105'
-            }`}>
-              <MapPin className="w-5 h-5" />
-            </div>
-            {isClockedIn ? (
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-700 border border-emerald-500/25 shadow-xs">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                On Duty
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-600 border border-slate-200/80">
-                Off Shift
-              </span>
-            )}
-          </div>
-          <div className="space-y-0.5">
-            <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block group-hover:text-slate-500 transition-colors">
-              Attendance
-            </span>
-            <div className="text-base sm:text-[17px] font-black text-slate-900 tracking-tight leading-snug truncate">
-              {isClockedIn ? `${Math.floor(clockElapsedSeconds / 3600)}h ${(Math.floor((clockElapsedSeconds % 3600) / 60)).toString().padStart(2, '0')}m Active` : 'Biometric Radar'}
-            </div>
-            <p className="text-[11px] text-slate-500 truncate font-medium flex items-center gap-1">
-              {userCoords.insideFence ? (
-                <>
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span>
-                  <span className="text-emerald-700 font-semibold">Inside Office Fence</span>
-                </>
-              ) : (
-                <>
-                  <ShieldCheck className="w-3 h-3 text-slate-400" />
-                  <span>GPS Verification</span>
-                </>
-              )}
-            </p>
-          </div>
-          {activeTab === 'ATTENDANCE' && (
-            <div className="mt-2.5 pt-2 border-t border-blue-100/90 flex items-center justify-between text-[10px] font-bold text-blue-600">
-              <span className="flex items-center gap-1">Active View</span>
-              <ChevronRight className="w-3 h-3" />
-            </div>
-          )}
-        </button>
-
-        {/* Card 2: Overtime (OT) */}
-        <button
-          type="button"
-          onClick={() => setActiveTab('OVERTIME')}
-          className={`relative rounded-2xl p-4 sm:p-4.5 text-left transition-all duration-200 cursor-pointer border group overflow-hidden ${
-            activeTab === 'OVERTIME'
-              ? 'border-amber-500 bg-linear-to-b from-amber-50/80 via-white to-white shadow-lg shadow-amber-500/10 ring-2 ring-amber-500/25 -translate-y-0.5'
-              : 'border-slate-200/80 bg-white hover:border-slate-300 hover:bg-slate-50/60 hover:shadow-md hover:shadow-slate-200/50 hover:-translate-y-0.5'
-          }`}
-        >
-          {activeTab === 'OVERTIME' && (
-            <div className="absolute top-0 inset-x-0 h-1 bg-linear-to-r from-amber-500 via-orange-500 to-amber-400" />
-          )}
-          <div className="flex items-center justify-between gap-2 mb-3">
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 ${
-              activeTab === 'OVERTIME'
-                ? 'bg-linear-to-br from-amber-500 to-orange-500 text-white shadow-md shadow-amber-500/30 scale-105'
-                : 'bg-amber-50/80 text-amber-600 group-hover:bg-amber-100 group-hover:scale-105'
-            }`}>
-              <Timer className="w-5 h-5" />
-            </div>
-            {pendingOtCount > 0 ? (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-800 border border-amber-500/30 shadow-xs">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                {pendingOtCount} Pending
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-600 border border-slate-200/80">
-                1.5x - 2.0x
-              </span>
-            )}
-          </div>
-          <div className="space-y-0.5">
-            <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block group-hover:text-slate-500 transition-colors">
-              Overtime (OT)
-            </span>
-            <div className="text-base sm:text-[17px] font-black text-slate-900 tracking-tight leading-snug truncate">
-              {totalOtHoursApproved} hrs Approved
-            </div>
-            <p className="text-[11px] text-slate-500 truncate font-medium flex items-center gap-1">
-              <span className="text-amber-700 font-semibold">₹{totalOtPayout.toLocaleString('en-IN')}</span>
-              <span>Est. Payout</span>
-            </p>
-          </div>
-          {activeTab === 'OVERTIME' && (
-            <div className="mt-2.5 pt-2 border-t border-amber-100/90 flex items-center justify-between text-[10px] font-bold text-amber-600">
-              <span className="flex items-center gap-1">Active View</span>
-              <ChevronRight className="w-3 h-3" />
-            </div>
-          )}
-        </button>
-
-        {/* Card 3: C-Off Wallet */}
-        <button
-          type="button"
-          onClick={() => setActiveTab('COFF')}
-          className={`relative rounded-2xl p-4 sm:p-4.5 text-left transition-all duration-200 cursor-pointer border group overflow-hidden ${
-            activeTab === 'COFF'
-              ? 'border-emerald-500 bg-linear-to-b from-emerald-50/80 via-white to-white shadow-lg shadow-emerald-500/10 ring-2 ring-emerald-500/25 -translate-y-0.5'
-              : 'border-slate-200/80 bg-white hover:border-slate-300 hover:bg-slate-50/60 hover:shadow-md hover:shadow-slate-200/50 hover:-translate-y-0.5'
-          }`}
-        >
-          {activeTab === 'COFF' && (
-            <div className="absolute top-0 inset-x-0 h-1 bg-linear-to-r from-emerald-500 via-teal-500 to-emerald-400" />
-          )}
-          <div className="flex items-center justify-between gap-2 mb-3">
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 ${
-              activeTab === 'COFF'
-                ? 'bg-linear-to-br from-emerald-600 to-teal-600 text-white shadow-md shadow-emerald-500/30 scale-105'
-                : 'bg-emerald-50/80 text-emerald-600 group-hover:bg-emerald-100 group-hover:scale-105'
-            }`}>
-              <Wallet className="w-5 h-5" />
-            </div>
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-800 border border-emerald-500/30 shadow-xs">
-              {availableCoffCredits.toFixed(1)}d Avail
-            </span>
-          </div>
-          <div className="space-y-0.5">
-            <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block group-hover:text-slate-500 transition-colors">
-              C-Off Wallet
-            </span>
-            <div className="text-base sm:text-[17px] font-black text-slate-900 tracking-tight leading-snug truncate">
-              {availableCoffCredits.toFixed(1)} Days Balance
-            </div>
-            <p className="text-[11px] text-slate-500 truncate font-medium">
-              {totalCoffEarned.toFixed(1)} Total Earned Credits
-            </p>
-          </div>
-          {activeTab === 'COFF' && (
-            <div className="mt-2.5 pt-2 border-t border-emerald-100/90 flex items-center justify-between text-[10px] font-bold text-emerald-600">
-              <span className="flex items-center gap-1">Active View</span>
-              <ChevronRight className="w-3 h-3" />
-            </div>
-          )}
-        </button>
-
-        {/* Card 4: Leave Management & Approvals */}
-        <button
-          type="button"
-          onClick={() => setActiveTab('LEAVES')}
-          className={`relative rounded-2xl p-4 sm:p-4.5 text-left transition-all duration-200 cursor-pointer border group overflow-hidden ${
-            activeTab === 'LEAVES'
-              ? 'border-indigo-500 bg-linear-to-b from-indigo-50/80 via-white to-white shadow-lg shadow-indigo-500/10 ring-2 ring-indigo-500/25 -translate-y-0.5'
-              : 'border-slate-200/80 bg-white hover:border-slate-300 hover:bg-slate-50/60 hover:shadow-md hover:shadow-slate-200/50 hover:-translate-y-0.5'
-          }`}
-        >
-          {activeTab === 'LEAVES' && (
-            <div className="absolute top-0 inset-x-0 h-1 bg-linear-to-r from-indigo-500 via-violet-500 to-indigo-400" />
-          )}
-          <div className="flex items-center justify-between gap-2 mb-3">
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 ${
-              activeTab === 'LEAVES'
-                ? 'bg-linear-to-br from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-500/30 scale-105'
-                : 'bg-indigo-50/80 text-indigo-600 group-hover:bg-indigo-100 group-hover:scale-105'
-            }`}>
-              <CalendarCheck className="w-5 h-5" />
-            </div>
-            {pendingLeavesCount > 0 ? (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/15 text-indigo-800 border border-indigo-500/30 shadow-xs">
-                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
-                {pendingLeavesCount} In Review
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-600 border border-slate-200/80">
-                Multi-Tier
-              </span>
-            )}
-          </div>
-          <div className="space-y-0.5">
-            <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block group-hover:text-slate-500 transition-colors">
-              Leaves & Approvals
-            </span>
-            <div className="text-base sm:text-[17px] font-black text-slate-900 tracking-tight leading-snug truncate">
-              {leaveRequests.length} Total Requests
-            </div>
-            <p className="text-[11px] text-slate-500 truncate font-medium">
-              {approvedLeavesCount} Approved · Manager & HR
-            </p>
-          </div>
-          {activeTab === 'LEAVES' && (
-            <div className="mt-2.5 pt-2 border-t border-indigo-100/90 flex items-center justify-between text-[10px] font-bold text-indigo-600">
-              <span className="flex items-center gap-1">Active View</span>
-              <ChevronRight className="w-3 h-3" />
-            </div>
-          )}
-        </button>
-
-        {/* Card 5: Geo-Perimeters */}
-        <button
-          type="button"
-          onClick={() => setActiveTab('GEOFENCES')}
-          className={`relative rounded-2xl p-4 sm:p-4.5 text-left transition-all duration-200 cursor-pointer border group overflow-hidden ${
-            activeTab === 'GEOFENCES'
-              ? 'border-purple-500 bg-linear-to-b from-purple-50/80 via-white to-white shadow-lg shadow-purple-500/10 ring-2 ring-purple-500/25 -translate-y-0.5'
-              : 'border-slate-200/80 bg-white hover:border-slate-300 hover:bg-slate-50/60 hover:shadow-md hover:shadow-slate-200/50 hover:-translate-y-0.5'
-          }`}
-        >
-          {activeTab === 'GEOFENCES' && (
-            <div className="absolute top-0 inset-x-0 h-1 bg-linear-to-r from-purple-500 via-fuchsia-500 to-purple-400" />
-          )}
-          <div className="flex items-center justify-between gap-2 mb-3">
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 ${
-              activeTab === 'GEOFENCES'
-                ? 'bg-linear-to-br from-purple-600 to-fuchsia-600 text-white shadow-md shadow-purple-500/30 scale-105'
-                : 'bg-purple-50/80 text-purple-600 group-hover:bg-purple-100 group-hover:scale-105'
-            }`}>
-              <Building2 className="w-5 h-5" />
-            </div>
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/15 text-purple-800 border border-purple-500/30 shadow-xs">
-              {activeGeofencesCount} Active
-            </span>
-          </div>
-          <div className="space-y-0.5">
-            <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block group-hover:text-slate-500 transition-colors">
-              Perimeters
-            </span>
-            <div className="text-base sm:text-[17px] font-black text-slate-900 tracking-tight leading-snug truncate">
-              {geofences.length} Office Sites
-            </div>
-            <p className="text-[11px] text-slate-500 truncate font-medium">
-              Radius Governance · Guard
-            </p>
-          </div>
-          {activeTab === 'GEOFENCES' && (
-            <div className="mt-2.5 pt-2 border-t border-purple-100/90 flex items-center justify-between text-[10px] font-bold text-purple-600">
-              <span className="flex items-center gap-1">Active View</span>
-              <ChevronRight className="w-3 h-3" />
-            </div>
-          )}
-        </button>
-      </div>
+      {/* Navigation Switcher Tabs */}
+      <FeatureCardTabs
+        activeTab={activeTab}
+        onChange={setActiveTab}
+        tabs={[
+          {
+            id: 'ATTENDANCE',
+            label: 'Biometric Attendance',
+            description: 'GPS geofencing & biometric punch tracking',
+            icon: MapPin,
+            badge: isClockedIn ? 'On Shift' : 'Off Shift',
+            badgeVariant: isClockedIn ? 'success' : 'slate'
+          },
+          {
+            id: 'LEAVES',
+            label: 'Leave Management',
+            description: 'Leave applications, quotas & manager approvals',
+            icon: CalendarCheck,
+            badge: pendingLeavesCount > 0 ? `${pendingLeavesCount} Pending` : null,
+            badgeVariant: 'warning'
+          },
+          {
+            id: 'OVERTIME',
+            label: 'Overtime (OT)',
+            description: 'Work timesheets & statutory overtime payouts',
+            icon: Timer,
+            badge: pendingOtCount > 0 ? `${pendingOtCount} Pending` : null,
+            badgeVariant: 'warning'
+          },
+          {
+            id: 'COFF',
+            label: 'C-Off Wallet',
+            description: 'Weekend worked credits & leave redemption',
+            icon: Award,
+            badge: availableCoffCredits > 0 ? `${availableCoffCredits.toFixed(1)}d Avail` : null,
+            badgeVariant: 'success'
+          },
+          {
+            id: 'GEOFENCES',
+            label: 'Office Geo-Fences',
+            description: 'Perimeter boundaries & GPS radius governance',
+            icon: Building2,
+            badge: `${geofences.length} Sites`,
+            badgeVariant: 'slate',
+            show: isHr
+          }
+        ]}
+      />
 
       {/* ======================================================== */}
       {/* TAB 1: GEO-FENCE & LIVE BIOMETRIC PUNCH                 */}

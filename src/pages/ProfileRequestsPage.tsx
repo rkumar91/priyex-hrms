@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import { canApproveProfileRequests } from '../utils/rbac';
 import api from '../api/client';
+import { FeatureCardTabs } from '../components/common/FeatureCardTabs';
 import {
   ClipboardCheck,
   PlusCircle,
@@ -235,56 +236,42 @@ export const ProfileRequestsPage: React.FC = () => {
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Page Header */}
-      <div className="border-b border-slate-200 pb-5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
-              <ClipboardCheck className="w-6 h-6 text-emerald-600" />
-              <span>HR Operations & Request Desk</span>
-            </h1>
-            <p className="text-sm text-slate-500 mt-1 font-normal">
-              Review employee profile update approvals and respond to employee HR inquiries.
-            </p>
-          </div>
-
-          {/* Tab Switcher */}
-          <div className="flex items-center bg-slate-100 p-1 rounded-2xl border border-slate-200 self-start sm:self-auto">
-            <button
-              onClick={() => setActiveTab('PROFILE_REQUESTS')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
-                activeTab === 'PROFILE_REQUESTS'
-                  ? 'bg-white text-emerald-800 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <CreditCard className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Profile Requests</span>
-              {pendingRequestsCount > 0 && (
-                <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-amber-100 text-amber-800 font-extrabold">
-                  {pendingRequestsCount}
-                </span>
-              )}
-            </button>
-
-            <button
-              onClick={() => setActiveTab('HR_QUERIES')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
-                activeTab === 'HR_QUERIES'
-                  ? 'bg-white text-emerald-800 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <MessageSquare className="w-3.5 h-3.5 text-teal-600" />
-              <span>HR Helpdesk & Queries</span>
-              {openQueriesCount > 0 && (
-                <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-emerald-100 text-emerald-800 font-extrabold">
-                  {openQueriesCount}
-                </span>
-              )}
-            </button>
-          </div>
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
+            <ClipboardCheck className="w-6 h-6 text-emerald-600" />
+            <span>HR Operations & Request Desk</span>
+          </h1>
+          <p className="text-sm text-slate-500 mt-1 font-normal">
+            Review employee profile update approvals and respond to employee HR inquiries.
+          </p>
         </div>
       </div>
+
+      {/* Navigation Switcher Tabs */}
+      <FeatureCardTabs
+        activeTab={activeTab}
+        onChange={setActiveTab}
+        tabs={[
+          {
+            id: 'PROFILE_REQUESTS',
+            label: 'Profile Update Requests',
+            description: 'Employee personal, address & banking detail modifications',
+            icon: CreditCard,
+            badge: pendingRequestsCount > 0 ? `${pendingRequestsCount} Pending` : null,
+            badgeVariant: 'warning'
+          },
+          {
+            id: 'HR_QUERIES',
+            label: 'HR Helpdesk & Queries',
+            description: 'Confidential employee questions & HR ticketing support',
+            icon: MessageSquare,
+            badge: openQueriesCount > 0 ? `${openQueriesCount} Active` : null,
+            badgeVariant: 'primary'
+          }
+        ]}
+      />
 
       {feedback && (
         <div className={`p-4 rounded-2xl text-xs font-semibold flex items-center justify-between ${

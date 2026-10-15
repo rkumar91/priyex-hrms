@@ -20,6 +20,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { isHrAdmin } from '../utils/rbac';
 import api from '../api/client';
+import { FeatureCardTabs } from '../components/common/FeatureCardTabs';
 
 export interface OrgLeavePolicy {
   id: number;
@@ -273,7 +274,7 @@ export const OrganizationPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
-            <Building className="w-6 h-6 text-blue-600" />
+            <Building className="w-6 h-6 text-emerald-600" />
             <span>Organization Architecture & Policy Center</span>
           </h1>
           <p className="text-sm text-slate-500 mt-1 font-normal">
@@ -281,34 +282,41 @@ export const OrganizationPage: React.FC = () => {
           </p>
         </div>
 
-        {/* Tab Switcher */}
-        <div className="flex items-center p-1 bg-slate-100 rounded-xl border border-slate-200 text-xs font-semibold self-start sm:self-auto">
+        {canManage && activeTab === 'LEAVE_POLICIES' && (
           <button
             type="button"
-            onClick={() => setActiveTab('LEAVE_POLICIES')}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg transition-all cursor-pointer ${
-              activeTab === 'LEAVE_POLICIES'
-                ? 'bg-white text-blue-700 shadow-sm font-bold'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
+            onClick={openCreateModal}
+            className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-sm transition flex items-center gap-2 cursor-pointer self-start sm:self-auto active:scale-95"
           >
-            <CalendarCheck2 className="w-4 h-4" />
-            <span>Annual Leave Quotas</span>
+            <PlusCircle className="w-4 h-4" />
+            <span>Create Leave Quota Policy</span>
           </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('DEPARTMENTS')}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg transition-all cursor-pointer ${
-              activeTab === 'DEPARTMENTS'
-                ? 'bg-white text-blue-700 shadow-sm font-bold'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <Layers className="w-4 h-4" />
-            <span>Departments & Entities</span>
-          </button>
-        </div>
+        )}
       </div>
+
+      {/* Navigation Switcher Tabs */}
+      <FeatureCardTabs
+        activeTab={activeTab}
+        onChange={setActiveTab}
+        tabs={[
+          {
+            id: 'LEAVE_POLICIES',
+            label: 'Annual Leave Quotas',
+            description: 'Statutory leave entitlements, quotas & carry forward rules',
+            icon: CalendarCheck2,
+            badge: `${policies.length} Policies`,
+            badgeVariant: 'primary'
+          },
+          {
+            id: 'DEPARTMENTS',
+            label: 'Departments & Entities',
+            description: 'Corporate branches, legal entities & departmental cost centers',
+            icon: Layers,
+            badge: `${departments.length} Units`,
+            badgeVariant: 'slate'
+          }
+        ]}
+      />
 
       {/* ─── TAB 1: ANNUAL LEAVE POLICIES & QUOTAS ─── */}
       {activeTab === 'LEAVE_POLICIES' && (

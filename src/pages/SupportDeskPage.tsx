@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/client';
+import { FeatureCardTabs } from '../components/common/FeatureCardTabs';
 import {
   Headphones,
   Clock,
@@ -279,61 +280,37 @@ export const SupportDeskPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Tabs Bar */}
-      <div className="flex items-center gap-2 border-b border-slate-200 pb-2 overflow-x-auto">
-        <button
-          type="button"
-          onClick={() => setActiveTab('pool')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer shrink-0 ${
-            activeTab === 'pool'
-              ? 'bg-blue-600 text-white shadow-sm'
-              : 'text-slate-600 hover:bg-slate-100'
-          }`}
-        >
-          <Inbox className="w-4 h-4" />
-          <span>Live Available Pool</span>
-          {poolQueries.length > 0 && (
-            <span className={`px-2 py-0.5 rounded-full text-xs font-mono ${
-              activeTab === 'pool' ? 'bg-white text-blue-800' : 'bg-blue-100 text-blue-800'
-            }`}>
-              {poolQueries.length}
-            </span>
-          )}
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab('active')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer shrink-0 ${
-            activeTab === 'active'
-              ? 'bg-blue-600 text-white shadow-sm'
-              : 'text-slate-600 hover:bg-slate-100'
-          }`}
-        >
-          <MessageSquare className="w-4 h-4" />
-          <span>My Active Chats</span>
-          {myChats.length > 0 && (
-            <span className={`px-2 py-0.5 rounded-full text-xs font-mono ${
-              activeTab === 'active' ? 'bg-white text-blue-800' : 'bg-slate-200 text-slate-800'
-            }`}>
-              {myChats.length}
-            </span>
-          )}
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab('history')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer shrink-0 ${
-            activeTab === 'history'
-              ? 'bg-blue-600 text-white shadow-sm'
-              : 'text-slate-600 hover:bg-slate-100'
-          }`}
-        >
-          <CheckCircle2 className="w-4 h-4" />
-          <span>Resolved Transcripts</span>
-        </button>
-      </div>
+      {/* Navigation Switcher Tabs */}
+      <FeatureCardTabs
+        activeTab={activeTab}
+        onChange={setActiveTab}
+        tabs={[
+          {
+            id: 'pool',
+            label: 'Live Available Pool',
+            description: 'Unassigned inquiries awaiting support agent pickup',
+            icon: Inbox,
+            badge: poolQueries.length > 0 ? `${poolQueries.length} Unclaimed` : null,
+            badgeVariant: 'warning'
+          },
+          {
+            id: 'active',
+            label: 'My Active Chats',
+            description: 'Direct conversations currently under active resolution',
+            icon: MessageSquare,
+            badge: myChats.length > 0 ? `${myChats.length} Active` : null,
+            badgeVariant: 'primary'
+          },
+          {
+            id: 'history',
+            label: 'Resolved Transcripts',
+            description: 'Historical support logs & archived query resolutions',
+            icon: CheckCircle2,
+            badge: `${historyQueries.length} Done`,
+            badgeVariant: 'success'
+          }
+        ]}
+      />
 
       {/* Tab 1: Live Pool (Unassigned Questions) */}
       {activeTab === 'pool' && (

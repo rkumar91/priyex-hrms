@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import { isSuperAdmin } from '../utils/rbac';
 import api from '../api/client';
+import { FeatureCardTabs } from '../components/common/FeatureCardTabs';
 import {
   UserCog,
   ShieldCheck,
@@ -201,46 +202,45 @@ export const UsersRolesPage: React.FC = () => {
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Page Header */}
-      <div className="border-b border-slate-200 pb-5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
-              <UserCog className="w-6 h-6 text-emerald-600" />
-              <span>Admin Role & User Governance</span>
-            </h1>
-            <p className="text-sm text-slate-500 mt-1 font-normal">
-              Manage system roles for every employee in the company, promote to HR Manager, and configure access permissions.
-            </p>
-          </div>
-
-          {/* Tab Switcher */}
-          <div className="flex items-center bg-slate-100 p-1 rounded-2xl border border-slate-200 self-start sm:self-auto">
-            <button
-              onClick={() => { setActiveTab('EMPLOYEE_ROLES'); setSearchTerm(''); }}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
-                activeTab === 'EMPLOYEE_ROLES'
-                  ? 'bg-white text-emerald-800 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <Users className="w-3.5 h-3.5 text-emerald-600" />
-              <span>All Employees & Roles ({employeeRoles.length})</span>
-            </button>
-
-            <button
-              onClick={() => { setActiveTab('SYSTEM_ACCOUNTS'); setSearchTerm(''); }}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
-                activeTab === 'SYSTEM_ACCOUNTS'
-                  ? 'bg-white text-emerald-800 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <KeyRound className="w-3.5 h-3.5 text-teal-600" />
-              <span>System Logins ({usersList.length})</span>
-            </button>
-          </div>
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
+            <UserCog className="w-6 h-6 text-emerald-600" />
+            <span>Admin Role & User Governance</span>
+          </h1>
+          <p className="text-sm text-slate-500 mt-1 font-normal">
+            Manage system roles for every employee in the company, promote to HR Manager, and configure access permissions.
+          </p>
         </div>
       </div>
+
+      {/* Navigation Switcher Tabs */}
+      <FeatureCardTabs
+        activeTab={activeTab}
+        onChange={(tab) => {
+          setActiveTab(tab);
+          setSearchTerm('');
+        }}
+        tabs={[
+          {
+            id: 'EMPLOYEE_ROLES',
+            label: 'All Employees & System Roles',
+            description: 'Employee access levels, HR Manager promotion & permissions',
+            icon: Users,
+            badge: `${employeeRoles.length} Employees`,
+            badgeVariant: 'primary'
+          },
+          {
+            id: 'SYSTEM_ACCOUNTS',
+            label: 'System Login Accounts',
+            description: 'Platform credentials, status & super admin account access',
+            icon: KeyRound,
+            badge: `${usersList.length} Logins`,
+            badgeVariant: 'slate'
+          }
+        ]}
+      />
 
       {message && (
         <div className={`p-4 rounded-2xl text-xs font-semibold flex items-center justify-between ${
