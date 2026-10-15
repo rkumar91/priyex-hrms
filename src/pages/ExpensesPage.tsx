@@ -36,6 +36,7 @@ import {
 export interface ExpenseClaim {
   id: number;
   claimNumber: string;
+  companyId?: number;
   employeeId?: number;
   employeeName: string;
   department: string;
@@ -50,7 +51,14 @@ export interface ExpenseClaim {
   gstin?: string;
   receiptName?: string;
   receiptUrl?: string;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'REIMBURSED';
+  status: 'PENDING' | 'PENDING_MANAGER' | 'PENDING_HR' | 'APPROVED' | 'REJECTED' | 'REJECTED_MANAGER' | 'REJECTED_HR' | 'REIMBURSED';
+  managerId?: number;
+  managerName?: string;
+  managerComment?: string;
+  managerApprovedAt?: string;
+  hrComment?: string;
+  hrApprovedBy?: number;
+  hrApprovedAt?: string;
   approverRemarks?: string;
   reimbursedDate?: string;
   reimbursementRef?: string;
@@ -70,71 +78,84 @@ const INITIAL_EXPENSES: ExpenseClaim[] = [
   {
     id: 1,
     claimNumber: 'EXP-2026-081',
-    employeeName: 'Rajesh Kumar',
+    employeeName: 'Rakesh K. Sharma',
     department: 'Engineering',
     category: 'TRAVEL',
     merchant: 'Air India / Indigo Express',
     amount: 14850.00,
     currency: 'INR',
-    expenseDate: '2026-10-08',
-    submittedAt: '2026-10-09',
+    expenseDate: '2026-10-10',
+    submittedAt: '2026-10-11',
     description: 'Roundtrip flights for on-site client kickoff meeting in Bengaluru.',
     projectCode: 'PRJ-FINTECH-01',
     receiptName: 'Flight_Tickets_Indigo_BLR.pdf',
     status: 'APPROVED',
-    approverRemarks: 'Approved per executive travel policy band 4.',
+    managerId: 2,
+    managerName: 'Priya Sharma',
+    managerComment: 'Verified travel dates and itinerary.',
+    hrComment: 'Approved for payout per travel policy band 4.',
+    approverRemarks: 'Approved for payout per travel policy band 4.',
   },
   {
     id: 2,
     claimNumber: 'EXP-2026-082',
-    employeeName: 'Priya Sharma',
-    department: 'Human Resources',
+    employeeName: 'Amit Verma',
+    department: 'Engineering',
     category: 'CLIENT_ENTERTAINMENT',
     merchant: 'The Oberoi Grand Hotel',
     amount: 6420.00,
     currency: 'INR',
-    expenseDate: '2026-10-10',
-    submittedAt: '2026-10-11',
+    expenseDate: '2026-10-12',
+    submittedAt: '2026-10-13',
     description: 'Executive campus recruitment partner dinner and leadership discussion.',
     projectCode: 'HR-TALENT-2026',
     receiptName: 'Oberoi_Invoice_RecruitersDinner.pdf',
-    status: 'PENDING',
+    status: 'PENDING_MANAGER',
+    managerId: 1,
+    managerName: 'Rakesh K. Sharma',
   },
   {
     id: 3,
     claimNumber: 'EXP-2026-083',
-    employeeName: 'Amit Verma',
+    employeeName: 'Rakesh K. Sharma',
     department: 'Engineering',
     category: 'MOBILE_INTERNET',
     merchant: 'Airtel Broadband Fiber',
     amount: 1799.00,
     currency: 'INR',
-    expenseDate: '2026-10-01',
-    submittedAt: '2026-10-02',
+    expenseDate: '2026-10-03',
+    submittedAt: '2026-10-04',
     description: 'Monthly remote WFH high-speed fiber internet reimbursement allowance.',
     projectCode: 'CORP-WFH-ALLOWANCE',
     receiptName: 'Airtel_Bill_Oct2026.pdf',
     status: 'REIMBURSED',
-    approverRemarks: 'Processed in September payroll cycle.',
-    reimbursedDate: '2026-10-05',
+    managerId: 2,
+    managerName: 'Priya Sharma',
+    managerComment: 'Approved WFH recurring allowance.',
+    hrComment: 'Processed via September payroll cycle.',
+    approverRemarks: 'Processed via September payroll cycle.',
+    reimbursedDate: '2026-10-06',
     reimbursementRef: 'NEFT-88902143',
   },
   {
     id: 4,
     claimNumber: 'EXP-2026-084',
-    employeeName: 'Sneha Patel',
-    department: 'Marketing',
+    employeeName: 'Amit Verma',
+    department: 'Engineering',
     category: 'TRAINING',
     merchant: 'AWS Cloud Certification Portal',
     amount: 12500.00,
     currency: 'INR',
-    expenseDate: '2026-10-05',
-    submittedAt: '2026-10-06',
+    expenseDate: '2026-10-07',
+    submittedAt: '2026-10-08',
     description: 'AWS Certified Solutions Architect Exam registration fees.',
     projectCode: 'DEV-UPSKILL-Q4',
     receiptName: 'AWS_Exam_Receipt_12500.pdf',
-    status: 'APPROVED',
-    approverRemarks: 'Approved under annual workforce training budget.',
+    status: 'PENDING_HR',
+    managerId: 1,
+    managerName: 'Rakesh K. Sharma',
+    managerComment: 'Approved under tech skills enhancement budget.',
+    approverRemarks: 'Approved under tech skills enhancement budget.',
   },
   {
     id: 5,
@@ -165,6 +186,7 @@ export const ExpensesPage: React.FC = () => {
 
   const [filterCategory, setFilterCategory] = useState<string>('ALL');
   const [filterStatus, setFilterStatus] = useState<string>('ALL');
+  const [scopeFilter, setScopeFilter] = useState<'ALL' | 'TEAM' | 'MY'>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
@@ -239,23 +261,32 @@ export const ExpensesPage: React.FC = () => {
     localStorage.setItem('priyex_expense_claims', JSON.stringify(claims));
   }, [claims]);
 
-  // Try fetching from backend API if available
-  useEffect(() => {
-    const fetchApiClaims = async () => {
-      try {
-        const res: any = await api.get('/expenses');
-        if (res?.success && Array.isArray(res.data) && res.data.length > 0) {
-          setClaims(res.data);
-        }
-      } catch (e) {
-        // Fallback to local stored/mock data
+  // Fetch from backend API
+  const fetchApiClaims = async () => {
+    try {
+      const res: any = await api.get('/expenses');
+      if (res?.success && Array.isArray(res.data) && res.data.length > 0) {
+        setClaims(res.data);
       }
-    };
+    } catch (e) {
+      // Fallback to local stored/mock data
+    }
+  };
+
+  useEffect(() => {
     fetchApiClaims();
   }, []);
 
   // Filtered claims
   const filteredClaims = claims.filter((c) => {
+    if (scopeFilter === 'TEAM') {
+      const isMyTeam = c.managerId === user?.employeeId;
+      if (isHrOrAdmin) return isMyTeam || c.status === 'PENDING_MANAGER';
+      return isMyTeam;
+    }
+    if (scopeFilter === 'MY') {
+      return c.employeeId === user?.employeeId || (c.employeeName && user?.fullName && c.employeeName.toLowerCase().includes(user.fullName.toLowerCase()));
+    }
     const matchCategory = filterCategory === 'ALL' || c.category === filterCategory;
     const matchStatus = filterStatus === 'ALL' || c.status === filterStatus;
     const matchSearch =
@@ -269,33 +300,69 @@ export const ExpensesPage: React.FC = () => {
   // Analytics Metrics
   const totalClaimed = claims.reduce((acc, c) => acc + c.amount, 0);
   const totalApproved = claims.filter(c => c.status === 'APPROVED' || c.status === 'REIMBURSED').reduce((acc, c) => acc + c.amount, 0);
-  const pendingCount = claims.filter(c => c.status === 'PENDING').length;
-  const pendingAmount = claims.filter(c => c.status === 'PENDING').reduce((acc, c) => acc + c.amount, 0);
+  const pendingCount = claims.filter(c => c.status === 'PENDING' || c.status === 'PENDING_MANAGER' || c.status === 'PENDING_HR').length;
+  const pendingAmount = claims.filter(c => c.status === 'PENDING' || c.status === 'PENDING_MANAGER' || c.status === 'PENDING_HR').reduce((acc, c) => acc + c.amount, 0);
   const reimbursedCount = claims.filter(c => c.status === 'REIMBURSED').length;
 
-  // Actions
-  const handleApprove = (id: number) => {
-    setClaims(prev => prev.map(c => c.id === id ? { ...c, status: 'APPROVED', approverRemarks: `Approved by ${user?.fullName || 'Manager'} on ${new Date().toISOString().split('T')[0]}` } : c));
+  // Actions (Multi-Tier Workflow)
+  const handleManagerApprove = async (id: number) => {
+    try {
+      await api.put(`/expenses/${id}/manager-approve`, { remarks: 'Approved by Reporting Manager' });
+      await fetchApiClaims();
+    } catch (err: any) {
+      // Fallback local update
+      setClaims(prev => prev.map(c => c.id === id ? { ...c, status: 'PENDING_HR', managerComment: 'Approved by Reporting Manager' } : c));
+    }
   };
 
-  const handleReject = (id: number) => {
-    const reason = prompt('Please enter rejection reason:');
+  const handleManagerReject = async (id: number) => {
+    const reason = prompt('Please enter manager rejection reason:');
     if (reason === null) return;
-    setClaims(prev => prev.map(c => c.id === id ? { ...c, status: 'REJECTED', approverRemarks: reason || 'Non-compliant with expense policy limits.' } : c));
+    try {
+      await api.put(`/expenses/${id}/manager-reject`, { remarks: reason || 'Declined by direct manager' });
+      await fetchApiClaims();
+    } catch (err: any) {
+      setClaims(prev => prev.map(c => c.id === id ? { ...c, status: 'REJECTED_MANAGER', managerComment: reason } : c));
+    }
   };
 
-  const handleReimburse = (id: number) => {
+  const handleHrApprove = async (id: number) => {
+    try {
+      await api.put(`/expenses/${id}/hr-approve`, { remarks: 'Approved for payout by HR' });
+      await fetchApiClaims();
+    } catch (err: any) {
+      setClaims(prev => prev.map(c => c.id === id ? { ...c, status: 'APPROVED', hrComment: 'Approved by HR' } : c));
+    }
+  };
+
+  const handleHrReject = async (id: number) => {
+    const reason = prompt('Please enter HR rejection reason:');
+    if (reason === null) return;
+    try {
+      await api.put(`/expenses/${id}/hr-reject`, { remarks: reason || 'Declined by HR' });
+      await fetchApiClaims();
+    } catch (err: any) {
+      setClaims(prev => prev.map(c => c.id === id ? { ...c, status: 'REJECTED_HR', hrComment: reason } : c));
+    }
+  };
+
+  const handleReimburse = async (id: number) => {
     const ref = prompt('Enter Bank Transaction / Payout Reference (e.g. UTR-99214488):', `NEFT-${Math.floor(10000000 + Math.random() * 90000000)}`);
     if (ref === null) return;
-    setClaims(prev => prev.map(c => c.id === id ? {
-      ...c,
-      status: 'REIMBURSED',
-      reimbursedDate: new Date().toISOString().split('T')[0],
-      reimbursementRef: ref
-    } : c));
+    try {
+      await api.put(`/expenses/${id}/reimburse`, { reference: ref });
+      await fetchApiClaims();
+    } catch (err: any) {
+      setClaims(prev => prev.map(c => c.id === id ? {
+        ...c,
+        status: 'REIMBURSED',
+        reimbursedDate: new Date().toISOString().split('T')[0],
+        reimbursementRef: ref
+      } : c));
+    }
   };
 
-  const handleSubmitClaim = (e: React.FormEvent) => {
+  const handleSubmitClaim = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!claimForm.merchant || !claimForm.amount || !claimForm.description) {
       alert('Please fill out all required fields.');
@@ -303,28 +370,46 @@ export const ExpensesPage: React.FC = () => {
     }
 
     setIsSubmitting(true);
-    setTimeout(() => {
-      const newClaim: ExpenseClaim = {
-        id: Date.now(),
-        claimNumber: `EXP-2026-${String(Math.floor(100 + Math.random() * 900))}`,
-        employeeName: user?.fullName || 'Current Employee',
-        department: 'Operations',
+    try {
+      const payload = {
         category: claimForm.category,
         merchant: claimForm.merchant,
         amount: parseFloat(claimForm.amount),
         currency: 'INR',
         expenseDate: claimForm.expenseDate,
-        submittedAt: new Date().toISOString().split('T')[0],
         description: claimForm.description,
         projectCode: claimForm.projectCode || 'GENERAL-OPEX',
         gstin: claimForm.gstin,
         receiptName: claimForm.receiptFileName || 'Vendor_Invoice.pdf',
-        receiptUrl: claimForm.receiptPreviewUrl || undefined,
-        status: 'PENDING'
+        receiptUrl: claimForm.receiptPreviewUrl || undefined
       };
 
-      setClaims(prev => [newClaim, ...prev]);
-      setIsSubmitting(false);
+      const res: any = await api.post('/expenses', payload);
+      if (res?.success) {
+        await fetchApiClaims();
+      } else {
+        // Fallback local addition
+        const newClaim: ExpenseClaim = {
+          id: Date.now(),
+          claimNumber: `EXP-2026-${String(Math.floor(100 + Math.random() * 900))}`,
+          employeeName: user?.fullName || 'Current Employee',
+          department: 'Operations',
+          category: claimForm.category,
+          merchant: claimForm.merchant,
+          amount: parseFloat(claimForm.amount),
+          currency: 'INR',
+          expenseDate: claimForm.expenseDate,
+          submittedAt: new Date().toISOString().split('T')[0],
+          description: claimForm.description,
+          projectCode: claimForm.projectCode || 'GENERAL-OPEX',
+          gstin: claimForm.gstin,
+          receiptName: claimForm.receiptFileName || 'Vendor_Invoice.pdf',
+          receiptUrl: claimForm.receiptPreviewUrl || undefined,
+          status: 'PENDING_MANAGER'
+        };
+        setClaims(prev => [newClaim, ...prev]);
+      }
+
       setIsSubmitModalOpen(false);
       setClaimForm({
         category: 'TRAVEL',
@@ -339,7 +424,11 @@ export const ExpensesPage: React.FC = () => {
         receiptPreviewUrl: ''
       });
       if (fileInputRef.current) fileInputRef.current.value = '';
-    }, 400);
+    } catch (err: any) {
+      alert(err?.message || 'Failed to submit expense claim');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const exportClaimsCSV = () => {
@@ -445,8 +534,48 @@ export const ExpensesPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Filter and Search Bar */}
+      {/* Filter and Search Bar with Scope Tabs */}
       <div className="glass-panel rounded-2xl p-4 bg-white/95 border border-slate-200/90 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+        {/* Scope Switcher Tabs */}
+        <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl text-xs font-semibold shrink-0">
+          <button
+            type="button"
+            onClick={() => setScopeFilter('ALL')}
+            className={`px-3 py-1.5 rounded-lg transition cursor-pointer ${
+              scopeFilter === 'ALL'
+                ? 'bg-white text-slate-900 shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            All Filings ({claims.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => setScopeFilter('TEAM')}
+            className={`px-3 py-1.5 rounded-lg transition cursor-pointer flex items-center gap-1.5 ${
+              scopeFilter === 'TEAM'
+                ? 'bg-white text-indigo-700 shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <span>Team Approvals</span>
+            {claims.filter(c => c.status === 'PENDING_MANAGER').length > 0 && (
+              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={() => setScopeFilter('MY')}
+            className={`px-3 py-1.5 rounded-lg transition cursor-pointer ${
+              scopeFilter === 'MY'
+                ? 'bg-white text-slate-900 shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            My Expenses
+          </button>
+        </div>
+
         <div className="flex items-center gap-2 flex-1">
           <div className="relative flex-1 max-w-md">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -471,10 +600,12 @@ export const ExpensesPage: React.FC = () => {
               className="bg-slate-50 border border-slate-200 text-slate-800 text-xs rounded-xl px-2.5 py-1.5 focus:outline-none font-semibold cursor-pointer"
             >
               <option value="ALL">All Statuses</option>
-              <option value="PENDING">Pending Review</option>
-              <option value="APPROVED">Approved</option>
+              <option value="PENDING_MANAGER">Tier 1: Pending Manager</option>
+              <option value="PENDING_HR">Tier 2: Pending HR</option>
+              <option value="APPROVED">Approved for Payout</option>
               <option value="REIMBURSED">Reimbursed</option>
-              <option value="REJECTED">Rejected</option>
+              <option value="REJECTED_MANAGER">Rejected by Manager</option>
+              <option value="REJECTED_HR">Rejected by HR</option>
             </select>
           </div>
 
@@ -508,7 +639,7 @@ export const ExpensesPage: React.FC = () => {
               {filteredClaims.length} records
             </span>
           </div>
-          <span className="text-xs text-slate-400">All amounts verified against registered GST invoices</span>
+          <span className="text-xs text-slate-400">Two-Tier Approval: Manager Review &rarr; HR Signoff &rarr; Bank Reimbursement</span>
         </div>
 
         {filteredClaims.length === 0 ? (
@@ -529,7 +660,7 @@ export const ExpensesPage: React.FC = () => {
                   <th className="py-3 px-4">Expense Date</th>
                   <th className="py-3 px-4 text-right">Amount (₹)</th>
                   <th className="py-3 px-4 text-center">Receipt</th>
-                  <th className="py-3 px-4 text-center">Status</th>
+                  <th className="py-3 px-4 text-center">Approval Workflow</th>
                   <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
               </thead>
@@ -537,6 +668,12 @@ export const ExpensesPage: React.FC = () => {
                 {filteredClaims.map((claim) => {
                   const cat = CATEGORY_CONFIG[claim.category] || CATEGORY_CONFIG.TRAVEL;
                   const Icon = cat.icon;
+                  const isManagerPending = claim.status === 'PENDING_MANAGER';
+                  const isHrPending = claim.status === 'PENDING_HR';
+                  const isReadyForPayout = claim.status === 'APPROVED';
+                  const isPaid = claim.status === 'REIMBURSED';
+                  const isMgrDeclined = claim.status === 'REJECTED_MANAGER';
+                  const isHrDeclined = claim.status === 'REJECTED_HR' || claim.status === 'REJECTED';
 
                   return (
                     <tr key={claim.id} className="hover:bg-slate-50/70 transition-colors">
@@ -547,6 +684,11 @@ export const ExpensesPage: React.FC = () => {
                       <td className="py-3.5 px-4">
                         <div className="font-bold text-slate-900">{claim.employeeName}</div>
                         <div className="text-[11px] text-slate-400">{claim.department}</div>
+                        {claim.managerName && (
+                          <div className="text-[10px] text-slate-500 font-medium mt-0.5">
+                            Mgr: <span className="text-slate-700">{claim.managerName}</span>
+                          </div>
+                        )}
                       </td>
 
                       <td className="py-3.5 px-4">
@@ -589,41 +731,98 @@ export const ExpensesPage: React.FC = () => {
                         )}
                       </td>
 
+                      {/* Two-Tier Approval Status Stepper Cell */}
                       <td className="py-3.5 px-4 text-center">
-                        <span className={`inline-block px-2.5 py-1 rounded-full text-[11px] font-extrabold border ${
-                          claim.status === 'APPROVED' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                          claim.status === 'REIMBURSED' ? 'bg-purple-50 text-purple-700 border-purple-200' :
-                          claim.status === 'PENDING' ? 'bg-amber-50 text-amber-700 border-amber-200' :
-                          'bg-rose-50 text-rose-700 border-rose-200'
-                        }`}>
-                          {claim.status}
-                        </span>
+                        <div className="inline-flex flex-col items-center gap-1">
+                          <span className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-extrabold border ${
+                            isReadyForPayout ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                            isPaid ? 'bg-purple-50 text-purple-700 border-purple-200' :
+                            isHrPending ? 'bg-indigo-50 text-indigo-700 border-indigo-200' :
+                            isManagerPending ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                            isMgrDeclined || isHrDeclined ? 'bg-rose-50 text-rose-700 border-rose-200' :
+                            'bg-slate-100 text-slate-700 border-slate-200'
+                          }`}>
+                            {isManagerPending ? 'Tier 1: Pending Manager' :
+                             isHrPending ? 'Tier 2: Pending HR' :
+                             isReadyForPayout ? 'Approved for Payout' :
+                             isPaid ? 'Reimbursed' :
+                             isMgrDeclined ? 'Rejected by Manager' :
+                             isHrDeclined ? 'Rejected by HR' :
+                             claim.status}
+                          </span>
+
+                          {/* Micro Sub-tracker */}
+                          <div className="flex items-center gap-1 text-[9px] text-slate-400 font-medium">
+                            {isManagerPending ? (
+                              <span className="text-amber-600 flex items-center gap-0.5">
+                                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                                Awaiting {claim.managerName || 'Manager'}
+                              </span>
+                            ) : isHrPending ? (
+                              <span className="text-indigo-600 flex items-center gap-0.5">
+                                <CheckCircle2 className="w-2.5 h-2.5 text-emerald-600" />
+                                Mgr Approved &bull; Awaiting HR
+                              </span>
+                            ) : isReadyForPayout ? (
+                              <span className="text-emerald-700 flex items-center gap-0.5">
+                                <CheckCircle2 className="w-2.5 h-2.5 text-emerald-600" />
+                                All Approvals Complete
+                              </span>
+                            ) : isPaid ? (
+                              <span className="text-purple-700">
+                                Disbursed {claim.reimbursedDate || ''}
+                              </span>
+                            ) : null}
+                          </div>
+                        </div>
                       </td>
 
+                      {/* Contextual Action Buttons */}
                       <td className="py-3.5 px-4 text-right">
                         <div className="flex items-center justify-end gap-1.5">
-                          {claim.status === 'PENDING' && isHrOrAdmin && (
+                          {isManagerPending && (
                             <>
                               <button
                                 type="button"
-                                onClick={() => handleApprove(claim.id)}
+                                onClick={() => handleManagerApprove(claim.id)}
                                 className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] transition cursor-pointer flex items-center gap-1 shadow-xs"
-                                title="Approve expense claim"
+                                title="Approve as Direct Manager"
                               >
-                                <CheckCircle2 className="w-3 h-3" /> Approve
+                                <CheckCircle2 className="w-3 h-3" /> Approve (Mgr)
                               </button>
                               <button
                                 type="button"
-                                onClick={() => handleReject(claim.id)}
+                                onClick={() => handleManagerReject(claim.id)}
                                 className="px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold text-[11px] transition cursor-pointer flex items-center gap-1 shadow-xs"
-                                title="Reject expense claim"
+                                title="Reject as Direct Manager"
                               >
                                 <XCircle className="w-3 h-3" /> Reject
                               </button>
                             </>
                           )}
 
-                          {claim.status === 'APPROVED' && isHrOrAdmin && (
+                          {isHrPending && isHrOrAdmin && (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => handleHrApprove(claim.id)}
+                                className="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[11px] transition cursor-pointer flex items-center gap-1 shadow-xs"
+                                title="Grant Final HR Signoff"
+                              >
+                                <CheckCircle2 className="w-3 h-3" /> Final HR Approve
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleHrReject(claim.id)}
+                                className="px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold text-[11px] transition cursor-pointer flex items-center gap-1 shadow-xs"
+                                title="Reject as HR"
+                              >
+                                <XCircle className="w-3 h-3" /> Reject
+                              </button>
+                            </>
+                          )}
+
+                          {isReadyForPayout && isHrOrAdmin && (
                             <button
                               type="button"
                               onClick={() => handleReimburse(claim.id)}
@@ -634,15 +833,15 @@ export const ExpensesPage: React.FC = () => {
                             </button>
                           )}
 
-                          {claim.status === 'REIMBURSED' && (
+                          {isPaid && (
                             <span className="text-[11px] text-purple-700 font-mono font-semibold" title={`Ref: ${claim.reimbursementRef}`}>
                               Paid: {claim.reimbursementRef || 'Direct Transfer'}
                             </span>
                           )}
 
-                          {claim.status === 'REJECTED' && (
+                          {(isMgrDeclined || isHrDeclined) && (
                             <span className="text-[11px] text-rose-600 italic">
-                              {claim.approverRemarks || 'Rejected'}
+                              {claim.approverRemarks || claim.managerComment || claim.hrComment || 'Declined'}
                             </span>
                           )}
                         </div>
@@ -932,6 +1131,30 @@ export const ExpensesPage: React.FC = () => {
                 <span>Total Reimbursable:</span>
                 <span className="text-emerald-700">₹{selectedReceiptClaim.amount.toFixed(2)}</span>
               </div>
+            </div>
+
+            {/* Multi-Tier Approval Trail */}
+            <div className="p-3.5 rounded-2xl bg-indigo-50/60 border border-indigo-100 text-xs space-y-2">
+              <span className="font-bold text-indigo-900 uppercase text-[10px] tracking-wider block">Approval Audit Trail</span>
+              <div className="flex justify-between items-center text-[11px]">
+                <span className="text-slate-600">Reporting Manager:</span>
+                <span className="font-semibold text-slate-800">
+                  {selectedReceiptClaim.managerName || 'Direct to HR'}
+                  {selectedReceiptClaim.managerComment && ` ("${selectedReceiptClaim.managerComment}")`}
+                </span>
+              </div>
+              {selectedReceiptClaim.hrComment && (
+                <div className="flex justify-between items-center text-[11px]">
+                  <span className="text-slate-600">HR Review Remarks:</span>
+                  <span className="font-semibold text-slate-800">&ldquo;{selectedReceiptClaim.hrComment}&rdquo;</span>
+                </div>
+              )}
+              {selectedReceiptClaim.reimbursementRef && (
+                <div className="flex justify-between items-center text-[11px]">
+                  <span className="text-slate-600">Bank Transfer Ref:</span>
+                  <span className="font-mono font-bold text-purple-700">{selectedReceiptClaim.reimbursementRef}</span>
+                </div>
+              )}
             </div>
 
             <div className="flex justify-end pt-1">

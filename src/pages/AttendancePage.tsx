@@ -33,13 +33,22 @@ import {
 
 export interface LeaveRequestItem {
   id: number;
+  companyId?: number;
+  employeeId?: number;
   employeeName: string;
   leaveType: string;
   startDate: string;
   endDate: string;
   totalDays: number;
   reason: string;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  status: 'PENDING' | 'PENDING_MANAGER' | 'PENDING_HR' | 'APPROVED' | 'REJECTED' | 'REJECTED_MANAGER' | 'REJECTED_HR';
+  managerId?: number;
+  managerName?: string;
+  managerComment?: string;
+  managerApprovedAt?: string;
+  hrComment?: string;
+  approvedBy?: number;
+  approvedAt?: string;
 }
 
 export interface OvertimeItem {
@@ -169,6 +178,8 @@ export const AttendancePage: React.FC = () => {
   // --- TAB 4: LEAVE MANAGEMENT STATE ---
   const [leaveRequests, setLeaveRequests] = useState<LeaveRequestItem[]>([]);
   const [isLoadingLeaves, setIsLoadingLeaves] = useState(true);
+  const [leaveScopeFilter, setLeaveScopeFilter] = useState<'ALL' | 'TEAM' | 'MY'>('ALL');
+  const [leaveStatusFilter, setLeaveStatusFilter] = useState<string>('ALL');
   const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
   const [isSubmittingLeave, setIsSubmittingLeave] = useState(false);
   const [orgPolicies, setOrgPolicies] = useState<{ id: number; leaveCode: string; leaveName: string; annualDays: number }[]>([]);
@@ -357,19 +368,63 @@ export const AttendancePage: React.FC = () => {
     }).catch(() => {});
   }, []);
 
-  // Leave Handlers
+  // Leave Handlers (Two-Tier Multi-Tier Approval Workflow)
+  const handleManagerApproveLeave = async (id: number) => {
+    try {
+      await api.put(`/leaves/${id}/manager-approve`, { comment: 'Approved by Reporting Manager' });
+      await fetchLeaves();
+      fetchStats();
+    } catch (err: any) {
+      alert(err?.message || 'Failed to approve as manager');
+    }
+  };
+
+  const handleManagerRejectLeave = async (id: number) => {
+    const reason = prompt('Please enter manager rejection reason:');
+    if (reason === null) return;
+    try {
+      await api.put(`/leaves/${id}/manager-reject`, { comment: reason || 'Declined by direct manager' });
+      await fetchLeaves();
+      fetchStats();
+    } catch (err: any) {
+      alert(err?.message || 'Failed to reject as manager');
+    }
+  };
+
+  const handleHrApproveLeave = async (id: number) => {
+    try {
+      await api.put(`/leaves/${id}/hr-approve`, { comment: 'Final approval granted by HR' });
+      await fetchLeaves();
+      fetchStats();
+    } catch (err: any) {
+      alert(err?.message || 'Failed to approve as HR');
+    }
+  };
+
+  const handleHrRejectLeave = async (id: number) => {
+    const reason = prompt('Please enter HR rejection reason:');
+    if (reason === null) return;
+    try {
+      await api.put(`/leaves/${id}/hr-reject`, { comment: reason || 'Declined by HR' });
+      await fetchLeaves();
+      fetchStats();
+    } catch (err: any) {
+      alert(err?.message || 'Failed to reject as HR');
+    }
+  };
+
   const handleApproveLeave = async (id: number) => {
-    setLeaveRequests(prev => prev.map(item => item.id === id ? { ...item, status: 'APPROVED' } : item));
     try {
       await api.put(`/leaves/${id}/approve`);
+      await fetchLeaves();
       fetchStats();
     } catch (err) {}
   };
 
   const handleRejectLeave = async (id: number) => {
-    setLeaveRequests(prev => prev.map(item => item.id === id ? { ...item, status: 'REJECTED' } : item));
     try {
       await api.put(`/leaves/${id}/reject`);
+      await fetchLeaves();
       fetchStats();
     } catch (err) {}
   };
@@ -1146,53 +1201,282 @@ export const AttendancePage: React.FC = () => {
             </Link>
           </div>
 
-          {/* Leave Requests Master Register */}
-          <div className="glass-panel rounded-3xl p-6 space-y-4 bg-white/95 border border-slate-200/90 shadow-sm">
-            <h2 className="text-base font-bold text-slate-900 mb-2">Leave Applications & Approval Workflow</h2>
-            {isLoadingLeaves ? (
-              <div className="p-8 text-center text-slate-500 text-sm">Loading leave applications...</div>
-            ) : (
-              <div className="space-y-3">
-                {leaveRequests.map((req) => (
-                  <div key={req.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-200/80 gap-4">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-3">
-                        <span className="font-bold text-slate-900">{req.employeeName || 'Employee'}</span>
-                        <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 text-xs font-bold border border-emerald-200">{req.leaveType}</span>
-                      </div>
-                      <p className="text-xs text-slate-600">
-                        {req.totalDays || 1} Days ({req.startDate} to {req.endDate}) &bull; <span className="italic">{req.reason || 'Personal leave'}</span>
-                      </p>
-                    </div>
+          {/* Leave Requests Master Register with Two-Tier Multi-Approval Workflow */}
+          <div className="glass-panel rounded-3xl p-6 space-y-5 bg-white/95 border border-slate-200/90 shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+              <div>
+                <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                  <CalendarCheck className="w-5 h-5 text-emerald-600" />
+                  <span>Leave Applications & Multi-Tier Approvals</span>
+                </h2>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Tier 1: Direct Reporting Manager &bull; Tier 2: Human Resources Final Signoff
+                </p>
+              </div>
 
-                    <div className="flex items-center gap-3">
-                      {req.status === 'PENDING' && canApprove ? (
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => handleApproveLeave(req.id)}
-                            className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1 transition cursor-pointer shadow-xs"
-                          >
-                            <CheckCircle2 className="w-3.5 h-3.5" /> Approve
-                          </button>
-                          <button
-                            onClick={() => handleRejectLeave(req.id)}
-                            className="px-3.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold flex items-center gap-1 transition cursor-pointer shadow-xs"
-                          >
-                            <XCircle className="w-3.5 h-3.5" /> Reject
-                          </button>
+              {/* Scope Switcher Tabs */}
+              <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl text-xs font-semibold">
+                <button
+                  type="button"
+                  onClick={() => setLeaveScopeFilter('ALL')}
+                  className={`px-3 py-1.5 rounded-lg transition cursor-pointer ${
+                    leaveScopeFilter === 'ALL'
+                      ? 'bg-white text-slate-900 shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  All ({leaveRequests.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLeaveScopeFilter('TEAM')}
+                  className={`px-3 py-1.5 rounded-lg transition cursor-pointer flex items-center gap-1.5 ${
+                    leaveScopeFilter === 'TEAM'
+                      ? 'bg-white text-indigo-700 shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <span>Team Approvals</span>
+                  {leaveRequests.filter(l => l.status === 'PENDING_MANAGER').length > 0 && (
+                    <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLeaveScopeFilter('MY')}
+                  className={`px-3 py-1.5 rounded-lg transition cursor-pointer ${
+                    leaveScopeFilter === 'MY'
+                      ? 'bg-white text-slate-900 shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  My Requests
+                </button>
+              </div>
+            </div>
+
+            {/* Filter Pills */}
+            <div className="flex items-center gap-2 overflow-x-auto text-xs pb-1">
+              <span className="text-slate-400 font-bold uppercase text-[10px] tracking-wider shrink-0">Status:</span>
+              {[
+                { id: 'ALL', label: 'All Statuses' },
+                { id: 'PENDING_MANAGER', label: 'Tier 1: Pending Manager' },
+                { id: 'PENDING_HR', label: 'Tier 2: Pending HR' },
+                { id: 'APPROVED', label: 'Approved' },
+                { id: 'REJECTED_MANAGER', label: 'Rejected by Mgr' },
+                { id: 'REJECTED_HR', label: 'Rejected by HR' },
+              ].map(st => (
+                <button
+                  key={st.id}
+                  onClick={() => setLeaveStatusFilter(st.id)}
+                  className={`px-2.5 py-1 rounded-lg font-medium transition cursor-pointer shrink-0 ${
+                    leaveStatusFilter === st.id
+                      ? 'bg-emerald-700 text-white shadow-xs'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  {st.label}
+                </button>
+              ))}
+            </div>
+
+            {isLoadingLeaves ? (
+              <div className="p-8 text-center text-slate-500 text-sm">
+                <div className="inline-block w-6 h-6 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
+                <p className="mt-2 text-xs">Loading leave applications...</p>
+              </div>
+            ) : (
+              <div className="space-y-3.5">
+                {leaveRequests
+                  .filter(req => {
+                    if (leaveScopeFilter === 'TEAM') {
+                      const isMyTeam = req.managerId === user?.employeeId;
+                      if (isHr) return isMyTeam || req.status === 'PENDING_MANAGER';
+                      return isMyTeam;
+                    }
+                    if (leaveScopeFilter === 'MY') {
+                      return req.employeeId === user?.employeeId || (req.employeeName && user?.fullName && req.employeeName.toLowerCase().includes(user.fullName.toLowerCase()));
+                    }
+                    if (leaveStatusFilter !== 'ALL') {
+                      return req.status === leaveStatusFilter;
+                    }
+                    return true;
+                  })
+                  .map((req) => {
+                    const isManagerReview = req.status === 'PENDING_MANAGER';
+                    const isHrReview = req.status === 'PENDING_HR';
+                    const isFullyApproved = req.status === 'APPROVED';
+                    const isMgrRejected = req.status === 'REJECTED_MANAGER';
+                    const isHrRejected = req.status === 'REJECTED_HR' || req.status === 'REJECTED';
+                    const hasManager = Boolean(req.managerId || req.managerName);
+
+                    return (
+                      <div
+                        key={req.id}
+                        className="p-4 rounded-2xl bg-slate-50/80 hover:bg-slate-50 border border-slate-200/90 shadow-xs space-y-3 transition"
+                      >
+                        {/* Header Row: Employee & Leave details */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                          <div className="flex items-center gap-2.5">
+                            <span className="font-bold text-slate-900 text-sm">{req.employeeName || 'Staff Member'}</span>
+                            <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 text-xs font-bold border border-emerald-200">
+                              {req.leaveType}
+                            </span>
+                            <span className="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-700 text-xs font-mono font-bold">
+                              {req.totalDays || 1} {req.totalDays === 1 ? 'Day' : 'Days'}
+                            </span>
+                          </div>
+
+                          <div className="text-xs text-slate-500 font-mono">
+                            {req.startDate} &rarr; {req.endDate}
+                          </div>
                         </div>
-                      ) : (
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold border ${
-                          req.status === 'APPROVED' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                          req.status === 'PENDING' ? 'bg-amber-50 text-amber-700 border-amber-200' :
-                          'bg-rose-50 text-rose-700 border-rose-200'
-                        }`}>
-                          {req.status}
-                        </span>
-                      )}
-                    </div>
+
+                        {/* Reason quote */}
+                        {req.reason && (
+                          <div className="text-xs text-slate-600 bg-white/70 p-2.5 rounded-xl border border-slate-200/70">
+                            <span className="font-semibold text-slate-500">Reason:</span> &ldquo;{req.reason}&rdquo;
+                          </div>
+                        )}
+
+                        {/* Two-Tier Workflow Stepper & Actions Row */}
+                        <div className="pt-2 border-t border-slate-200/80 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                          {/* Visual Stepper Pills */}
+                          <div className="flex flex-wrap items-center gap-2 text-xs">
+                            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Workflow:</span>
+                            
+                            {/* Step 1: Manager Review */}
+                            <div className="flex items-center gap-1.5">
+                              {hasManager ? (
+                                isManagerReview ? (
+                                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 font-bold text-[11px]">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                                    <span>Tier 1: Awaiting Manager ({req.managerName})</span>
+                                  </span>
+                                ) : isMgrRejected ? (
+                                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 font-bold text-[11px]" title={req.managerComment}>
+                                    <XCircle className="w-3 h-3 text-rose-600" />
+                                    <span>Tier 1: Rejected by Mgr</span>
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 font-bold text-[11px]" title={req.managerComment}>
+                                    <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                                    <span>Tier 1: Mgr Approved ({req.managerName})</span>
+                                  </span>
+                                )
+                              ) : (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100 text-slate-500 text-[11px] font-medium">
+                                  <span>Tier 1: Direct HR (No Mgr)</span>
+                                </span>
+                              )}
+                            </div>
+
+                            <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+
+                            {/* Step 2: HR Signoff */}
+                            <div className="flex items-center gap-1.5">
+                              {isFullyApproved ? (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 font-bold text-[11px]">
+                                  <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                                  <span>Tier 2: Final HR Approved</span>
+                                </span>
+                              ) : isHrRejected ? (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 font-bold text-[11px]" title={req.hrComment}>
+                                  <XCircle className="w-3 h-3 text-rose-600" />
+                                  <span>Tier 2: Rejected by HR</span>
+                                </span>
+                              ) : isHrReview ? (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-800 font-bold text-[11px]">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 animate-pulse" />
+                                  <span>Tier 2: Awaiting HR Final Signoff</span>
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100 text-slate-400 text-[11px]">
+                                  <span>Tier 2: Awaiting Step 1</span>
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Action Buttons based on Review Tier */}
+                          <div className="flex items-center gap-2 self-end md:self-auto">
+                            {isManagerReview && (canApprove || isHr) && (
+                              <div className="flex items-center gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() => handleManagerApproveLeave(req.id)}
+                                  className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1 transition cursor-pointer shadow-xs"
+                                >
+                                  <CheckCircle2 className="w-3.5 h-3.5" /> Approve (Manager)
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleManagerRejectLeave(req.id)}
+                                  className="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold flex items-center gap-1 transition cursor-pointer shadow-xs"
+                                >
+                                  <XCircle className="w-3.5 h-3.5" /> Reject
+                                </button>
+                              </div>
+                            )}
+
+                            {isHrReview && isHr && (
+                              <div className="flex items-center gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() => handleHrApproveLeave(req.id)}
+                                  className="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold flex items-center gap-1 transition cursor-pointer shadow-xs"
+                                >
+                                  <ShieldCheck className="w-3.5 h-3.5" /> Final HR Approve
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleHrRejectLeave(req.id)}
+                                  className="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold flex items-center gap-1 transition cursor-pointer shadow-xs"
+                                >
+                                  <XCircle className="w-3.5 h-3.5" /> Reject
+                                </button>
+                              </div>
+                            )}
+
+                            {req.status === 'PENDING' && canApprove && (
+                              <div className="flex items-center gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() => handleApproveLeave(req.id)}
+                                  className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1 transition cursor-pointer shadow-xs"
+                                >
+                                  <CheckCircle2 className="w-3.5 h-3.5" /> Approve
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleRejectLeave(req.id)}
+                                  className="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold flex items-center gap-1 transition cursor-pointer shadow-xs"
+                                >
+                                  <XCircle className="w-3.5 h-3.5" /> Reject
+                                </button>
+                              </div>
+                            )}
+
+                            {/* Status badge when no pending action for current user */}
+                            {!isManagerReview && !isHrReview && req.status !== 'PENDING' && (
+                              <span className={`px-3 py-1 rounded-full text-xs font-bold border ${
+                                isFullyApproved ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                                'bg-rose-50 text-rose-700 border-rose-200'
+                              }`}>
+                                {req.status === 'APPROVED' ? 'Fully Approved' : req.status}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                {leaveRequests.length === 0 && (
+                  <div className="p-8 text-center text-slate-500 text-xs">
+                    No leave requests found in current view.
                   </div>
-                ))}
+                )}
               </div>
             )}
           </div>
@@ -1682,9 +1966,10 @@ export const AttendancePage: React.FC = () => {
 };
 
 const fallbackLeaves: LeaveRequestItem[] = [
-  { id: 1, employeeName: 'Priya Sharma', leaveType: 'Annual Leave', startDate: '2026-10-01', endDate: '2026-10-03', totalDays: 3, reason: 'Family vacation', status: 'PENDING' },
-  { id: 2, employeeName: 'Amit Verma', leaveType: 'Casual Leave', startDate: '2026-09-28', endDate: '2026-09-28', totalDays: 1, reason: 'Personal work', status: 'APPROVED' },
-  { id: 3, employeeName: 'Siddharth Roy', leaveType: 'Sick Leave', startDate: '2026-09-25', endDate: '2026-09-26', totalDays: 2, reason: 'Medical recovery', status: 'APPROVED' },
+  { id: 4, employeeName: 'Amit Verma', leaveType: 'Casual Leave', startDate: '2026-10-18', endDate: '2026-10-19', totalDays: 2, reason: 'Family engagement', status: 'PENDING_MANAGER', managerId: 1, managerName: 'Rakesh K. Sharma' },
+  { id: 3, employeeName: 'Rakesh K. Sharma', leaveType: 'Casual Leave', startDate: '2026-10-22', endDate: '2026-10-24', totalDays: 3, reason: 'Personal errands and family trip', status: 'PENDING_HR', managerId: 2, managerName: 'Priya Sharma', managerComment: 'Approved for Q4 release break' },
+  { id: 2, employeeName: 'Rakesh K. Sharma', leaveType: 'Sick Leave', startDate: '2026-09-25', endDate: '2026-09-26', totalDays: 2, reason: 'Medical recovery', status: 'APPROVED', managerId: 2, managerName: 'Priya Sharma', managerComment: 'Approved medical leave', hrComment: 'Verified with leave balance policy' },
+  { id: 1, employeeName: 'Priya Sharma', leaveType: 'Annual Leave', startDate: '2026-10-01', endDate: '2026-10-03', totalDays: 3, reason: 'Family vacation', status: 'APPROVED', hrComment: 'Approved executive leave' },
 ];
 
 export default AttendancePage;

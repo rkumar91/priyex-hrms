@@ -114,6 +114,10 @@ export interface Employee {
   emergencyContactName?: string;
   emergencyContactRelationship?: string;
   emergencyContactPhone?: string;
+
+  // Reporting Hierarchy (Two-Tier Approvals)
+  reportingManagerId?: number;
+  reportingManagerName?: string;
 }
 
 export interface EmployeeDocument {
@@ -240,6 +244,13 @@ export const EmployeesPage: React.FC = () => {
   });
   const [feedbackMsg, setFeedbackMsg] = useState<string | null>(null);
 
+  // Assign / Change Manager Modal State
+  const [isAssignManagerModalOpen, setIsAssignManagerModalOpen] = useState(false);
+  const [selectedEmpForManager, setSelectedEmpForManager] = useState<Employee | null>(null);
+  const [assignManagerId, setAssignManagerId] = useState<string>('');
+  const [isAssigningManager, setIsAssigningManager] = useState(false);
+  const [assignManagerError, setAssignManagerError] = useState<string | null>(null);
+
   // Form State (Onboard Employee)
   const initialEmployeeFormData = {
     firstName: '',
@@ -251,6 +262,7 @@ export const EmployeesPage: React.FC = () => {
     designationName: 'Software Engineer',
     employmentType: 'FULL_TIME',
     joiningDate: new Date().toISOString().split('T')[0],
+    reportingManagerId: '',
     gender: 'MALE',
     dateOfBirth: '',
     bloodGroup: 'B+',
@@ -699,6 +711,7 @@ export const EmployeesPage: React.FC = () => {
         ...formData,
         annualCtc: formData.annualCtc ? Number(formData.annualCtc) : 1200000,
         departmentId: formData.departmentId ? Number(formData.departmentId) : null,
+        reportingManagerId: formData.reportingManagerId ? Number(formData.reportingManagerId) : null,
         status: 'ACTIVE'
       };
 
@@ -712,6 +725,35 @@ export const EmployeesPage: React.FC = () => {
       setFormError(err?.message || err || 'Failed to onboard employee');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  // Handle Assign / Change Reporting Manager (HR / Admin)
+  const handleOpenAssignManager = (emp: Employee) => {
+    setSelectedEmpForManager(emp);
+    setAssignManagerId(emp.reportingManagerId ? String(emp.reportingManagerId) : '');
+    setAssignManagerError(null);
+    setIsAssignManagerModalOpen(true);
+  };
+
+  const handleSaveManagerAssignment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedEmpForManager) return;
+    setIsAssigningManager(true);
+    setAssignManagerError(null);
+
+    try {
+      const targetManagerId = assignManagerId ? Number(assignManagerId) : null;
+      await api.put(`/employees/${selectedEmpForManager.id}/reporting-manager`, {
+        reportingManagerId: targetManagerId
+      });
+      setIsAssignManagerModalOpen(false);
+      setSelectedEmpForManager(null);
+      await fetchEmployees();
+    } catch (err: any) {
+      setAssignManagerError(err?.message || 'Failed to update reporting manager');
+    } finally {
+      setIsAssigningManager(false);
     }
   };
 
@@ -940,6 +982,18 @@ export const EmployeesPage: React.FC = () => {
                             <Building2 className="w-3.5 h-3.5 text-slate-400" />
                             {emp.departmentName || 'General'}
                           </span>
+                          <div className="mt-1 flex items-center gap-1">
+                            {emp.reportingManagerName ? (
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-indigo-50 border border-indigo-200 text-indigo-700 text-[10px] font-semibold" title={`Reporting Manager: ${emp.reportingManagerName}`}>
+                                <UserCheck className="w-2.5 h-2.5" />
+                                <span>Mgr: {emp.reportingManagerName}</span>
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-slate-50 border border-slate-200 text-slate-400 text-[10px] italic">
+                                <span>Direct to HR</span>
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </td>
                       <td className="py-3.5 px-5">
@@ -992,6 +1046,14 @@ export const EmployeesPage: React.FC = () => {
                               >
                                 <Eye className="w-3.5 h-3.5 text-slate-500" /> View Profile
                               </button>
+                              {canManage && (
+                                <button
+                                  onClick={() => { handleOpenAssignManager(emp); setActiveMenuId(null); }}
+                                  className="w-full px-3 py-2 text-indigo-700 hover:bg-indigo-50 flex items-center gap-2 font-medium cursor-pointer"
+                                >
+                                  <UserCheck className="w-3.5 h-3.5 text-indigo-600" /> Assign Manager
+                                </button>
+                              )}
                               {canDeactivate && !isSelf && (
                                 <button
                                   onClick={() => { setActiveMenuId(null); handleDelete(emp.id); }}
@@ -1118,6 +1180,24 @@ export const EmployeesPage: React.FC = () => {
                       onChange={(e) => setFormData({ ...formData, designationName: e.target.value })}
                       className="w-full bg-white text-slate-900 rounded-xl px-3 py-2 border border-slate-200 focus:outline-none focus:border-emerald-500 font-medium"
                     />
+                  </div>
+                  <div>
+                    <label className="block text-slate-700 font-bold mb-1 flex items-center justify-between">
+                      <span>Reporting Manager</span>
+                      <span className="text-[10px] text-indigo-700 font-semibold">Tier 1 Approver</span>
+                    </label>
+                    <select
+                      value={formData.reportingManagerId}
+                      onChange={(e) => setFormData({ ...formData, reportingManagerId: e.target.value })}
+                      className="w-full bg-white text-slate-900 rounded-xl px-3 py-2 border border-slate-200 focus:outline-none focus:border-indigo-500 font-medium"
+                    >
+                      <option value="">No Direct Manager (Direct to HR)</option>
+                      {employees.map((emp) => (
+                        <option key={emp.id} value={emp.id}>
+                          {emp.firstName} {emp.lastName} ({emp.employeeCode} - {emp.designationName || 'Staff'})
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div>
                     <label className="block text-slate-700 font-bold mb-1">Joining Date *</label>
@@ -1506,6 +1586,24 @@ export const EmployeesPage: React.FC = () => {
                         <div className="flex justify-between py-1 border-b border-slate-200">
                           <span className="text-slate-500">Designation:</span>
                           <span className="font-semibold text-slate-900">{viewEmployee.designationName || 'Software Engineer'}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-1 border-b border-slate-200">
+                          <span className="text-slate-500">Reporting Manager:</span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-indigo-700 flex items-center gap-1">
+                              <UserCheck className="w-3.5 h-3.5" />
+                              {viewEmployee.reportingManagerName || 'None (Direct to HR)'}
+                            </span>
+                            {canManage && (
+                              <button
+                                type="button"
+                                onClick={() => handleOpenAssignManager(viewEmployee)}
+                                className="text-[10px] px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-bold border border-indigo-200 cursor-pointer"
+                              >
+                                Change
+                              </button>
+                            )}
+                          </div>
                         </div>
                         <div className="flex justify-between py-1 border-b border-slate-200">
                           <span className="text-slate-500">Work Location:</span>
@@ -2821,6 +2919,106 @@ export const EmployeesPage: React.FC = () => {
                 >
                   <Send className="w-3.5 h-3.5" />
                   <span>{isSendingQuery ? 'Sending...' : 'Dispatch Query to HR'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* 7. ASSIGN REPORTING MANAGER MODAL (HR / Admin) */}
+      {isAssignManagerModalOpen && selectedEmpForManager && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="w-full max-w-md bg-white border border-slate-200 rounded-3xl p-6 shadow-2xl relative space-y-5 text-slate-900 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+              <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-indigo-50 border border-indigo-200 flex items-center justify-center text-indigo-700">
+                  <UserCheck className="w-4 h-4" />
+                </div>
+                <span>Assign Reporting Manager</span>
+              </h2>
+              <button
+                type="button"
+                onClick={() => { setIsAssignManagerModalOpen(false); setSelectedEmpForManager(null); }}
+                className="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100 transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Target Employee Info Banner */}
+            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-800 font-bold text-sm flex items-center justify-center shrink-0">
+                {selectedEmpForManager.firstName?.[0]}{selectedEmpForManager.lastName?.[0]}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="font-bold text-slate-900 text-xs truncate">
+                  {selectedEmpForManager.firstName} {selectedEmpForManager.lastName}
+                </div>
+                <div className="text-[11px] text-slate-500 truncate">
+                  {selectedEmpForManager.employeeCode} &bull; {selectedEmpForManager.designationName || 'Employee'}
+                </div>
+                <div className="text-[10px] text-slate-400 mt-0.5">
+                  Current: <strong className="text-slate-700">{selectedEmpForManager.reportingManagerName || 'None (Direct to HR)'}</strong>
+                </div>
+              </div>
+            </div>
+
+            {/* Workflow Notice */}
+            <div className="p-3 rounded-xl bg-indigo-50/70 border border-indigo-100 text-[11px] text-indigo-900 leading-relaxed flex items-start gap-2">
+              <Shield className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" />
+              <span>
+                <strong>Approval Routing:</strong> The assigned manager will review all Leave and Expense submissions at <strong>Level 1</strong>. Upon manager approval, requests route automatically to <strong>HR (Level 2)</strong> for final disbursement.
+              </span>
+            </div>
+
+            {assignManagerError && (
+              <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2 font-medium">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{assignManagerError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSaveManagerAssignment} className="space-y-4 text-xs">
+              <div>
+                <label className="block text-slate-700 font-bold mb-1.5">
+                  Select Reporting Manager (Level 1 Reviewer)
+                </label>
+                <select
+                  value={assignManagerId}
+                  onChange={(e) => setAssignManagerId(e.target.value)}
+                  className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-indigo-500 font-medium cursor-pointer"
+                >
+                  <option value="">No Direct Manager (Direct HR Approval Only)</option>
+                  {employees
+                    .filter(e => String(e.id) !== String(selectedEmpForManager.id))
+                    .map((emp) => (
+                      <option key={emp.id} value={emp.id}>
+                        {emp.firstName} {emp.lastName} ({emp.employeeCode} - {emp.designationName || 'Staff'})
+                      </option>
+                    ))}
+                </select>
+                <p className="text-[10px] text-slate-400 mt-1">
+                  You can reassign or remove manager assignment at any time.
+                </p>
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-200">
+                <button
+                  type="button"
+                  onClick={() => { setIsAssignManagerModalOpen(false); setSelectedEmpForManager(null); }}
+                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold cursor-pointer transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isAssigningManager}
+                  className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold transition cursor-pointer shadow-md shadow-indigo-600/20 flex items-center gap-2"
+                >
+                  <UserCheck className="w-3.5 h-3.5" />
+                  <span>{isAssigningManager ? 'Saving Assignment...' : 'Save Manager Assignment'}</span>
                 </button>
               </div>
             </form>
