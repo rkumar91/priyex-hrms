@@ -560,11 +560,15 @@ export const AttendancePage: React.FC = () => {
     setNewFenceForm({ name: '', city: '', latitude: '', longitude: '', radiusMeters: '250' });
   };
 
-  // Metrics for C-Off wallet
+  // Metrics for C-Off wallet and Command Deck
   const availableCoffCredits = coffList.filter(c => c.status === 'APPROVED' && !c.isAvailed).reduce((acc, c) => acc + c.creditsEarned, 0);
   const totalCoffEarned = coffList.filter(c => c.status === 'APPROVED').reduce((acc, c) => acc + c.creditsEarned, 0);
   const totalOtHoursApproved = overtimeList.filter(o => o.status === 'APPROVED').reduce((acc, o) => acc + o.hours, 0);
   const totalOtPayout = overtimeList.filter(o => o.status === 'APPROVED').reduce((acc, o) => acc + o.estimatedPayout, 0);
+  const pendingOtCount = overtimeList.filter(o => o.status === 'PENDING').length;
+  const pendingLeavesCount = leaveRequests.filter(l => l.status === 'PENDING' || l.status === 'PENDING_MANAGER' || l.status === 'PENDING_HR').length;
+  const approvedLeavesCount = leaveRequests.filter(l => l.status === 'APPROVED').length;
+  const activeGeofencesCount = geofences.filter(g => g.isActive).length;
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
@@ -645,74 +649,205 @@ export const AttendancePage: React.FC = () => {
         </div>
       </div>
 
-      {/* Navigation Module Tabs */}
-      <div className="flex border-b border-slate-200 gap-1 overflow-x-auto pb-px">
+      {/* Interactive Module KPI Command Deck */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3.5">
+        {/* Card 1: Attendance & Live Punch */}
         <button
+          type="button"
           onClick={() => setActiveTab('ATTENDANCE')}
-          className={`px-4 py-2.5 text-xs font-bold rounded-t-xl transition flex items-center gap-2 cursor-pointer border-b-2 whitespace-nowrap ${
+          className={`relative rounded-2xl p-4 text-left transition-all duration-200 cursor-pointer border group ${
             activeTab === 'ATTENDANCE'
-              ? 'border-blue-600 text-blue-600 bg-blue-50/50'
-              : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-50'
+              ? 'border-blue-600 bg-linear-to-b from-blue-50/70 via-white to-white shadow-md shadow-blue-500/10 ring-2 ring-blue-500/20 -translate-y-0.5'
+              : 'border-slate-200/90 bg-white hover:border-slate-300 hover:bg-slate-50/60 hover:shadow-xs hover:-translate-y-0.5'
           }`}
         >
-          <MapPin className="w-4 h-4" />
-          <span>Geo-Fence & Live Punch</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('OVERTIME')}
-          className={`px-4 py-2.5 text-xs font-bold rounded-t-xl transition flex items-center gap-2 cursor-pointer border-b-2 whitespace-nowrap ${
-            activeTab === 'OVERTIME'
-              ? 'border-blue-600 text-blue-600 bg-blue-50/50'
-              : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-50'
-          }`}
-        >
-          <Timer className="w-4 h-4" />
-          <span>Overtime (OT) Management</span>
-          {overtimeList.filter(o => o.status === 'PENDING').length > 0 && (
-            <span className="px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold">
-              {overtimeList.filter(o => o.status === 'PENDING').length}
-            </span>
+          <div className="flex items-center justify-between gap-2 mb-2.5">
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors ${
+              activeTab === 'ATTENDANCE'
+                ? 'bg-blue-600 text-white shadow-sm shadow-blue-600/30'
+                : 'bg-blue-50 text-blue-600 group-hover:bg-blue-100'
+            }`}>
+              <MapPin className="w-5 h-5" />
+            </div>
+            {isClockedIn ? (
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                On Duty
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-600">
+                Off Shift
+              </span>
+            )}
+          </div>
+          <div className="space-y-0.5">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Attendance</span>
+            <div className="text-base font-extrabold text-slate-900 truncate">
+              {isClockedIn ? `${Math.floor(clockElapsedSeconds / 3600)}h ${(Math.floor((clockElapsedSeconds % 3600) / 60)).toString().padStart(2, '0')}m Active` : 'Biometric Radar'}
+            </div>
+            <p className="text-[11px] text-slate-500 truncate font-medium">
+              {userCoords.insideFence ? 'Inside Office Fence' : 'GPS Verification'}
+            </p>
+          </div>
+          {activeTab === 'ATTENDANCE' && (
+            <div className="absolute -bottom-px left-4 right-4 h-0.5 bg-blue-600 rounded-full" />
           )}
         </button>
 
+        {/* Card 2: Overtime (OT) */}
         <button
+          type="button"
+          onClick={() => setActiveTab('OVERTIME')}
+          className={`relative rounded-2xl p-4 text-left transition-all duration-200 cursor-pointer border group ${
+            activeTab === 'OVERTIME'
+              ? 'border-amber-500 bg-linear-to-b from-amber-50/70 via-white to-white shadow-md shadow-amber-500/10 ring-2 ring-amber-500/20 -translate-y-0.5'
+              : 'border-slate-200/90 bg-white hover:border-slate-300 hover:bg-slate-50/60 hover:shadow-xs hover:-translate-y-0.5'
+          }`}
+        >
+          <div className="flex items-center justify-between gap-2 mb-2.5">
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors ${
+              activeTab === 'OVERTIME'
+                ? 'bg-amber-500 text-white shadow-sm shadow-amber-500/30'
+                : 'bg-amber-50 text-amber-600 group-hover:bg-amber-100'
+            }`}>
+              <Timer className="w-5 h-5" />
+            </div>
+            {pendingOtCount > 0 ? (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                {pendingOtCount} Pending
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-600">
+                1.5x - 2.0x
+              </span>
+            )}
+          </div>
+          <div className="space-y-0.5">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Overtime (OT)</span>
+            <div className="text-base font-extrabold text-slate-900 truncate">
+              {totalOtHoursApproved} hrs Approved
+            </div>
+            <p className="text-[11px] text-slate-500 truncate font-medium">
+              ₹{totalOtPayout.toLocaleString('en-IN')} Est. Payout
+            </p>
+          </div>
+          {activeTab === 'OVERTIME' && (
+            <div className="absolute -bottom-px left-4 right-4 h-0.5 bg-amber-500 rounded-full" />
+          )}
+        </button>
+
+        {/* Card 3: C-Off Wallet */}
+        <button
+          type="button"
           onClick={() => setActiveTab('COFF')}
-          className={`px-4 py-2.5 text-xs font-bold rounded-t-xl transition flex items-center gap-2 cursor-pointer border-b-2 whitespace-nowrap ${
+          className={`relative rounded-2xl p-4 text-left transition-all duration-200 cursor-pointer border group ${
             activeTab === 'COFF'
-              ? 'border-blue-600 text-blue-600 bg-blue-50/50'
-              : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-50'
+              ? 'border-emerald-500 bg-linear-to-b from-emerald-50/70 via-white to-white shadow-md shadow-emerald-500/10 ring-2 ring-emerald-500/20 -translate-y-0.5'
+              : 'border-slate-200/90 bg-white hover:border-slate-300 hover:bg-slate-50/60 hover:shadow-xs hover:-translate-y-0.5'
           }`}
         >
-          <Wallet className="w-4 h-4" />
-          <span>Compensatory Off (C-Off)</span>
-          <span className="px-1.5 py-0.2 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">
-            {availableCoffCredits}d Left
-          </span>
+          <div className="flex items-center justify-between gap-2 mb-2.5">
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors ${
+              activeTab === 'COFF'
+                ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-600/30'
+                : 'bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100'
+            }`}>
+              <Wallet className="w-5 h-5" />
+            </div>
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+              {availableCoffCredits.toFixed(1)}d Avail
+            </span>
+          </div>
+          <div className="space-y-0.5">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">C-Off Wallet</span>
+            <div className="text-base font-extrabold text-slate-900 truncate">
+              {availableCoffCredits.toFixed(1)} Days Balance
+            </div>
+            <p className="text-[11px] text-slate-500 truncate font-medium">
+              {totalCoffEarned.toFixed(1)} Total Earned Credits
+            </p>
+          </div>
+          {activeTab === 'COFF' && (
+            <div className="absolute -bottom-px left-4 right-4 h-0.5 bg-emerald-600 rounded-full" />
+          )}
         </button>
 
+        {/* Card 4: Leave Management & Approvals */}
         <button
+          type="button"
           onClick={() => setActiveTab('LEAVES')}
-          className={`px-4 py-2.5 text-xs font-bold rounded-t-xl transition flex items-center gap-2 cursor-pointer border-b-2 whitespace-nowrap ${
+          className={`relative rounded-2xl p-4 text-left transition-all duration-200 cursor-pointer border group ${
             activeTab === 'LEAVES'
-              ? 'border-blue-600 text-blue-600 bg-blue-50/50'
-              : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-50'
+              ? 'border-indigo-500 bg-linear-to-b from-indigo-50/70 via-white to-white shadow-md shadow-indigo-500/10 ring-2 ring-indigo-500/20 -translate-y-0.5'
+              : 'border-slate-200/90 bg-white hover:border-slate-300 hover:bg-slate-50/60 hover:shadow-xs hover:-translate-y-0.5'
           }`}
         >
-          <CalendarCheck className="w-4 h-4" />
-          <span>Leave Management & Balances</span>
+          <div className="flex items-center justify-between gap-2 mb-2.5">
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors ${
+              activeTab === 'LEAVES'
+                ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-600/30'
+                : 'bg-indigo-50 text-indigo-600 group-hover:bg-indigo-100'
+            }`}>
+              <CalendarCheck className="w-5 h-5" />
+            </div>
+            {pendingLeavesCount > 0 ? (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-800 border border-indigo-200">
+                {pendingLeavesCount} In Review
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-600">
+                Multi-Tier
+              </span>
+            )}
+          </div>
+          <div className="space-y-0.5">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Leaves & Approvals</span>
+            <div className="text-base font-extrabold text-slate-900 truncate">
+              {leaveRequests.length} Total Requests
+            </div>
+            <p className="text-[11px] text-slate-500 truncate font-medium">
+              {approvedLeavesCount} Approved · Manager & HR
+            </p>
+          </div>
+          {activeTab === 'LEAVES' && (
+            <div className="absolute -bottom-px left-4 right-4 h-0.5 bg-indigo-600 rounded-full" />
+          )}
         </button>
 
+        {/* Card 5: Geo-Perimeters */}
         <button
+          type="button"
           onClick={() => setActiveTab('GEOFENCES')}
-          className={`px-4 py-2.5 text-xs font-bold rounded-t-xl transition flex items-center gap-2 cursor-pointer border-b-2 whitespace-nowrap ${
+          className={`relative rounded-2xl p-4 text-left transition-all duration-200 cursor-pointer border group ${
             activeTab === 'GEOFENCES'
-              ? 'border-blue-600 text-blue-600 bg-blue-50/50'
-              : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-50'
+              ? 'border-purple-500 bg-linear-to-b from-purple-50/70 via-white to-white shadow-md shadow-purple-500/10 ring-2 ring-purple-500/20 -translate-y-0.5'
+              : 'border-slate-200/90 bg-white hover:border-slate-300 hover:bg-slate-50/60 hover:shadow-xs hover:-translate-y-0.5'
           }`}
         >
-          <Building2 className="w-4 h-4" />
-          <span>Office Geo-Boundaries ({geofences.length})</span>
+          <div className="flex items-center justify-between gap-2 mb-2.5">
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors ${
+              activeTab === 'GEOFENCES'
+                ? 'bg-purple-600 text-white shadow-sm shadow-purple-600/30'
+                : 'bg-purple-50 text-purple-600 group-hover:bg-purple-100'
+            }`}>
+              <Building2 className="w-5 h-5" />
+            </div>
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800 border border-purple-200">
+              {activeGeofencesCount} Active
+            </span>
+          </div>
+          <div className="space-y-0.5">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Perimeters</span>
+            <div className="text-base font-extrabold text-slate-900 truncate">
+              {geofences.length} Office Sites
+            </div>
+            <p className="text-[11px] text-slate-500 truncate font-medium">
+              Radius Governance
+            </p>
+          </div>
+          {activeTab === 'GEOFENCES' && (
+            <div className="absolute -bottom-px left-4 right-4 h-0.5 bg-purple-600 rounded-full" />
+          )}
         </button>
       </div>
 
