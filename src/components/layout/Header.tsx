@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
-import { LanguageDropdown } from '../common/LanguageDropdown';
 import { BrandLogo } from '../common/BrandLogo';
 import { isHrAdmin } from '../../utils/rbac';
 import api from '../../api/client';
@@ -176,8 +175,6 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu, onAnnouncement
         {/* ── RIGHT: Controls ── */}
         <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
 
-          {/* Language Dropdown */}
-          <LanguageDropdown />
 
           {/* HR Live Pool Alert Badge */}
           {isHrAdmin(user) && (

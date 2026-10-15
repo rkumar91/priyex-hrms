@@ -26,7 +26,13 @@ import {
   Headphones,
   Sparkles,
   X,
-  AlertCircle
+  AlertCircle,
+  ShieldCheck,
+  Activity,
+  Layers,
+  ChevronRight,
+  Briefcase,
+  FileSpreadsheet
 } from 'lucide-react';
 
 export interface Department {
@@ -461,91 +467,312 @@ export const DashboardPage: React.FC = () => {
     }
   };
 
-  return (
-    <div className="space-y-8 max-w-7xl mx-auto">
-      {/* Top Banner: Crystal Clear Enterprise Hero */}
-      <div
-        className="relative rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 shadow-xs p-6 sm:p-7 overflow-hidden transition-all duration-300"
-      >
-        {/* Subtle executive blue ambient glow */}
-        <div className="absolute top-0 right-0 w-96 h-full bg-gradient-to-l from-blue-50/70 via-slate-50/30 to-transparent pointer-events-none" />
+  // Core Modules Quick Launchpad (Feature Card Model)
+  const adminModules = [
+    {
+      id: 'employees',
+      title: t('nav.employees', 'Staff Directory'),
+      description: 'Directory, onboarding & departmental records',
+      icon: Users,
+      path: '/employees',
+      badge: `${statsData.totalStaff} Enrolled`,
+      badgeStyle: 'bg-blue-50 text-blue-700 border-blue-200',
+      iconBg: 'bg-blue-50 text-blue-600 border border-blue-200/70 group-hover:bg-blue-600 group-hover:text-white',
+      hoverBorder: 'hover:border-blue-400/80',
+      accentBar: 'bg-blue-600'
+    },
+    {
+      id: 'attendance',
+      title: t('nav.attendance', 'Attendance & Leaves'),
+      description: 'Daily biometric punches, shifts & leave approvals',
+      icon: CalendarCheck,
+      path: '/attendance',
+      badge: statsData.pendingLeaves > 0 ? `${statsData.pendingLeaves} Pending` : `${statsData.attendanceRate}% Present`,
+      badgeStyle: statsData.pendingLeaves > 0 ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      iconBg: 'bg-emerald-50 text-emerald-600 border border-emerald-200/70 group-hover:bg-emerald-600 group-hover:text-white',
+      hoverBorder: 'hover:border-emerald-400/80',
+      accentBar: 'bg-emerald-600'
+    },
+    {
+      id: 'payroll',
+      title: t('nav.payroll', 'Payroll & CTC Register'),
+      description: 'Disbursements, salary payslips & tax declarations',
+      icon: CircleDollarSign,
+      path: '/payroll',
+      badge: `₹${statsData.monthlyPayroll}`,
+      badgeStyle: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+      iconBg: 'bg-indigo-50 text-indigo-600 border border-indigo-200/70 group-hover:bg-indigo-600 group-hover:text-white',
+      hoverBorder: 'hover:border-indigo-400/80',
+      accentBar: 'bg-indigo-600'
+    },
+    {
+      id: 'organization',
+      title: t('nav.organization', 'Organization & Quotas'),
+      description: 'Company entities, branches & annual leave balances',
+      icon: Building,
+      path: '/organization',
+      badge: `${statsData.totalDepartments || departments.length || 1} Branches`,
+      badgeStyle: 'bg-teal-50 text-teal-700 border-teal-200',
+      iconBg: 'bg-teal-50 text-teal-600 border border-teal-200/70 group-hover:bg-teal-600 group-hover:text-white',
+      hoverBorder: 'hover:border-teal-400/80',
+      accentBar: 'bg-teal-600'
+    },
+    {
+      id: 'support-desk',
+      title: t('nav.supportDesk', 'Support Desk Queue'),
+      description: 'Employee helpdesk tickets & live query resolution',
+      icon: Headphones,
+      path: '/support-desk',
+      badge: 'Live Pool',
+      badgeStyle: 'bg-amber-50 text-amber-700 border-amber-200',
+      iconBg: 'bg-amber-50 text-amber-600 border border-amber-200/70 group-hover:bg-amber-600 group-hover:text-white',
+      hoverBorder: 'hover:border-amber-400/80',
+      accentBar: 'bg-amber-600'
+    },
+    {
+      id: 'admin-users',
+      title: t('nav.usersRoles', 'Security & Roles'),
+      description: 'User logins, role-based access & system audit logs',
+      icon: ShieldCheck,
+      path: '/admin/users',
+      badge: 'RBAC',
+      badgeStyle: 'bg-purple-50 text-purple-700 border-purple-200',
+      iconBg: 'bg-purple-50 text-purple-600 border border-purple-200/70 group-hover:bg-purple-600 group-hover:text-white',
+      hoverBorder: 'hover:border-purple-400/80',
+      accentBar: 'bg-purple-600'
+    }
+  ];
 
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5 sm:gap-6">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200/70 text-blue-700 text-xs font-bold mb-2.5">
-              <TrendingUp className="w-3.5 h-3.5 text-blue-600" />
-              <span>{isManagerOrAdmin ? t('dash.q3Overview', 'Enterprise HR Operations') : t('dash.enterprisePortal', 'Employee Workforce Portal')}</span>
-              <span className="w-1 h-1 rounded-full bg-blue-400" />
-              <span className="font-medium text-slate-500">{currentDateDisplay}</span>
+  const employeeModules = [
+    {
+      id: 'attendance',
+      title: 'Daily Punch & Shift',
+      description: 'Log biometric punch-in, track shift logs & work hours',
+      icon: CalendarCheck,
+      path: '/attendance',
+      badge: `${empAttRate}% Present`,
+      badgeStyle: 'bg-blue-50 text-blue-700 border-blue-200',
+      iconBg: 'bg-blue-50 text-blue-600 border border-blue-200/70 group-hover:bg-blue-600 group-hover:text-white',
+      hoverBorder: 'hover:border-blue-400/80',
+      accentBar: 'bg-blue-600'
+    },
+    {
+      id: 'leave',
+      title: 'Apply For Leave',
+      description: 'Submit casual, sick, or annual privilege leave requests',
+      icon: Calendar,
+      path: '/attendance',
+      badge: `${statsData.myLeaveBalance} Days Left`,
+      badgeStyle: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      iconBg: 'bg-emerald-50 text-emerald-600 border border-emerald-200/70 group-hover:bg-emerald-600 group-hover:text-white',
+      hoverBorder: 'hover:border-emerald-400/80',
+      accentBar: 'bg-emerald-600'
+    },
+    {
+      id: 'payslips',
+      title: 'My Payslips & CTC',
+      description: 'Download monthly salary slips & compensation breakdown',
+      icon: FileText,
+      path: '/payroll',
+      badge: 'Disbursed',
+      badgeStyle: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+      iconBg: 'bg-indigo-50 text-indigo-600 border border-indigo-200/70 group-hover:bg-indigo-600 group-hover:text-white',
+      hoverBorder: 'hover:border-indigo-400/80',
+      accentBar: 'bg-indigo-600'
+    },
+    {
+      id: 'tax-declaration',
+      title: 'Investment Declaration',
+      description: 'Tax regime election & Chapter VI-A investment proofs',
+      icon: CircleDollarSign,
+      path: '/payroll',
+      badge: 'FY 2026-27',
+      badgeStyle: 'bg-purple-50 text-purple-700 border-purple-200',
+      iconBg: 'bg-purple-50 text-purple-600 border border-purple-200/70 group-hover:bg-purple-600 group-hover:text-white',
+      hoverBorder: 'hover:border-purple-400/80',
+      accentBar: 'bg-purple-600'
+    },
+    {
+      id: 'profile-requests',
+      title: 'Profile Update Requests',
+      description: 'Request address, phone or bank account changes',
+      icon: ClipboardCheck,
+      path: '/requests',
+      badge: statsData.myActiveRequests > 0 ? `${statsData.myActiveRequests} Active` : 'Up to date',
+      badgeStyle: statsData.myActiveRequests > 0 ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-slate-50 text-slate-600 border-slate-200',
+      iconBg: 'bg-amber-50 text-amber-600 border border-amber-200/70 group-hover:bg-amber-600 group-hover:text-white',
+      hoverBorder: 'hover:border-amber-400/80',
+      accentBar: 'bg-amber-600'
+    },
+    {
+      id: 'support-desk',
+      title: 'HR Support Desk',
+      description: 'Raise live tickets & get quick assistance from HR',
+      icon: Headphones,
+      path: '/support-desk',
+      badge: 'Helpdesk',
+      badgeStyle: 'bg-teal-50 text-teal-700 border-teal-200',
+      iconBg: 'bg-teal-50 text-teal-600 border border-teal-200/70 group-hover:bg-teal-600 group-hover:text-white',
+      hoverBorder: 'hover:border-teal-400/80',
+      accentBar: 'bg-teal-600'
+    }
+  ];
+
+  const quickModules = isManagerOrAdmin ? adminModules : employeeModules;
+
+  return (
+    <div className="space-y-7 max-w-7xl mx-auto">
+      {/* ── Top Hero: Executive Workforce Hub ── */}
+      <div className="relative rounded-3xl bg-white border border-slate-200/90 shadow-2xs p-6 sm:p-8 overflow-hidden transition-all duration-300">
+        {/* Subtle executive ambient glow */}
+        <div className="absolute top-0 right-0 w-[450px] h-full bg-gradient-to-l from-blue-50/80 via-indigo-50/25 to-transparent pointer-events-none" />
+        <div className="absolute top-0 left-0 w-32 h-32 bg-blue-500/5 rounded-full blur-2xl pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div className="max-w-2xl">
+            {/* Top pill badge */}
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold mb-3 shadow-2xs">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="font-bold text-slate-900">
+                {isManagerOrAdmin ? t('dash.q3Overview', 'Enterprise HR Operations') : t('dash.enterprisePortal', 'Employee Workforce Portal')}
+              </span>
+              <span className="text-slate-300">•</span>
+              <span className="text-slate-500 flex items-center gap-1 font-medium">
+                <Clock className="w-3 h-3 text-slate-400" />
+                {currentDateDisplay}
+              </span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+
+            {/* Main Greeting */}
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
               {getGreeting()},{' '}
-              <span className="text-blue-600 font-extrabold">
+              <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-600 bg-clip-text text-transparent">
                 {user?.displayName || user?.fullName || (user?.roles?.includes('SUPER_ADMIN') ? 'Super Admin' : 'Colleague')}
               </span> 👋
             </h1>
-            <p className="text-slate-600 text-xs sm:text-sm mt-1.5 max-w-xl leading-relaxed">
+
+            <p className="text-slate-600 text-xs sm:text-sm mt-2 leading-relaxed">
               {isManagerOrAdmin
                 ? t('dash.adminSubtitle', 'Real-time overview of workforce operations, attendance health, and payroll across all branch locations.')
                 : t('dash.empSubtitle', 'Your centralized portal for attendance verification, leave planning, and monthly salary statements.')}
             </p>
 
-            {/* Live Inline Metric Badges */}
-            <div className="flex flex-wrap items-center gap-2 mt-4 pt-3.5 border-t border-slate-100 text-xs font-semibold">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-50 border border-slate-200/80 text-slate-700">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span>{statsData.activeStaff} {t('dash.chipStaff', 'Active Staff')}</span>
-              </span>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-50 border border-slate-200/80 text-slate-700">
+            {/* Quick Live Indicators */}
+            <div className="flex flex-wrap items-center gap-2.5 mt-5 pt-4 border-t border-slate-100 text-xs font-semibold">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200/80 text-slate-700">
+                <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                <span className="text-slate-500 font-medium">Workforce:</span>
+                <span className="font-bold text-slate-900">{statsData.activeStaff} Active</span>
+              </div>
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200/80 text-slate-700">
                 <span className="w-2 h-2 rounded-full bg-blue-500" />
-                <span>{statsData.attendanceRate}% {t('dash.chipPresent', 'Present Today')}</span>
-              </span>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-50 border border-slate-200/80 text-slate-700">
+                <span className="text-slate-500 font-medium">Attendance:</span>
+                <span className="font-bold text-slate-900">{statsData.attendanceRate}% Today</span>
+              </div>
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200/80 text-slate-700">
                 <span className="w-2 h-2 rounded-full bg-indigo-500" />
-                <span>{statsData.totalDepartments || departments.length || 1} {t('dash.chipBranches', 'Departments')}</span>
-              </span>
+                <span className="text-slate-500 font-medium">Departments:</span>
+                <span className="font-bold text-slate-900">{statsData.totalDepartments || departments.length || 1} Total</span>
+              </div>
             </div>
           </div>
 
-          {/* Action buttons (Clean Enterprise Blue + White) */}
-          {isManagerOrAdmin ? (
-            <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 shrink-0">
+          {/* Action CTAs */}
+          <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 shrink-0">
+            {isManagerOrAdmin ? (
+              <>
+                <button
+                  type="button"
+                  onClick={handleDownloadSummary}
+                  className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 text-xs sm:text-sm font-semibold border border-slate-200 hover:border-slate-300 transition-all cursor-pointer shadow-2xs active:scale-95 flex items-center justify-center gap-2"
+                >
+                  <FileSpreadsheet className="w-4 h-4 text-slate-500" />
+                  <span>{t('dash.downloadReport', 'Download Summary')}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setIsAddModalOpen(true); setFormError(null); }}
+                  className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs sm:text-sm shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                >
+                  <UserPlus className="w-4 h-4" />
+                  <span>{t('dash.addEmployee', 'Add Employee')}</span>
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => navigate('/attendance')}
+                  className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 text-xs sm:text-sm font-semibold border border-slate-200 transition-all cursor-pointer shadow-2xs flex items-center justify-center gap-2 active:scale-95"
+                >
+                  <CalendarCheck className="w-4 h-4 text-emerald-600" />
+                  <span>{t('dash.applyLeave', 'Apply for Leave')}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate('/payroll')}
+                  className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs sm:text-sm shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                >
+                  <FileText className="w-4 h-4" />
+                  <span>{t('dash.viewPayslips', 'View Payslips')}</span>
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Quick Access & Core Modules Launchpad (Feature Card Model) ── */}
+      <div>
+        <div className="flex items-center justify-between mb-3 px-1">
+          <div className="flex items-center gap-2">
+            <Layers className="w-4 h-4 text-blue-600" />
+            <h2 className="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-slate-800">
+              {isManagerOrAdmin ? 'Core HR Operations & Modules' : 'Quick Access Workforce Hub'}
+            </h2>
+          </div>
+          <span className="text-[11px] font-semibold text-slate-400">
+            6 Direct Modules
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+          {quickModules.map((mod) => {
+            const Icon = mod.icon;
+            return (
               <button
+                key={mod.id}
                 type="button"
-                onClick={handleDownloadSummary}
-                className="px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 text-xs sm:text-sm font-semibold border border-slate-200 hover:border-slate-300 transition-all cursor-pointer shadow-xs active:scale-95"
+                onClick={() => navigate(mod.path)}
+                className={`group relative text-left p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs hover:shadow-md hover:-translate-y-0.5 ${mod.hoverBorder} transition-all duration-200 cursor-pointer overflow-hidden flex items-start gap-3.5`}
               >
-                {t('dash.downloadReport', 'Download Summary')}
+                {/* Colored Top Accent Bar on Hover */}
+                <div className={`absolute top-0 inset-x-0 h-1 opacity-0 group-hover:opacity-100 transition-opacity ${mod.accentBar}`} />
+
+                {/* Styled Feature Icon Box */}
+                <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-all duration-200 shadow-2xs ${mod.iconBg}`}>
+                  <Icon className="w-5 h-5 transition-transform duration-200 group-hover:scale-110" />
+                </div>
+
+                {/* Content */}
+                <div className="min-w-0 flex-1 space-y-1">
+                  <div className="flex items-center justify-between gap-1.5">
+                    <span className="text-sm font-bold text-slate-900 group-hover:text-blue-950 transition-colors truncate">
+                      {mod.title}
+                    </span>
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0 border ${mod.badgeStyle}`}>
+                      {mod.badge}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 line-clamp-1 font-medium group-hover:text-slate-600 transition-colors">
+                    {mod.description}
+                  </p>
+                </div>
+
+                <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-600 group-hover:translate-x-0.5 transition-all self-center shrink-0" />
               </button>
-              <button
-                type="button"
-                onClick={() => { setIsAddModalOpen(true); setFormError(null); }}
-                className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs sm:text-sm shadow-sm transition-all flex items-center gap-2 cursor-pointer active:scale-95"
-              >
-                <UserPlus className="w-4 h-4" />
-                <span>{t('dash.addEmployee', 'Add Employee')}</span>
-              </button>
-            </div>
-          ) : (
-            <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 shrink-0">
-              <button
-                type="button"
-                onClick={() => navigate('/attendance')}
-                className="px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 text-xs sm:text-sm font-semibold border border-slate-200 transition-all cursor-pointer shadow-xs flex items-center gap-1.5 active:scale-95"
-              >
-                <CalendarCheck className="w-4 h-4 text-slate-600" />
-                <span>{t('dash.applyLeave', 'Apply for Leave')}</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => navigate('/payroll')}
-                className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs sm:text-sm shadow-sm transition-all flex items-center gap-2 cursor-pointer active:scale-95"
-              >
-                <FileText className="w-4 h-4" />
-                <span>{t('dash.viewPayslips', 'View Payslips')}</span>
-              </button>
-            </div>
-          )}
+            );
+          })}
         </div>
       </div>
 

@@ -11,12 +11,6 @@ export interface LanguageOption {
 
 export const SUPPORTED_LANGUAGES: LanguageOption[] = [
   { code: 'en', name: 'English', englishName: 'English', flag: '🇬🇧' },
-  { code: 'hi', name: 'हिन्दी', englishName: 'Hindi', flag: '🇮🇳' },
-  { code: 'mr', name: 'मराठी', englishName: 'Marathi', flag: '🇮🇳' },
-  { code: 'gu', name: 'ગુજરાતી', englishName: 'Gujarati', flag: '🇮🇳' },
-  { code: 'ta', name: 'தமிழ்', englishName: 'Tamil', flag: '🇮🇳' },
-  { code: 'te', name: 'తెలుగు', englishName: 'Telugu', flag: '🇮🇳' },
-  { code: 'es', name: 'Español', englishName: 'Spanish', flag: '🇪🇸' },
 ];
 
 export const TRANSLATIONS: Record<LanguageCode, Record<string, string>> = {
@@ -1412,27 +1406,21 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [language, setLanguageState] = useState<LanguageCode>(() => {
-    const saved = localStorage.getItem('priyex_hrms_lang') as LanguageCode;
-    return saved && TRANSLATIONS[saved] ? saved : 'en';
-  });
+  const [language, setLanguageState] = useState<LanguageCode>('en');
 
   useEffect(() => {
-    localStorage.setItem('priyex_hrms_lang', language);
-    document.documentElement.lang = language;
-  }, [language]);
+    // Enforce English language across app and clear legacy preferences
+    localStorage.setItem('priyex_hrms_lang', 'en');
+    document.documentElement.lang = 'en';
+  }, []);
 
   const setLanguage = (lang: LanguageCode) => {
-    setLanguageState(lang);
+    setLanguageState('en');
   };
 
   const t = (key: string, fallback?: string): string => {
-    const langDict = TRANSLATIONS[language] || TRANSLATIONS.en;
-    if (langDict[key]) {
-      return langDict[key];
-    }
-    // Fallback to English dictionary
-    if (TRANSLATIONS.en[key]) {
+    // English only translations
+    if (TRANSLATIONS.en && TRANSLATIONS.en[key]) {
       return TRANSLATIONS.en[key];
     }
     return fallback || key;
