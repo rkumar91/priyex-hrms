@@ -290,6 +290,7 @@ export const SupportDeskPage: React.FC = () => {
             label: 'Live Available Pool',
             description: 'Unassigned inquiries awaiting support agent pickup',
             icon: Inbox,
+            color: 'amber',
             badge: poolQueries.length > 0 ? `${poolQueries.length} Unclaimed` : null,
             badgeVariant: 'warning'
           },
@@ -298,6 +299,7 @@ export const SupportDeskPage: React.FC = () => {
             label: 'My Active Chats',
             description: 'Direct conversations currently under active resolution',
             icon: MessageSquare,
+            color: 'blue',
             badge: myChats.length > 0 ? `${myChats.length} Active` : null,
             badgeVariant: 'primary'
           },
@@ -306,6 +308,7 @@ export const SupportDeskPage: React.FC = () => {
             label: 'Resolved Transcripts',
             description: 'Historical support logs & archived query resolutions',
             icon: CheckCircle2,
+            color: 'emerald',
             badge: `${historyQueries.length} Done`,
             badgeVariant: 'success'
           }

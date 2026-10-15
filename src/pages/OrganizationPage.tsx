@@ -304,16 +304,18 @@ export const OrganizationPage: React.FC = () => {
             label: 'Annual Leave Quotas',
             description: 'Statutory leave entitlements, quotas & carry forward rules',
             icon: CalendarCheck2,
+            color: 'emerald',
             badge: `${policies.length} Policies`,
-            badgeVariant: 'primary'
+            badgeVariant: 'success'
           },
           {
             id: 'DEPARTMENTS',
             label: 'Departments & Entities',
             description: 'Corporate branches, legal entities & departmental cost centers',
             icon: Layers,
+            color: 'blue',
             badge: `${departments.length} Units`,
-            badgeVariant: 'slate'
+            badgeVariant: 'primary'
           }
         ]}
       />

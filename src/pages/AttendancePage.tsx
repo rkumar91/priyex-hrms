@@ -669,6 +669,7 @@ export const AttendancePage: React.FC = () => {
             label: 'Biometric Attendance',
             description: 'GPS geofencing & biometric punch tracking',
             icon: MapPin,
+            color: 'blue',
             badge: isClockedIn ? 'On Shift' : 'Off Shift',
             badgeVariant: isClockedIn ? 'success' : 'slate'
           },
@@ -677,6 +678,7 @@ export const AttendancePage: React.FC = () => {
             label: 'Leave Management',
             description: 'Leave applications, quotas & manager approvals',
             icon: CalendarCheck,
+            color: 'emerald',
             badge: pendingLeavesCount > 0 ? `${pendingLeavesCount} Pending` : null,
             badgeVariant: 'warning'
           },
@@ -685,6 +687,7 @@ export const AttendancePage: React.FC = () => {
             label: 'Overtime (OT)',
             description: 'Work timesheets & statutory overtime payouts',
             icon: Timer,
+            color: 'amber',
             badge: pendingOtCount > 0 ? `${pendingOtCount} Pending` : null,
             badgeVariant: 'warning'
           },
@@ -693,6 +696,7 @@ export const AttendancePage: React.FC = () => {
             label: 'C-Off Wallet',
             description: 'Weekend worked credits & leave redemption',
             icon: Award,
+            color: 'teal',
             badge: availableCoffCredits > 0 ? `${availableCoffCredits.toFixed(1)}d Avail` : null,
             badgeVariant: 'success'
           },
@@ -701,6 +705,7 @@ export const AttendancePage: React.FC = () => {
             label: 'Office Geo-Fences',
             description: 'Perimeter boundaries & GPS radius governance',
             icon: Building2,
+            color: 'purple',
             badge: `${geofences.length} Sites`,
             badgeVariant: 'slate',
             show: isHr

@@ -228,6 +228,7 @@ export const UsersRolesPage: React.FC = () => {
             label: 'All Employees & System Roles',
             description: 'Employee access levels, HR Manager promotion & permissions',
             icon: Users,
+            color: 'blue',
             badge: `${employeeRoles.length} Employees`,
             badgeVariant: 'primary'
           },
@@ -236,6 +237,7 @@ export const UsersRolesPage: React.FC = () => {
             label: 'System Login Accounts',
             description: 'Platform credentials, status & super admin account access',
             icon: KeyRound,
+            color: 'purple',
             badge: `${usersList.length} Logins`,
             badgeVariant: 'slate'
           }

@@ -404,6 +404,7 @@ export const PayrollPage: React.FC = () => {
             label: 'Company Operations',
             description: 'Monthly payroll run & statutory compliance execution',
             icon: Building2,
+            color: 'blue',
             show: canManage
           },
           {
@@ -411,6 +412,7 @@ export const PayrollPage: React.FC = () => {
             label: 'CTC Register',
             description: 'Employee gross earnings, deductions & net payouts',
             icon: CircleDollarSign,
+            color: 'emerald',
             show: canManage
           },
           {
@@ -418,31 +420,36 @@ export const PayrollPage: React.FC = () => {
             label: 'Declarations Review',
             description: 'Employee 80C/80D tax proofs audit & approval',
             icon: ShieldCheck,
+            color: 'indigo',
             show: canManage
           },
           {
             id: 'FORMS_DOWNLOAD',
             label: 'Forms & Payslips',
             description: 'Signed payslip PDFs & statutory Form 16 certificates',
-            icon: Download
+            icon: Download,
+            color: 'teal'
           },
           {
             id: 'TAX_DECLARATION',
             label: 'Investment Declaration',
             description: 'Regime election & Chapter VI-A investment proofs',
-            icon: Shield
+            icon: Shield,
+            color: 'purple'
           },
           {
             id: 'TAX_CALCULATOR',
             label: 'Tax Calculator',
             description: 'Dual tax regime comparison & take-home simulation',
-            icon: Calculator
+            icon: Calculator,
+            color: 'amber'
           },
           {
             id: 'MY_CTC_PAYSLIPS',
             label: 'My CTC & Payslips',
             description: 'Personal salary structure, deductions & pay history',
-            icon: Wallet
+            icon: Wallet,
+            color: 'sky'
           }
         ]}
       />

@@ -259,6 +259,7 @@ export const ProfileRequestsPage: React.FC = () => {
             label: 'Profile Update Requests',
             description: 'Employee personal, address & banking detail modifications',
             icon: CreditCard,
+            color: 'emerald',
             badge: pendingRequestsCount > 0 ? `${pendingRequestsCount} Pending` : null,
             badgeVariant: 'warning'
           },
@@ -267,6 +268,7 @@ export const ProfileRequestsPage: React.FC = () => {
             label: 'HR Helpdesk & Queries',
             description: 'Confidential employee questions & HR ticketing support',
             icon: MessageSquare,
+            color: 'indigo',
             badge: openQueriesCount > 0 ? `${openQueriesCount} Active` : null,
             badgeVariant: 'primary'
           }
