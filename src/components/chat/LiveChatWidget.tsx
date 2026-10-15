@@ -260,7 +260,7 @@ export const LiveChatWidget: React.FC = () => {
   if (isSupportDeskPage) return null;
 
   return (
-    <div className="fixed bottom-20 lg:bottom-6 right-4 sm:right-6 z-40 select-none">
+    <div className="fixed bottom-20 lg:bottom-6 right-3 sm:right-6 z-40 select-none">
       {/* Floating Launcher Button */}
       {!isOpen && (
         <button
@@ -270,23 +270,23 @@ export const LiveChatWidget: React.FC = () => {
             fetchActiveQuery();
           }}
           style={{ background: currentThemeOption.primaryColor }}
-          className="relative group flex items-center gap-2.5 text-white px-4 sm:px-5 py-3 rounded-full shadow-xl hover:opacity-95 transition-all duration-200 active:scale-95 cursor-pointer"
+          className="relative group flex items-center gap-2 text-white px-3.5 sm:px-5 py-2.5 sm:py-3 rounded-full shadow-xl hover:opacity-95 transition-all duration-200 active:scale-95 cursor-pointer"
         >
           <div className="relative">
-            <Headphones className="w-5 h-5 transition-transform group-hover:scale-110" />
+            <Headphones className="w-4 h-4 sm:w-5 sm:h-5 transition-transform group-hover:scale-110" />
             {activeQuery && (
               <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-400 border-2 border-white animate-pulse"></span>
             )}
           </div>
           <span className="text-xs sm:text-sm font-bold tracking-wide">
-            {activeQuery ? (isConnectedWithHr ? 'Live with HR' : 'HR Pool (Waiting)') : t('chat.liveHelpdesk', 'Live HR Helpdesk')}
+            {activeQuery ? (isConnectedWithHr ? 'Live with HR' : 'HR Pool') : t('chat.liveHelpdesk', 'Live HR Helpdesk')}
           </span>
         </button>
       )}
 
       {/* Floating Chat Modal Panel */}
       {isOpen && (
-        <div className="w-[360px] sm:w-[400px] h-[540px] max-h-[82vh] bg-white border border-slate-200/90 rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+        <div className="w-[calc(100vw-24px)] max-w-[390px] sm:w-[400px] h-[520px] max-h-[75vh] bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
           
           {/* Header */}
           <div

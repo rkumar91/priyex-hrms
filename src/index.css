@@ -34,6 +34,16 @@
   padding-right: env(safe-area-inset-right, 0px);
 }
 
+/* Hide scrollbar for Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+/* Hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* Glassmorphism for Light Mode Enterprise */
 .glass-panel {
   background: rgba(255, 255, 255, 0.9);

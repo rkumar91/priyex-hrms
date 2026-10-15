@@ -623,15 +623,15 @@ export const DashboardPage: React.FC = () => {
   return (
     <div className="space-y-7 max-w-7xl mx-auto">
       {/* ── Top Hero: Executive Workforce Hub ── */}
-      <div className="relative rounded-3xl bg-white border border-slate-200/90 shadow-2xs p-6 sm:p-8 overflow-hidden transition-all duration-300">
+      <div className="relative rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 shadow-2xs p-5 sm:p-8 overflow-hidden transition-all duration-300">
         {/* Subtle executive ambient glow */}
         <div className="absolute top-0 right-0 w-[450px] h-full bg-gradient-to-l from-blue-50/80 via-indigo-50/25 to-transparent pointer-events-none" />
         <div className="absolute top-0 left-0 w-32 h-32 bg-blue-500/5 rounded-full blur-2xl pointer-events-none" />
 
-        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-5 sm:gap-6">
           <div className="max-w-2xl">
             {/* Top pill badge */}
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold mb-3 shadow-2xs">
+            <div className="inline-flex items-center gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full bg-slate-50 border border-slate-200 text-slate-700 text-[11px] sm:text-xs font-semibold mb-2.5 sm:mb-3 shadow-2xs">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               <span className="font-bold text-slate-900">
                 {isManagerOrAdmin ? t('dash.q3Overview', 'Enterprise HR Operations') : t('dash.enterprisePortal', 'Employee Workforce Portal')}
@@ -644,32 +644,32 @@ export const DashboardPage: React.FC = () => {
             </div>
 
             {/* Main Greeting */}
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
+            <h1 className="text-xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
               {getGreeting()},{' '}
               <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-600 bg-clip-text text-transparent">
                 {user?.displayName || user?.fullName || (user?.roles?.includes('SUPER_ADMIN') ? 'Super Admin' : 'Colleague')}
               </span> 👋
             </h1>
 
-            <p className="text-slate-600 text-xs sm:text-sm mt-2 leading-relaxed">
+            <p className="text-slate-600 text-xs sm:text-sm mt-1.5 sm:mt-2 leading-relaxed">
               {isManagerOrAdmin
                 ? t('dash.adminSubtitle', 'Real-time overview of workforce operations, attendance health, and payroll across all branch locations.')
                 : t('dash.empSubtitle', 'Your centralized portal for attendance verification, leave planning, and monthly salary statements.')}
             </p>
 
             {/* Quick Live Indicators */}
-            <div className="flex flex-wrap items-center gap-2.5 mt-5 pt-4 border-t border-slate-100 text-xs font-semibold">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200/80 text-slate-700">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 mt-4 sm:mt-5 pt-3.5 sm:pt-4 border-t border-slate-100 text-xs font-semibold">
+              <div className="inline-flex items-center gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-slate-50 border border-slate-200/80 text-slate-700 text-[11px] sm:text-xs">
                 <span className="w-2 h-2 rounded-full bg-emerald-500" />
                 <span className="text-slate-500 font-medium">Workforce:</span>
                 <span className="font-bold text-slate-900">{statsData.activeStaff} Active</span>
               </div>
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200/80 text-slate-700">
+              <div className="inline-flex items-center gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-slate-50 border border-slate-200/80 text-slate-700 text-[11px] sm:text-xs">
                 <span className="w-2 h-2 rounded-full bg-blue-500" />
                 <span className="text-slate-500 font-medium">Attendance:</span>
                 <span className="font-bold text-slate-900">{statsData.attendanceRate}% Today</span>
               </div>
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200/80 text-slate-700">
+              <div className="inline-flex items-center gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-slate-50 border border-slate-200/80 text-slate-700 text-[11px] sm:text-xs">
                 <span className="w-2 h-2 rounded-full bg-indigo-500" />
                 <span className="text-slate-500 font-medium">Departments:</span>
                 <span className="font-bold text-slate-900">{statsData.totalDepartments || departments.length || 1} Total</span>
@@ -678,7 +678,7 @@ export const DashboardPage: React.FC = () => {
           </div>
 
           {/* Action CTAs */}
-          <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 shrink-0">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 shrink-0 w-full lg:w-auto">
             {isManagerOrAdmin ? (
               <>
                 <button
@@ -736,7 +736,7 @@ export const DashboardPage: React.FC = () => {
           </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-3.5">
           {quickModules.map((mod) => {
             const Icon = mod.icon;
             return (
@@ -744,27 +744,27 @@ export const DashboardPage: React.FC = () => {
                 key={mod.id}
                 type="button"
                 onClick={() => navigate(mod.path)}
-                className={`group relative text-left p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs hover:shadow-md hover:-translate-y-0.5 ${mod.hoverBorder} transition-all duration-200 cursor-pointer overflow-hidden flex items-start gap-3.5`}
+                className={`group relative text-left p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-white border border-slate-200/90 shadow-2xs hover:shadow-md hover:-translate-y-0.5 ${mod.hoverBorder} transition-all duration-200 cursor-pointer overflow-hidden flex items-start gap-3 sm:gap-3.5`}
               >
                 {/* Colored Top Accent Bar on Hover */}
                 <div className={`absolute top-0 inset-x-0 h-1 opacity-0 group-hover:opacity-100 transition-opacity ${mod.accentBar}`} />
 
                 {/* Styled Feature Icon Box */}
-                <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-all duration-200 shadow-2xs ${mod.iconBg}`}>
-                  <Icon className="w-5 h-5 transition-transform duration-200 group-hover:scale-110" />
+                <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0 transition-all duration-200 shadow-2xs ${mod.iconBg}`}>
+                  <Icon className="w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-200 group-hover:scale-110" />
                 </div>
 
                 {/* Content */}
-                <div className="min-w-0 flex-1 space-y-1">
+                <div className="min-w-0 flex-1 space-y-0.5 sm:space-y-1">
                   <div className="flex items-center justify-between gap-1.5">
-                    <span className="text-sm font-bold text-slate-900 group-hover:text-blue-950 transition-colors truncate">
+                    <span className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-blue-950 transition-colors truncate">
                       {mod.title}
                     </span>
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0 border ${mod.badgeStyle}`}>
+                    <span className={`inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold shrink-0 border ${mod.badgeStyle}`}>
                       {mod.badge}
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-500 line-clamp-1 font-medium group-hover:text-slate-600 transition-colors">
+                  <p className="text-[10px] sm:text-[11px] text-slate-500 line-clamp-1 font-medium group-hover:text-slate-600 transition-colors">
                     {mod.description}
                   </p>
                 </div>

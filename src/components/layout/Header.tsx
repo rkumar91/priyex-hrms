@@ -20,7 +20,8 @@ import {
   Zap,
   Crown,
   UserCircle,
-  Command
+  Command,
+  X
 } from 'lucide-react';
 import { NotificationCenter } from '../notifications/NotificationCenter';
 import { AnnouncementItem } from '../notifications/BroadcastBanner';
@@ -46,6 +47,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu, onAnnouncement
   const { user, logout, updateUser } = useAuth();
   const { t } = useLanguage();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [poolCount, setPoolCount] = useState<number>(0);
   const profileRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
@@ -128,52 +130,81 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu, onAnnouncement
 
   return (
     <header className="h-16 border-b border-slate-200/80 bg-white/95 backdrop-blur-md sticky top-0 z-30 safe-area-top shadow-[0_1px_0_0_rgba(0,0,0,0.06)]">
-      <div className="h-full flex items-center px-3 sm:px-5 gap-3">
-
-        {/* ── LEFT: Mobile Hamburger + Logo / Desktop Breadcrumb Context (No duplicate logo on desktop!) ── */}
-        <div className="flex items-center gap-2.5 shrink-0">
-          {/* Mobile view: Hamburger toggle + Logo (since desktop sidebar is hidden on mobile) */}
-          <div className="flex lg:hidden items-center gap-2">
-            <button
-              type="button"
-              onClick={onOpenMobileMenu}
-              aria-label="Open Navigation Menu"
-              className="p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition cursor-pointer active:scale-95"
-            >
-              <Menu className="w-5 h-5" />
-            </button>
-            <BrandLogo size="sm" layout="row" />
-          </div>
-
-          {/* Desktop view: Clean Section Breadcrumb (Sidebar already features the logo) */}
-          <div className="hidden lg:flex items-center gap-2 text-xs font-semibold">
-            <span className="text-slate-400 font-medium">HRMS</span>
-            <span className="text-slate-300">/</span>
-            <span className="text-slate-800 font-bold">{pageTitle}</span>
-          </div>
-        </div>
-
-        {/* ── CENTER: Command-bar Search (dominant, centered) ── */}
-        <div className="flex-1 flex justify-center px-2 sm:px-6">
-          <div className="relative w-full max-w-lg">
+      {isMobileSearchOpen ? (
+        <div className="h-full flex items-center px-3 gap-2.5 animate-in fade-in duration-150">
+          <div className="relative flex-1">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
             <input
-              ref={searchRef}
+              autoFocus
               type="text"
-              placeholder={t('header.searchPlaceholder', 'Search employees, requests, payroll...')}
-              className="w-full bg-slate-50 hover:bg-white text-sm text-slate-900 placeholder-slate-400 rounded-xl pl-10 pr-20 py-2.5 border border-slate-200 hover:border-slate-300 focus:outline-none focus:bg-white focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all duration-200"
+              placeholder={t('header.searchPlaceholder', 'Search employees, records...')}
+              className="w-full bg-slate-100 focus:bg-white text-sm text-slate-900 rounded-xl pl-10 pr-4 py-2 border border-slate-200 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all"
             />
-            {/* ⌘K shortcut hint */}
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 hidden sm:flex items-center gap-0.5 pointer-events-none">
-              <kbd className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-slate-400 text-[10px] font-mono font-semibold leading-none">
-                <Command className="w-2.5 h-2.5" />K
-              </kbd>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsMobileSearchOpen(false)}
+            aria-label="Close search"
+            className="p-2 text-slate-500 hover:text-slate-800 rounded-xl hover:bg-slate-100 transition cursor-pointer"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+      ) : (
+        <div className="h-full flex items-center justify-between px-3 sm:px-5 gap-3">
+          {/* ── LEFT: Mobile Hamburger + Logo / Desktop Breadcrumb Context ── */}
+          <div className="flex items-center gap-2.5 shrink-0">
+            {/* Mobile view: Hamburger toggle + Logo */}
+            <div className="flex lg:hidden items-center gap-2">
+              <button
+                type="button"
+                onClick={onOpenMobileMenu}
+                aria-label="Open Navigation Menu"
+                className="p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition cursor-pointer active:scale-95"
+              >
+                <Menu className="w-5 h-5" />
+              </button>
+              <BrandLogo size="sm" layout="row" />
+            </div>
+
+            {/* Desktop view: Clean Section Breadcrumb */}
+            <div className="hidden lg:flex items-center gap-2 text-xs font-semibold">
+              <span className="text-slate-400 font-medium">HRMS</span>
+              <span className="text-slate-300">/</span>
+              <span className="text-slate-800 font-bold">{pageTitle}</span>
             </div>
           </div>
-        </div>
 
-        {/* ── RIGHT: Controls ── */}
-        <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+          {/* ── CENTER: Command-bar Search (Desktop / Tablet) ── */}
+          <div className="hidden md:flex flex-1 justify-center px-4 lg:px-6">
+            <div className="relative w-full max-w-lg">
+              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+              <input
+                ref={searchRef}
+                type="text"
+                placeholder={t('header.searchPlaceholder', 'Search employees, requests, payroll...')}
+                className="w-full bg-slate-50 hover:bg-white text-sm text-slate-900 placeholder-slate-400 rounded-xl pl-10 pr-20 py-2.5 border border-slate-200 hover:border-slate-300 focus:outline-none focus:bg-white focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all duration-200"
+              />
+              {/* ⌘K shortcut hint */}
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 hidden sm:flex items-center gap-0.5 pointer-events-none">
+                <kbd className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-slate-400 text-[10px] font-mono font-semibold leading-none">
+                  <Command className="w-2.5 h-2.5" />K
+                </kbd>
+              </div>
+            </div>
+          </div>
+
+          {/* ── RIGHT: Controls ── */}
+          <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+            {/* Mobile Search Button (< md) */}
+            <button
+              type="button"
+              onClick={() => setIsMobileSearchOpen(true)}
+              aria-label="Search"
+              className="md:hidden p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition cursor-pointer active:scale-95"
+            >
+              <Search className="w-4 h-4" />
+            </button>
 
 
           {/* HR Live Pool Alert Badge */}
@@ -342,6 +373,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu, onAnnouncement
           </div>
         </div>
       </div>
-    </header>
-  );
+    )}
+  </header>
+);
 };

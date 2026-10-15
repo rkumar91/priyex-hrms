@@ -151,78 +151,105 @@ export function FeatureCardTabs<T extends string = string>({
   gridColsClassName
 }: FeatureCardTabsProps<T>) {
   const visibleTabs = tabs.filter(t => t.show !== false);
+  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+
+  // Auto-scroll active card into view on mobile/tablet swipe container
+  React.useEffect(() => {
+    if (scrollContainerRef.current) {
+      const activeEl = scrollContainerRef.current.querySelector<HTMLElement>('[data-active="true"]');
+      if (activeEl) {
+        const container = scrollContainerRef.current;
+        const targetLeft = activeEl.offsetLeft;
+        const targetWidth = activeEl.offsetWidth;
+        const containerWidth = container.offsetWidth;
+        if (targetLeft < container.scrollLeft || (targetLeft + targetWidth) > (container.scrollLeft + containerWidth)) {
+          container.scrollTo({
+            left: Math.max(0, targetLeft - 12),
+            behavior: 'smooth'
+          });
+        }
+      }
+    }
+  }, [activeTab]);
 
   const getGridCols = () => {
     if (gridColsClassName) return gridColsClassName;
-    if (visibleTabs.length === 2) return 'grid-cols-1 sm:grid-cols-2';
-    if (visibleTabs.length === 3) return 'grid-cols-1 sm:grid-cols-3';
-    if (visibleTabs.length === 4) return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4';
-    if (visibleTabs.length === 5) return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5';
-    return 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4';
+    if (visibleTabs.length === 2) return 'sm:grid-cols-2';
+    if (visibleTabs.length === 3) return 'sm:grid-cols-3';
+    if (visibleTabs.length === 4) return 'sm:grid-cols-2 lg:grid-cols-4';
+    if (visibleTabs.length === 5) return 'sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5';
+    return 'sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4';
   };
 
   return (
-    <div className={`grid ${getGridCols()} gap-3.5 ${className}`}>
-      {visibleTabs.map((tab, idx) => {
-        const isActive = activeTab === tab.id;
-        const Icon = tab.icon;
-        const colorKey = tab.color || DEFAULT_PALETTE[idx % DEFAULT_PALETTE.length];
-        const theme = COLOR_STYLES[colorKey] || COLOR_STYLES.blue;
+    <div className="relative w-full">
+      <div
+        ref={scrollContainerRef}
+        className={`flex sm:grid ${getGridCols()} gap-2.5 sm:gap-3.5 overflow-x-auto sm:overflow-visible pb-2 sm:pb-0 -mx-3.5 px-3.5 sm:mx-0 sm:px-0 no-scrollbar scroll-smooth snap-x snap-mandatory ${className}`}
+        style={{ WebkitOverflowScrolling: 'touch' }}
+      >
+        {visibleTabs.map((tab, idx) => {
+          const isActive = activeTab === tab.id;
+          const Icon = tab.icon;
+          const colorKey = tab.color || DEFAULT_PALETTE[idx % DEFAULT_PALETTE.length];
+          const theme = COLOR_STYLES[colorKey] || COLOR_STYLES.blue;
 
-        return (
-          <button
-            key={tab.id}
-            type="button"
-            onClick={() => onChange(tab.id)}
-            className={`group relative rounded-2xl p-4 text-left transition-all duration-200 cursor-pointer border overflow-hidden flex items-start gap-3.5 ${
-              isActive
-                ? `${theme.activeBorder} ${theme.activeBg} ${theme.activeRing} shadow-md shadow-slate-200/50 -translate-y-0.5`
-                : `border-slate-200/90 bg-white ${theme.inactiveBorderHover} ${theme.inactiveBgHover} hover:shadow-md hover:-translate-y-0.5`
-            }`}
-          >
-            {/* Top Accent Gradient Line for active state */}
-            {isActive && (
-              <div className={`absolute top-0 inset-x-0 h-1 ${theme.accentLine}`} />
-            )}
-
-            {/* Icon Container */}
-            <div
-              className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-all duration-200 ${
-                isActive ? `${theme.activeIcon} scale-105` : theme.inactiveIcon
+          return (
+            <button
+              key={tab.id}
+              data-active={isActive ? 'true' : 'false'}
+              type="button"
+              onClick={() => onChange(tab.id)}
+              className={`group relative rounded-xl sm:rounded-2xl p-3 sm:p-4 text-left transition-all duration-200 cursor-pointer border overflow-hidden flex items-start gap-3 sm:gap-3.5 shrink-0 sm:shrink w-[240px] sm:w-auto snap-start select-none ${
+                isActive
+                  ? `${theme.activeBorder} ${theme.activeBg} ${theme.activeRing} shadow-md shadow-slate-200/50 -translate-y-0.5`
+                  : `border-slate-200/90 bg-white ${theme.inactiveBorderHover} ${theme.inactiveBgHover} hover:shadow-md hover:-translate-y-0.5`
               }`}
             >
-              <Icon className="w-5 h-5" />
-            </div>
+              {/* Top Accent Gradient Line for active state */}
+              {isActive && (
+                <div className={`absolute top-0 inset-x-0 h-1 ${theme.accentLine}`} />
+              )}
 
-            {/* Content Details */}
-            <div className="min-w-0 flex-1 space-y-1">
-              <div className="flex items-center justify-between gap-1.5">
-                <span
-                  className={`text-sm truncate transition-colors ${
-                    isActive ? theme.activeTitle : 'text-slate-800 font-bold group-hover:text-slate-900'
-                  }`}
-                >
-                  {tab.label}
-                </span>
-
-                {tab.badge !== undefined && tab.badge !== null && tab.badge !== '' && (
-                  <span
-                    className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${
-                      isActive ? theme.activeBadge : theme.inactiveBadge
-                    }`}
-                  >
-                    {tab.badge}
-                  </span>
-                )}
+              {/* Icon Container */}
+              <div
+                className={`w-10 h-10 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0 transition-all duration-200 ${
+                  isActive ? `${theme.activeIcon} scale-105` : theme.inactiveIcon
+                }`}
+              >
+                <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
 
-              <p className="text-[11px] text-slate-500 line-clamp-1 font-medium group-hover:text-slate-600 transition-colors">
-                {tab.description}
-              </p>
-            </div>
-          </button>
-        );
-      })}
+              {/* Content Details */}
+              <div className="min-w-0 flex-1 space-y-0.5 sm:space-y-1">
+                <div className="flex items-center justify-between gap-1.5">
+                  <span
+                    className={`text-xs sm:text-sm truncate transition-colors ${
+                      isActive ? theme.activeTitle : 'text-slate-800 font-bold group-hover:text-slate-900'
+                    }`}
+                  >
+                    {tab.label}
+                  </span>
+
+                  {tab.badge !== undefined && tab.badge !== null && tab.badge !== '' && (
+                    <span
+                      className={`inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold shrink-0 ${
+                        isActive ? theme.activeBadge : theme.inactiveBadge
+                      }`}
+                    >
+                      {tab.badge}
+                    </span>
+                  )}
+                </div>
+
+                <p className="text-[10px] sm:text-[11px] text-slate-500 line-clamp-1 font-medium group-hover:text-slate-600 transition-colors">
+                  {tab.description}
+                </p>
+              </div>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

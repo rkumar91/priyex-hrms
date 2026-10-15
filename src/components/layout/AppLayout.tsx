@@ -115,7 +115,7 @@ export const AppLayout: React.FC = () => {
         )}
 
         {/* Main Content Area */}
-        <main className="flex-1 p-3.5 sm:p-6 md:p-8 pb-24 lg:pb-8 overflow-y-auto overflow-x-hidden w-full">
+        <main className="flex-1 p-3 sm:p-6 md:p-8 pb-28 lg:pb-8 overflow-y-auto overflow-x-hidden w-full">
           <Suspense
             fallback={
               <div className="flex flex-col items-center justify-center py-20 gap-3 text-slate-400">
