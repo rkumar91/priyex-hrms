@@ -200,7 +200,7 @@ export const InitiateOnboardingModal: React.FC<InitiateOnboardingModalProps> = (
               <UserPlus className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-slate-900">Initiate Employee Onboarding</h2>
+              <h2 className="text-base font-bold text-slate-900">Onboard New Employee</h2>
               <p className="text-[11px] text-slate-500">Auto-generates account and dispatches email invite</p>
             </div>
           </div>
@@ -221,14 +221,22 @@ export const InitiateOnboardingModal: React.FC<InitiateOnboardingModalProps> = (
             </div>
 
             <div>
-              <h3 className="text-lg font-bold text-slate-900">Onboarding Initiated Successfully!</h3>
-              <p className="text-xs text-slate-500 mt-1">
-                An invitation email with temporary login credentials has been dispatched to{' '}
-                <strong className="text-blue-700">
-                  {successResult.alternativeEmail || formData.alternativeEmail}
-                </strong>{' '}
-                from <strong className="text-slate-800">tech.priyex@gmail.com</strong>.
-              </p>
+              <h3 className="text-lg font-bold text-slate-900">
+                {successResult.emailSent === false ? 'Onboarding Account Created!' : 'Onboarding Initiated Successfully!'}
+              </h3>
+              {successResult.emailSent === false ? (
+                <div className="mt-2.5 p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-800 text-xs font-medium">
+                  ⚠️ Live email could not be dispatched automatically. Please copy and share the login credentials below directly with the candidate.
+                </div>
+              ) : (
+                <p className="text-xs text-slate-500 mt-1">
+                  An invitation email with temporary login credentials has been dispatched to{' '}
+                  <strong className="text-blue-700">
+                    {successResult.alternativeEmail || formData.alternativeEmail}
+                  </strong>{' '}
+                  from <strong className="text-slate-800">tech.priyex@gmail.com</strong>.
+                </p>
+              )}
             </div>
 
             {/* Credential Card */}

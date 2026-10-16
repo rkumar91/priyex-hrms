@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import { canManageEmployees } from '../utils/rbac';
 import api from '../api/client';
+import { InitiateOnboardingModal } from '../components/onboarding/InitiateOnboardingModal';
 import {
   Users,
   UserCheck,
@@ -25,8 +25,6 @@ import {
   FileText,
   Headphones,
   Sparkles,
-  X,
-  AlertCircle,
   ShieldCheck,
   Activity,
   Layers,
@@ -48,21 +46,8 @@ export const DashboardPage: React.FC = () => {
   const isManagerOrAdmin = canManageEmployees(user);
 
   // Modals state
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isOnboardModalOpen, setIsOnboardModalOpen] = useState(false);
   const [departments, setDepartments] = useState<Department[]>([]);
-  const [formError, setFormError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Form State
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    workEmail: '',
-    personalPhone: '',
-    departmentId: '',
-    employmentType: 'FULL_TIME',
-    joiningDate: new Date().toISOString().split('T')[0],
-  });
 
   // Real-time Dashboard Statistics State
   const [statsData, setStatsData] = useState({
@@ -412,44 +397,6 @@ export const DashboardPage: React.FC = () => {
 
   const recentActivities = dynamicActivities;
 
-  // Onboard Employee Handler
-  const handleCreateSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setFormError(null);
-    setIsSubmitting(true);
-
-    try {
-      const payload = {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        workEmail: formData.workEmail,
-        personalPhone: formData.personalPhone,
-        departmentId: formData.departmentId ? Number(formData.departmentId) : null,
-        employmentType: formData.employmentType,
-        joiningDate: formData.joiningDate,
-        status: 'ACTIVE'
-      };
-
-      const res: any = await api.post('/employees', payload);
-      if (res.success || res.data) {
-        setIsAddModalOpen(false);
-        setFormData({
-          firstName: '',
-          lastName: '',
-          workEmail: '',
-          personalPhone: '',
-          departmentId: '',
-          employmentType: 'FULL_TIME',
-          joiningDate: new Date().toISOString().split('T')[0],
-        });
-        navigate('/employees');
-      }
-    } catch (err: any) {
-      setFormError(err?.message || err || 'Failed to onboard employee');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   // Download Summary Handler
   const handleDownloadSummary = async () => {
@@ -691,11 +638,11 @@ export const DashboardPage: React.FC = () => {
                 </button>
                 <button
                   type="button"
-                  onClick={() => { setIsAddModalOpen(true); setFormError(null); }}
+                  onClick={() => setIsOnboardModalOpen(true)}
                   className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs sm:text-sm shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
                 >
                   <UserPlus className="w-4 h-4" />
-                  <span>{t('dash.addEmployee', 'Add Employee')}</span>
+                  <span>{t('dash.onboardEmployee', 'Onboard New Employee')}</span>
                 </button>
               </>
             ) : (
@@ -1021,143 +968,15 @@ export const DashboardPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Onboard New Employee Modal (rendered via React Portal) */}
-      {isAddModalOpen && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs safe-area-top safe-area-bottom">
-          <div className="w-full max-w-lg bg-white border border-slate-200 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-2xl relative text-slate-900 animate-in fade-in zoom-in-95 duration-150 max-h-[88vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-3 sm:pb-4 border-b border-slate-200">
-              <h2 className="text-base sm:text-lg font-extrabold text-slate-900 flex items-center gap-2">
-                <UserPlus className="w-5 h-5" style={{ color: currentThemeOption.primaryColor }} />
-                <span>{t('modal.onboardEmployee', 'Onboard New Employee')}</span>
-              </h2>
-              <button
-                type="button"
-                onClick={() => setIsAddModalOpen(false)}
-                className="text-slate-400 hover:text-slate-700 cursor-pointer p-1 rounded-lg hover:bg-slate-100 transition"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {formError && (
-              <div className="mt-3 sm:mt-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2 font-medium">
-                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
-                <span>{formError}</span>
-              </div>
-            )}
-
-            <form onSubmit={handleCreateSubmit} className="space-y-3.5 sm:space-y-4 mt-3 sm:mt-4 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-slate-700 font-bold mb-1">{t('modal.firstName', 'First Name')} *</label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.firstName}
-                    onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                    placeholder="Rajesh"
-                    className="w-full bg-slate-50 text-slate-900 rounded-xl px-3.5 py-2.5 border border-slate-200 focus:bg-white focus:outline-none text-base sm:text-xs"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-700 font-bold mb-1">{t('modal.lastName', 'Last Name')} *</label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.lastName}
-                    onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                    placeholder="Kumar"
-                    className="w-full bg-slate-50 text-slate-900 rounded-xl px-3.5 py-2.5 border border-slate-200 focus:bg-white focus:outline-none text-base sm:text-xs"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-slate-700 font-bold mb-1">{t('modal.workEmail', 'Work Email')} *</label>
-                <input
-                  type="email"
-                  required
-                  value={formData.workEmail}
-                  onChange={(e) => setFormData({ ...formData, workEmail: e.target.value })}
-                  placeholder="rajesh.kumar@priyex.com"
-                  className="w-full bg-slate-50 text-slate-900 rounded-xl px-3.5 py-2.5 border border-slate-200 focus:bg-white focus:outline-none text-base sm:text-xs"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-slate-700 font-bold mb-1">{t('modal.phone', 'Phone Number')}</label>
-                  <input
-                    type="text"
-                    value={formData.personalPhone}
-                    onChange={(e) => setFormData({ ...formData, personalPhone: e.target.value })}
-                    placeholder="+91 9876543210"
-                    className="w-full bg-slate-50 text-slate-900 rounded-xl px-3.5 py-2.5 border border-slate-200 focus:bg-white focus:outline-none text-base sm:text-xs"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-700 font-bold mb-1">{t('modal.department', 'Department')}</label>
-                  <select
-                    value={formData.departmentId}
-                    onChange={(e) => setFormData({ ...formData, departmentId: e.target.value })}
-                    className="w-full bg-slate-50 text-slate-900 rounded-xl px-3.5 py-2.5 border border-slate-200 focus:bg-white focus:outline-none text-base sm:text-xs"
-                  >
-                    <option value="">{t('modal.selectDept', 'Select Department')}</option>
-                    {departments.map((d) => (
-                      <option key={d.id} value={d.id}>{d.name}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-slate-700 font-bold mb-1">{t('modal.employmentType', 'Employment Type')}</label>
-                  <select
-                    value={formData.employmentType}
-                    onChange={(e) => setFormData({ ...formData, employmentType: e.target.value })}
-                    className="w-full bg-slate-50 text-slate-900 rounded-xl px-3.5 py-2.5 border border-slate-200 focus:bg-white focus:outline-none text-base sm:text-xs"
-                  >
-                    <option value="FULL_TIME">{t('modal.fullTime', 'Full Time')}</option>
-                    <option value="PART_TIME">{t('modal.partTime', 'Part Time')}</option>
-                    <option value="CONTRACT">{t('modal.contract', 'Contract')}</option>
-                    <option value="INTERN">Intern</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-slate-700 font-bold mb-1">{t('modal.joiningDate', 'Joining Date')} *</label>
-                  <input
-                    type="date"
-                    required
-                    value={formData.joiningDate}
-                    onChange={(e) => setFormData({ ...formData, joiningDate: e.target.value })}
-                    className="w-full bg-slate-50 text-slate-900 rounded-xl px-3.5 py-2.5 border border-slate-200 focus:bg-white focus:outline-none text-base sm:text-xs"
-                  />
-                </div>
-              </div>
-
-              <div className="pt-4 flex items-center justify-end gap-3 border-t border-slate-200">
-                <button
-                  type="button"
-                  onClick={() => setIsAddModalOpen(false)}
-                  className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold cursor-pointer transition"
-                >
-                  {t('modal.cancel', 'Cancel')}
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  style={{ background: currentThemeOption.primaryColor }}
-                  className="px-5 py-2.5 rounded-xl hover:opacity-90 text-white font-semibold flex items-center gap-2 shadow-md cursor-pointer transition"
-                >
-                  {isSubmitting ? 'Onboarding...' : t('modal.saveOnboard', 'Save & Onboard Employee')}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>,
-        document.body
-      )}
+      {/* Onboard New Employee Modal */}
+      <InitiateOnboardingModal
+        isOpen={isOnboardModalOpen}
+        onClose={() => setIsOnboardModalOpen(false)}
+        onSuccess={() => {
+          setIsOnboardModalOpen(false);
+          fetchDashboardData();
+        }}
+      />
     </div>
   );
 };
