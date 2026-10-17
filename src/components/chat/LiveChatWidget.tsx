@@ -114,12 +114,12 @@ export const LiveChatWidget: React.FC = () => {
     fetchActiveQuery();
   }, [user]);
 
-  // Polling loop when widget is active
+  // Polling loop when widget is open and active
   useEffect(() => {
-    if (activeQuery && activeQuery.id) {
+    if (isOpen && activeQuery && activeQuery.id) {
       fetchMessages(activeQuery.id);
 
-      // Poll messages and query status every 3 seconds
+      // Poll messages and query status every 3 seconds only while chat drawer is open
       pollIntervalRef.current = setInterval(async () => {
         try {
           const statusRes: any = await api.get(`/hr-queries/${activeQuery.id}/messages`);
@@ -152,7 +152,7 @@ export const LiveChatWidget: React.FC = () => {
         clearInterval(pollIntervalRef.current);
       }
     };
-  }, [activeQuery?.id, activeQuery?.status]);
+  }, [isOpen, activeQuery?.id, activeQuery?.status]);
 
   useEffect(() => {
     const hasNewMessages = messages.length !== prevMessageCountRef.current;
