@@ -177,6 +177,18 @@ export const ProfileRequestsPage: React.FC = () => {
   const handleSubmitRequest = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitError(null);
+
+    // Check if there is already a pending change request for this type
+    const activePendingReq = requests.find(r =>
+      r.status === 'PENDING' &&
+      r.requestType?.toUpperCase() === newRequestType?.toUpperCase() &&
+      (user?.employeeId ? r.employeeId === user.employeeId : true)
+    );
+    if (activePendingReq) {
+      setSubmitError(`A change request for ${activePendingReq.fieldName || newRequestType} (Request #${activePendingReq.id}) is already awaiting HR review. Duplicate submissions are not allowed.`);
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const payload = {
@@ -673,6 +685,26 @@ export const ProfileRequestsPage: React.FC = () => {
                 />
               </div>
 
+              {/* Duplicate / Pending Warning */}
+              {(() => {
+                const activePendingReq = requests.find(r =>
+                  r.status === 'PENDING' &&
+                  r.requestType?.toUpperCase() === newRequestType?.toUpperCase() &&
+                  (user?.employeeId ? r.employeeId === user.employeeId : true)
+                );
+                if (activePendingReq) {
+                  return (
+                    <div className="p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-xs flex items-start gap-2">
+                      <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
+                      <div>
+                        <span className="font-bold">Pending Request Active:</span> A change request for {activePendingReq.fieldName || newRequestType} (Request #{activePendingReq.id}) is already awaiting HR review. Further requests cannot be submitted until your pending request is processed.
+                      </div>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
+
               <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-200">
                 <button
                   type="button"
@@ -683,8 +715,15 @@ export const ProfileRequestsPage: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  disabled={isSubmitting}
-                  className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition cursor-pointer shadow-sm active:scale-95 disabled:opacity-50"
+                  disabled={
+                    isSubmitting ||
+                    !!requests.find(r =>
+                      r.status === 'PENDING' &&
+                      r.requestType?.toUpperCase() === newRequestType?.toUpperCase() &&
+                      (user?.employeeId ? r.employeeId === user.employeeId : true)
+                    )
+                  }
+                  className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition cursor-pointer shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? 'Submitting...' : 'Submit to HR Manager'}
                 </button>

@@ -369,6 +369,19 @@ export const ExpensesPage: React.FC = () => {
       return;
     }
 
+    const parsedAmount = parseFloat(claimForm.amount);
+    // Duplicate Pending Claim Check
+    const duplicatePendingClaim = claims.find(c =>
+      (c.status === 'PENDING_MANAGER' || c.status === 'PENDING_HR') &&
+      c.expenseDate === claimForm.expenseDate &&
+      c.merchant?.trim().toLowerCase() === claimForm.merchant?.trim().toLowerCase() &&
+      Math.abs(c.amount - parsedAmount) < 0.01
+    );
+    if (duplicatePendingClaim) {
+      alert(`An identical expense claim (${duplicatePendingClaim.claimNumber} - ${duplicatePendingClaim.merchant} for ₹${duplicatePendingClaim.amount.toFixed(2)}) is already under review [${duplicatePendingClaim.status}]. Duplicate submissions are not allowed.`);
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const payload = {
@@ -1054,6 +1067,29 @@ export const ExpensesPage: React.FC = () => {
                 )}
               </div>
 
+              {/* Duplicate Pending Claim Warning */}
+              {(() => {
+                const parsedAmount = parseFloat(claimForm.amount);
+                if (!claimForm.merchant || isNaN(parsedAmount) || !claimForm.expenseDate) return null;
+                const duplicatePendingClaim = claims.find(c =>
+                  (c.status === 'PENDING_MANAGER' || c.status === 'PENDING_HR') &&
+                  c.expenseDate === claimForm.expenseDate &&
+                  c.merchant?.trim().toLowerCase() === claimForm.merchant?.trim().toLowerCase() &&
+                  Math.abs(c.amount - parsedAmount) < 0.01
+                );
+                if (duplicatePendingClaim) {
+                  return (
+                    <div className="p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-xs flex items-start gap-2">
+                      <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
+                      <div>
+                        <span className="font-bold">Duplicate Claim Warning:</span> An identical claim ({duplicatePendingClaim.claimNumber}) for ₹{duplicatePendingClaim.amount.toFixed(2)} on {duplicatePendingClaim.expenseDate} is currently pending review. Duplicate claims cannot be submitted.
+                      </div>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
+
               <div className="pt-3 flex items-center justify-end gap-3 border-t border-slate-200">
                 <button
                   type="button"
@@ -1064,8 +1100,16 @@ export const ExpensesPage: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  disabled={isSubmitting}
-                  className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold flex items-center gap-2 shadow-sm cursor-pointer transition active:scale-95 disabled:opacity-50"
+                  disabled={
+                    isSubmitting ||
+                    !!claims.find(c =>
+                      (c.status === 'PENDING_MANAGER' || c.status === 'PENDING_HR') &&
+                      c.expenseDate === claimForm.expenseDate &&
+                      c.merchant?.trim().toLowerCase() === claimForm.merchant?.trim().toLowerCase() &&
+                      Math.abs(c.amount - parseFloat(claimForm.amount)) < 0.01
+                    )
+                  }
+                  className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold flex items-center gap-2 shadow-sm cursor-pointer transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? 'Verifying & Submitting...' : 'Submit Claim'}
                 </button>

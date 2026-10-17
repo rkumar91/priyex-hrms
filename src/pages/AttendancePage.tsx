@@ -583,6 +583,21 @@ export const AttendancePage: React.FC = () => {
 
   const handleClaimCoff = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // 1. Check if a C-off credit claim already exists for this worked date
+    const conflictingCoff = coffList.find(c => c.status !== 'REJECTED' && c.workedDate === coffForm.workedDate);
+    if (conflictingCoff) {
+      alert(`A C-Off credit request for ${coffForm.workedDate} already exists [${conflictingCoff.status}]. Duplicate claims for the same worked date are not permitted.`);
+      return;
+    }
+
+    // 2. Check if employee was on active Leave on workedDate
+    const conflictingLeave = leaveRequests.find(l => !l.status.includes('REJECTED') && (l.status as string) !== 'CANCELLED' && coffForm.workedDate >= l.startDate && coffForm.workedDate <= l.endDate);
+    if (conflictingLeave) {
+      alert(`Conflict: You had an active leave application (${conflictingLeave.leaveType} [${conflictingLeave.status}]) on ${coffForm.workedDate}. You cannot claim C-Off credit for a day on leave.`);
+      return;
+    }
+
     const expiry = new Date();
     expiry.setDate(expiry.getDate() + 60);
 
@@ -612,6 +627,21 @@ export const AttendancePage: React.FC = () => {
 
   const handleAvailCoffSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Check if employee already has an active leave on availDate
+    const conflictingLeave = leaveRequests.find(l => !l.status.includes('REJECTED') && (l.status as string) !== 'CANCELLED' && availDate >= l.startDate && availDate <= l.endDate);
+    if (conflictingLeave) {
+      alert(`Conflict: You already have an active leave application (${conflictingLeave.leaveType} [${conflictingLeave.status}]) on ${availDate}.`);
+      return;
+    }
+
+    // Check if another C-Off is already availed on availDate
+    const conflictingAvail = coffList.find(c => c.isAvailed && c.availedDate === availDate);
+    if (conflictingAvail) {
+      alert(`Conflict: A C-Off credit is already redeemed for leave on ${availDate}. Duplicate redemptions for the same date are not allowed.`);
+      return;
+    }
+
     // Mark the first available unavailed credit as availed
     const credit = coffList.find(c => c.status === 'APPROVED' && !c.isAvailed);
     if (!credit) {
@@ -1968,6 +1998,33 @@ export const AttendancePage: React.FC = () => {
                 />
               </div>
 
+              {/* Conflict / Duplicate check banner */}
+              {(() => {
+                const conflictingCoff = coffList.find(c => c.status !== 'REJECTED' && c.workedDate === coffForm.workedDate);
+                if (conflictingCoff) {
+                  return (
+                    <div className="p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-xs flex items-start gap-2">
+                      <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
+                      <div>
+                        <span className="font-bold">Duplicate C-Off Request:</span> A credit claim for {conflictingCoff.workedDate} already exists [{conflictingCoff.status}]. Duplicate submissions for the same date are not allowed.
+                      </div>
+                    </div>
+                  );
+                }
+                const conflictingLeave = leaveRequests.find(l => !l.status.includes('REJECTED') && (l.status as string) !== 'CANCELLED' && coffForm.workedDate >= l.startDate && coffForm.workedDate <= l.endDate);
+                if (conflictingLeave) {
+                  return (
+                    <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-xs flex items-start gap-2">
+                      <AlertCircle className="w-4 h-4 text-rose-600 mt-0.5 shrink-0" />
+                      <div>
+                        <span className="font-bold">Leave Conflict:</span> You have an active leave application ({conflictingLeave.leaveType} [{conflictingLeave.status}]) on {coffForm.workedDate}.
+                      </div>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
+
               <div className="pt-3 flex items-center justify-end gap-3 border-t border-slate-200">
                 <button
                   type="button"
@@ -1978,7 +2035,11 @@ export const AttendancePage: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold flex items-center gap-2 shadow-sm cursor-pointer transition active:scale-95"
+                  disabled={
+                    !!coffList.find(c => c.status !== 'REJECTED' && c.workedDate === coffForm.workedDate) ||
+                    !!leaveRequests.find(l => !l.status.includes('REJECTED') && (l.status as string) !== 'CANCELLED' && coffForm.workedDate >= l.startDate && coffForm.workedDate <= l.endDate)
+                  }
+                  className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold flex items-center gap-2 shadow-sm cursor-pointer transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Claim 1.0 Day C-Off Credit
                 </button>
@@ -2020,6 +2081,33 @@ export const AttendancePage: React.FC = () => {
                 />
               </div>
 
+              {/* Conflict banner for availing C-Off */}
+              {(() => {
+                const conflictingLeave = leaveRequests.find(l => !l.status.includes('REJECTED') && (l.status as string) !== 'CANCELLED' && availDate >= l.startDate && availDate <= l.endDate);
+                if (conflictingLeave) {
+                  return (
+                    <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-xs flex items-start gap-2">
+                      <AlertCircle className="w-4 h-4 text-rose-600 mt-0.5 shrink-0" />
+                      <div>
+                        <span className="font-bold">Leave Conflict:</span> You already have an active leave ({conflictingLeave.leaveType} [{conflictingLeave.status}]) on {availDate}.
+                      </div>
+                    </div>
+                  );
+                }
+                const conflictingAvail = coffList.find(c => c.isAvailed && c.availedDate === availDate);
+                if (conflictingAvail) {
+                  return (
+                    <div className="p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-xs flex items-start gap-2">
+                      <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
+                      <div>
+                        <span className="font-bold">Already Availed:</span> A C-Off credit is already redeemed for {availDate}.
+                      </div>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
+
               <div className="pt-3 flex items-center justify-end gap-3 border-t border-slate-200">
                 <button
                   type="button"
@@ -2030,7 +2118,12 @@ export const AttendancePage: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold flex items-center gap-2 shadow-sm cursor-pointer transition active:scale-95"
+                  disabled={
+                    availableCoffCredits <= 0 ||
+                    !!leaveRequests.find(l => !l.status.includes('REJECTED') && (l.status as string) !== 'CANCELLED' && availDate >= l.startDate && availDate <= l.endDate) ||
+                    !!coffList.find(c => c.isAvailed && c.availedDate === availDate)
+                  }
+                  className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold flex items-center gap-2 shadow-sm cursor-pointer transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Confirm C-Off Redemption
                 </button>

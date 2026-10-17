@@ -177,6 +177,7 @@ export const EmployeesPage: React.FC = () => {
   const [isMyProfileOpen, setIsMyProfileOpen] = useState(false);
   const [isEditContactModalOpen, setIsEditContactModalOpen] = useState(false);
   const [isChangeRequestModalOpen, setIsChangeRequestModalOpen] = useState(false);
+  const [pendingProfileRequests, setPendingProfileRequests] = useState<any[]>([]);
   const [isHrQueryModalOpen, setIsHrQueryModalOpen] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
 
@@ -406,8 +407,18 @@ export const EmployeesPage: React.FC = () => {
     }
   };
 
+  const fetchPendingProfileRequests = async () => {
+    try {
+      const res: any = await api.get('/profile-requests', { params: { status: 'PENDING' } });
+      if (res.success && Array.isArray(res.data)) {
+        setPendingProfileRequests(res.data);
+      }
+    } catch (e) {}
+  };
+
   useEffect(() => {
     fetchDepartments();
+    fetchPendingProfileRequests();
   }, []);
 
   useEffect(() => {
@@ -690,6 +701,16 @@ export const EmployeesPage: React.FC = () => {
   // Submit Critical Change Request to HR (Bank account, Name, Email)
   const handleSubmitCriticalRequest = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Check if there is already a pending change request for this type
+    const activePendingReq = pendingProfileRequests.find((r: any) =>
+      r.requestType?.toUpperCase() === requestData.requestType?.toUpperCase() && r.status === 'PENDING'
+    );
+    if (activePendingReq) {
+      alert(`A change request for ${activePendingReq.fieldName || requestData.requestType} (Request #${activePendingReq.id}) is already awaiting HR review. Duplicate requests cannot be submitted.`);
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       await api.post('/profile-requests', requestData);
@@ -700,9 +721,10 @@ export const EmployeesPage: React.FC = () => {
         requestedValue: '',
         reason: ''
       });
+      fetchPendingProfileRequests();
       setFeedbackMsg('Your change request has been submitted to HR Manager for review & approval.');
     } catch (err: any) {
-      alert(err?.message || 'Failed to submit change request');
+      alert(err?.response?.data?.message || err?.message || 'Failed to submit change request');
     } finally {
       setIsSubmitting(false);
     }
@@ -2189,7 +2211,10 @@ export const EmployeesPage: React.FC = () => {
                       <CreditCard className="w-3.5 h-3.5 text-emerald-600" /> Salary Account (Disbursement)
                     </h4>
                     <button
-                      onClick={() => setIsChangeRequestModalOpen(true)}
+                      onClick={() => {
+                        fetchPendingProfileRequests();
+                        setIsChangeRequestModalOpen(true);
+                      }}
                       className="text-[10px] text-amber-700 bg-amber-50 hover:bg-amber-100 px-2 py-0.5 rounded font-bold border border-amber-200 transition cursor-pointer flex items-center gap-1"
                     >
                       <Send className="w-3 h-3 text-amber-600" /> Request Account Change
@@ -2796,6 +2821,24 @@ export const EmployeesPage: React.FC = () => {
                 />
               </div>
 
+              {/* Duplicate / Pending Request Warning Banner */}
+              {(() => {
+                const activePendingReq = pendingProfileRequests.find((r: any) =>
+                  r.requestType?.toUpperCase() === requestData.requestType?.toUpperCase() && r.status === 'PENDING'
+                );
+                if (activePendingReq) {
+                  return (
+                    <div className="p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-xs flex items-start gap-2">
+                      <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
+                      <div>
+                        <span className="font-bold">Pending Request Active:</span> A change request for {activePendingReq.fieldName || requestData.requestType} (Request #{activePendingReq.id}) is already awaiting HR review. Further requests cannot be submitted until your pending request is processed.
+                      </div>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
+
               <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-200">
                 <button
                   type="button"
@@ -2806,8 +2849,13 @@ export const EmployeesPage: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  disabled={isSubmitting}
-                  className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition cursor-pointer shadow-md shadow-blue-600/20"
+                  disabled={
+                    isSubmitting ||
+                    !!pendingProfileRequests.find((r: any) =>
+                      r.requestType?.toUpperCase() === requestData.requestType?.toUpperCase() && r.status === 'PENDING'
+                    )
+                  }
+                  className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition cursor-pointer shadow-md shadow-blue-600/20 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? 'Submitting...' : 'Submit to HR Manager'}
                 </button>
