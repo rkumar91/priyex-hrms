@@ -4,6 +4,19 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { canApproveLeaves, isHrAdmin } from '../utils/rbac';
 import api from '../api/client';
+import { ApplyLeaveModal } from '../components/attendance/ApplyLeaveModal';
+import { SubmitOvertimeModal } from '../components/attendance/SubmitOvertimeModal';
+import { ClaimCoffModal } from '../components/attendance/ClaimCoffModal';
+import { AvailCoffModal } from '../components/attendance/AvailCoffModal';
+import { AddGeofenceModal } from '../components/attendance/AddGeofenceModal';
+import {
+  findConflictingLeave,
+  findConflictingOtForLeave,
+  findConflictingLeaveForDate,
+  findConflictingOvertime,
+  findConflictingCoffClaim,
+  findConflictingCoffAvail
+} from '../utils/requestValidators';
 import {
   CalendarCheck,
   Clock,
@@ -455,22 +468,14 @@ export const AttendancePage: React.FC = () => {
     }
 
     // 1. Check for overlapping existing active leaves
-    const conflictingLeave = leaveRequests.find(l => {
-      if (l.status.includes('REJECTED') || (l.status as string) === 'CANCELLED') return false;
-      return !(leaveForm.startDate > l.endDate || leaveForm.endDate < l.startDate);
-    });
-
+    const conflictingLeave = findConflictingLeave(leaveRequests, leaveForm.startDate, leaveForm.endDate);
     if (conflictingLeave) {
       alert(`You already have an active leave application (${conflictingLeave.leaveType} from ${conflictingLeave.startDate} to ${conflictingLeave.endDate} [${conflictingLeave.status}]). Overlapping or duplicate leaves are not permitted.`);
       return;
     }
 
     // 2. Check for conflicting approved/pending Overtime during this leave window
-    const conflictingOt = overtimeList.find(o => {
-      if (o.status === 'REJECTED') return false;
-      return o.date >= leaveForm.startDate && o.date <= leaveForm.endDate;
-    });
-
+    const conflictingOt = findConflictingOtForLeave(overtimeList, leaveForm.startDate, leaveForm.endDate);
     if (conflictingOt) {
       alert(`Conflict detected: You have an active Overtime entry on ${conflictingOt.date} (${conflictingOt.shift} [${conflictingOt.status}]). You cannot apply for full-day leave on a scheduled overtime date.`);
       return;
@@ -513,26 +518,14 @@ export const AttendancePage: React.FC = () => {
     }
 
     // 1. Conflict Check: Check if employee has an active Leave on this date
-    const conflictingLeave = leaveRequests.find(l => {
-      if (l.status.includes('REJECTED') || (l.status as string) === 'CANCELLED') return false;
-      return otForm.date >= l.startDate && otForm.date <= l.endDate;
-    });
+    const conflictingLeave = findConflictingLeaveForDate(leaveRequests, otForm.date);
     if (conflictingLeave) {
       alert(`Cannot submit Overtime on ${otForm.date}: You have an active leave application (${conflictingLeave.leaveType} [${conflictingLeave.status}]) on this date.`);
       return;
     }
 
     // 2. Duplicate / Overlapping OT Check on same date and time
-    const conflictingOt = overtimeList.find(o => {
-      if (o.status === 'REJECTED') return false;
-      if (o.date !== otForm.date) return false;
-      // If both have startTime and endTime, check time overlap:
-      if (o.startTime && o.endTime && otForm.startTime && otForm.endTime) {
-        return otForm.startTime < o.endTime && otForm.endTime > o.startTime;
-      }
-      return true;
-    });
-
+    const conflictingOt = findConflictingOvertime(overtimeList, otForm.date, otForm.startTime, otForm.endTime);
     if (conflictingOt) {
       const timeInfo = conflictingOt.startTime ? ` (${conflictingOt.startTime} - ${conflictingOt.endTime})` : '';
       alert(`An active Overtime request already exists for ${otForm.date}${timeInfo} [${conflictingOt.status}]. Duplicate or overlapping overtime entries are not permitted.`);
@@ -585,14 +578,14 @@ export const AttendancePage: React.FC = () => {
     e.preventDefault();
 
     // 1. Check if a C-off credit claim already exists for this worked date
-    const conflictingCoff = coffList.find(c => c.status !== 'REJECTED' && c.workedDate === coffForm.workedDate);
+    const conflictingCoff = findConflictingCoffClaim(coffList, coffForm.workedDate);
     if (conflictingCoff) {
       alert(`A C-Off credit request for ${coffForm.workedDate} already exists [${conflictingCoff.status}]. Duplicate claims for the same worked date are not permitted.`);
       return;
     }
 
     // 2. Check if employee was on active Leave on workedDate
-    const conflictingLeave = leaveRequests.find(l => !l.status.includes('REJECTED') && (l.status as string) !== 'CANCELLED' && coffForm.workedDate >= l.startDate && coffForm.workedDate <= l.endDate);
+    const conflictingLeave = findConflictingLeaveForDate(leaveRequests, coffForm.workedDate);
     if (conflictingLeave) {
       alert(`Conflict: You had an active leave application (${conflictingLeave.leaveType} [${conflictingLeave.status}]) on ${coffForm.workedDate}. You cannot claim C-Off credit for a day on leave.`);
       return;
@@ -629,14 +622,14 @@ export const AttendancePage: React.FC = () => {
     e.preventDefault();
 
     // Check if employee already has an active leave on availDate
-    const conflictingLeave = leaveRequests.find(l => !l.status.includes('REJECTED') && (l.status as string) !== 'CANCELLED' && availDate >= l.startDate && availDate <= l.endDate);
+    const conflictingLeave = findConflictingLeaveForDate(leaveRequests, availDate);
     if (conflictingLeave) {
       alert(`Conflict: You already have an active leave application (${conflictingLeave.leaveType} [${conflictingLeave.status}]) on ${availDate}.`);
       return;
     }
 
     // Check if another C-Off is already availed on availDate
-    const conflictingAvail = coffList.find(c => c.isAvailed && c.availedDate === availDate);
+    const conflictingAvail = findConflictingCoffAvail(coffList, availDate);
     if (conflictingAvail) {
       alert(`Conflict: A C-Off credit is already redeemed for leave on ${availDate}. Duplicate redemptions for the same date are not allowed.`);
       return;
@@ -1598,643 +1591,60 @@ export const AttendancePage: React.FC = () => {
       {/* ======================================================== */}
 
       {/* 1. APPLY LEAVE MODAL */}
-      {isLeaveModalOpen && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="w-full max-w-md bg-white border border-slate-200 rounded-3xl p-6 shadow-2xl relative space-y-4 text-slate-900">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-200">
-              <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <FileText className="w-5 h-5 text-emerald-600" />
-                <span>Apply for Leave</span>
-              </h2>
-              <button onClick={() => setIsLeaveModalOpen(false)} className="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100 transition cursor-pointer">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleApplyLeaveSubmit} className="space-y-4 text-xs">
-              <div>
-                <label className="block text-slate-700 font-bold mb-1">Leave Type</label>
-                <select
-                  value={leaveForm.leaveType}
-                  onChange={(e) => setLeaveForm({ ...leaveForm, leaveType: e.target.value })}
-                  className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-emerald-500 font-semibold"
-                >
-                  {orgPolicies.length > 0 ? (
-                    orgPolicies.map((p) => (
-                      <option key={p.id} value={p.leaveName}>
-                        {p.leaveName} ({p.annualDays} days/yr)
-                      </option>
-                    ))
-                  ) : (
-                    <>
-                      <option value="Casual Leave (CL)">Casual Leave (CL) (12 days/yr)</option>
-                      <option value="Sick Leave (SL)">Sick Leave (SL) (10 days/yr)</option>
-                      <option value="Privilege Leave (PL)">Privilege Leave (PL) (15 days/yr)</option>
-                      <option value="Maternity Leave">Maternity Leave (180 days)</option>
-                      <option value="Paternity Leave">Paternity Leave (15 days)</option>
-                    </>
-                  )}
-                </select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-slate-700 font-bold mb-1">Start Date *</label>
-                  <input
-                    type="date"
-                    required
-                    value={leaveForm.startDate}
-                    onChange={(e) => setLeaveForm({ ...leaveForm, startDate: e.target.value })}
-                    className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-emerald-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-700 font-bold mb-1">End Date *</label>
-                  <input
-                    type="date"
-                    required
-                    value={leaveForm.endDate}
-                    onChange={(e) => setLeaveForm({ ...leaveForm, endDate: e.target.value })}
-                    className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-emerald-500"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-slate-700 font-bold mb-1">Reason *</label>
-                <textarea
-                  required
-                  rows={3}
-                  value={leaveForm.reason}
-                  onChange={(e) => setLeaveForm({ ...leaveForm, reason: e.target.value })}
-                  placeholder="State the reason for leave request..."
-                  className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-emerald-500"
-                />
-              </div>
-
-              {/* Live Conflict / Duplicate Warning Banner */}
-              {(() => {
-                if (leaveForm.startDate && leaveForm.endDate && leaveForm.startDate > leaveForm.endDate) {
-                  return (
-                    <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-xs flex items-center gap-2">
-                      <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
-                      <span>Start date cannot be after end date.</span>
-                    </div>
-                  );
-                }
-                const activeLeaveConflict = leaveRequests.find(l => {
-                  if (l.status.includes('REJECTED') || (l.status as string) === 'CANCELLED') return false;
-                  return !(leaveForm.startDate > l.endDate || leaveForm.endDate < l.startDate);
-                });
-                if (activeLeaveConflict) {
-                  return (
-                    <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-xs flex items-start gap-2">
-                      <AlertCircle className="w-4 h-4 text-rose-600 mt-0.5 shrink-0" />
-                      <div>
-                        <span className="font-bold">Duplicate / Overlapping Leave:</span> You already have an active application ({activeLeaveConflict.leaveType} from {activeLeaveConflict.startDate} to {activeLeaveConflict.endDate} [{activeLeaveConflict.status}]). Duplicate requests are not permitted.
-                      </div>
-                    </div>
-                  );
-                }
-                const activeOtConflict = overtimeList.find(o => {
-                  if (o.status === 'REJECTED') return false;
-                  return o.date >= leaveForm.startDate && o.date <= leaveForm.endDate;
-                });
-                if (activeOtConflict) {
-                  return (
-                    <div className="p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-xs flex items-start gap-2">
-                      <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
-                      <div>
-                        <span className="font-bold">Overtime Conflict:</span> You have an active Overtime entry on {activeOtConflict.date} ({activeOtConflict.shift} [{activeOtConflict.status}]).
-                      </div>
-                    </div>
-                  );
-                }
-                return null;
-              })()}
-
-              <div className="pt-3 flex items-center justify-end gap-3 border-t border-slate-200">
-                <button
-                  type="button"
-                  onClick={() => setIsLeaveModalOpen(false)}
-                  className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold cursor-pointer transition"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={
-                    isSubmittingLeave ||
-                    leaveForm.startDate > leaveForm.endDate ||
-                    !!leaveRequests.find(l => !l.status.includes('REJECTED') && (l.status as string) !== 'CANCELLED' && !(leaveForm.startDate > l.endDate || leaveForm.endDate < l.startDate)) ||
-                    !!overtimeList.find(o => o.status !== 'REJECTED' && o.date >= leaveForm.startDate && o.date <= leaveForm.endDate)
-                  }
-                  className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold flex items-center gap-2 shadow-sm cursor-pointer transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isSubmittingLeave ? 'Submitting...' : 'Submit Application'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>,
-        document.body
-      )}
+      <ApplyLeaveModal
+        isOpen={isLeaveModalOpen}
+        onClose={() => setIsLeaveModalOpen(false)}
+        onSubmit={handleApplyLeaveSubmit}
+        leaveForm={leaveForm}
+        setLeaveForm={setLeaveForm}
+        orgPolicies={orgPolicies}
+        leaveRequests={leaveRequests}
+        overtimeList={overtimeList}
+        isSubmitting={isSubmittingLeave}
+      />
 
       {/* 2. SUBMIT OVERTIME MODAL */}
-      {isOtModalOpen && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="w-full max-w-md bg-white border border-slate-200 rounded-3xl p-6 shadow-2xl relative space-y-4 text-slate-900">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-200">
-              <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <Timer className="w-5 h-5 text-blue-600" />
-                <span>Submit Overtime (OT) Request</span>
-              </h2>
-              <button onClick={() => setIsOtModalOpen(false)} className="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100 transition cursor-pointer">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleApplyOt} className="space-y-4 text-xs">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-slate-700 font-bold mb-1">Overtime Date *</label>
-                  <input
-                    type="date"
-                    required
-                    value={otForm.date}
-                    onChange={(e) => setOtForm({ ...otForm, date: e.target.value })}
-                    className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-blue-500 font-medium"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-slate-700 font-bold mb-1">Total OT Hours *</label>
-                  <input
-                    type="number"
-                    step="0.5"
-                    min="0.5"
-                    max="12"
-                    required
-                    value={otForm.hours}
-                    onChange={(e) => setOtForm({ ...otForm, hours: e.target.value })}
-                    className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-blue-500 font-bold"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-slate-700 font-bold mb-1">Start Time (24h) *</label>
-                  <input
-                    type="time"
-                    required
-                    value={otForm.startTime}
-                    onChange={(e) => {
-                      const newStart = e.target.value;
-                      let updatedHours = otForm.hours;
-                      if (newStart && otForm.endTime) {
-                        const [sh, sm] = newStart.split(':').map(Number);
-                        const [eh, em] = otForm.endTime.split(':').map(Number);
-                        let diffMinutes = (eh * 60 + em) - (sh * 60 + sm);
-                        if (diffMinutes < 0) diffMinutes += 24 * 60;
-                        if (diffMinutes > 0) {
-                          updatedHours = (diffMinutes / 60).toFixed(1);
-                        }
-                      }
-                      setOtForm({ ...otForm, startTime: newStart, hours: updatedHours });
-                    }}
-                    className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-blue-500 font-mono font-medium"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-slate-700 font-bold mb-1">End Time (24h) *</label>
-                  <input
-                    type="time"
-                    required
-                    value={otForm.endTime}
-                    onChange={(e) => {
-                      const newEnd = e.target.value;
-                      let updatedHours = otForm.hours;
-                      if (otForm.startTime && newEnd) {
-                        const [sh, sm] = otForm.startTime.split(':').map(Number);
-                        const [eh, em] = newEnd.split(':').map(Number);
-                        let diffMinutes = (eh * 60 + em) - (sh * 60 + sm);
-                        if (diffMinutes < 0) diffMinutes += 24 * 60;
-                        if (diffMinutes > 0) {
-                          updatedHours = (diffMinutes / 60).toFixed(1);
-                        }
-                      }
-                      setOtForm({ ...otForm, endTime: newEnd, hours: updatedHours });
-                    }}
-                    className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-blue-500 font-mono font-medium"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-slate-700 font-bold mb-1">Project Code / Client Tag</label>
-                <input
-                  type="text"
-                  value={otForm.projectCode}
-                  onChange={(e) => setOtForm({ ...otForm, projectCode: e.target.value })}
-                  placeholder="e.g. PRJ-FINTECH-01"
-                  className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-blue-500 font-mono"
-                />
-              </div>
-
-              <div>
-                <label className="flex items-center gap-2 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={otForm.isWeekend}
-                    onChange={(e) => setOtForm({ ...otForm, isWeekend: e.target.checked })}
-                    className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300"
-                  />
-                  <span className="font-semibold text-slate-800">Worked on Weekend / Public Holiday (2.0x Rate Multiplier)</span>
-                </label>
-              </div>
-
-              <div>
-                <label className="block text-slate-700 font-bold mb-1">Business Justification / Reason *</label>
-                <textarea
-                  required
-                  rows={2}
-                  value={otForm.reason}
-                  onChange={(e) => setOtForm({ ...otForm, reason: e.target.value })}
-                  placeholder="Describe sprint emergency, release tasks, or client delivery..."
-                  className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-blue-500"
-                />
-              </div>
-
-              {/* Conflict check warning */}
-              {(() => {
-                const leaveConflict = leaveRequests.find(l => !l.status.includes('REJECTED') && (l.status as string) !== 'CANCELLED' && otForm.date >= l.startDate && otForm.date <= l.endDate);
-                if (leaveConflict) {
-                  return (
-                    <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-xs flex items-start gap-2">
-                      <AlertCircle className="w-4 h-4 text-rose-600 mt-0.5 shrink-0" />
-                      <div>
-                        <span className="font-bold">Leave Conflict:</span> You have an active leave application ({leaveConflict.leaveType} [{leaveConflict.status}]) on this date.
-                      </div>
-                    </div>
-                  );
-                }
-                const otConflict = overtimeList.find(o => {
-                  if (o.status === 'REJECTED') return false;
-                  if (o.date !== otForm.date) return false;
-                  if (o.startTime && o.endTime && otForm.startTime && otForm.endTime) {
-                    return otForm.startTime < o.endTime && otForm.endTime > o.startTime;
-                  }
-                  return true;
-                });
-                if (otConflict) {
-                  return (
-                    <div className="p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-xs flex items-start gap-2">
-                      <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
-                      <div>
-                        <span className="font-bold">Duplicate/Overlap Warning:</span> An active overtime request already exists on {otConflict.date} {otConflict.startTime ? `(${otConflict.startTime} - ${otConflict.endTime})` : ''} [{otConflict.status}].
-                      </div>
-                    </div>
-                  );
-                }
-                return null;
-              })()}
-
-              <div className="pt-3 flex items-center justify-end gap-3 border-t border-slate-200">
-                <button
-                  type="button"
-                  onClick={() => setIsOtModalOpen(false)}
-                  className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold cursor-pointer transition"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={
-                    !!leaveRequests.find(l => !l.status.includes('REJECTED') && (l.status as string) !== 'CANCELLED' && otForm.date >= l.startDate && otForm.date <= l.endDate) ||
-                    !!overtimeList.find(o => {
-                      if (o.status === 'REJECTED' || o.date !== otForm.date) return false;
-                      if (o.startTime && o.endTime && otForm.startTime && otForm.endTime) {
-                        return otForm.startTime < o.endTime && otForm.endTime > o.startTime;
-                      }
-                      return true;
-                    })
-                  }
-                  className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold flex items-center gap-2 shadow-sm cursor-pointer transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Submit Overtime Request
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>,
-        document.body
-      )}
+      <SubmitOvertimeModal
+        isOpen={isOtModalOpen}
+        onClose={() => setIsOtModalOpen(false)}
+        onSubmit={handleApplyOt}
+        otForm={otForm}
+        setOtForm={setOtForm}
+        leaveRequests={leaveRequests}
+        overtimeList={overtimeList}
+      />
 
       {/* 3. CLAIM C-OFF CREDIT MODAL */}
-      {isCoffModalOpen && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="w-full max-w-md bg-white border border-slate-200 rounded-3xl p-6 shadow-2xl relative space-y-4 text-slate-900">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-200">
-              <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <Award className="w-5 h-5 text-emerald-600" />
-                <span>Claim Compensatory Off (C-Off) Credit</span>
-              </h2>
-              <button onClick={() => setIsCoffModalOpen(false)} className="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100 transition cursor-pointer">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleClaimCoff} className="space-y-4 text-xs">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-slate-700 font-bold mb-1">Date Worked *</label>
-                  <input
-                    type="date"
-                    required
-                    value={coffForm.workedDate}
-                    onChange={(e) => setCoffForm({ ...coffForm, workedDate: e.target.value })}
-                    className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-emerald-500 font-medium"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-slate-700 font-bold mb-1">Holiday Type *</label>
-                  <select
-                    value={coffForm.workedType}
-                    onChange={(e) => setCoffForm({ ...coffForm, workedType: e.target.value as any })}
-                    className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-emerald-500 font-semibold"
-                  >
-                    <option value="WEEKEND">Weekly Off (Sunday/Saturday)</option>
-                    <option value="PUBLIC_HOLIDAY">Company Public Holiday</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-slate-700 font-bold mb-1">Hours Worked on Holiday (Min 7h for 1.0 Day Credit)</label>
-                <input
-                  type="number"
-                  step="0.5"
-                  min="4.0"
-                  max="14.0"
-                  required
-                  value={coffForm.hoursWorked}
-                  onChange={(e) => setCoffForm({ ...coffForm, hoursWorked: e.target.value })}
-                  className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-emerald-500 font-bold"
-                />
-              </div>
-
-              <div>
-                <label className="block text-slate-700 font-bold mb-1">Reason / Manager Pre-Approval Notes *</label>
-                <textarea
-                  required
-                  rows={2}
-                  value={coffForm.reason}
-                  onChange={(e) => setCoffForm({ ...coffForm, reason: e.target.value })}
-                  placeholder="e.g. Worked Sunday on client go-live deployment as pre-approved by Team Lead..."
-                  className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-emerald-500"
-                />
-              </div>
-
-              {/* Conflict / Duplicate check banner */}
-              {(() => {
-                const conflictingCoff = coffList.find(c => c.status !== 'REJECTED' && c.workedDate === coffForm.workedDate);
-                if (conflictingCoff) {
-                  return (
-                    <div className="p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-xs flex items-start gap-2">
-                      <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
-                      <div>
-                        <span className="font-bold">Duplicate C-Off Request:</span> A credit claim for {conflictingCoff.workedDate} already exists [{conflictingCoff.status}]. Duplicate submissions for the same date are not allowed.
-                      </div>
-                    </div>
-                  );
-                }
-                const conflictingLeave = leaveRequests.find(l => !l.status.includes('REJECTED') && (l.status as string) !== 'CANCELLED' && coffForm.workedDate >= l.startDate && coffForm.workedDate <= l.endDate);
-                if (conflictingLeave) {
-                  return (
-                    <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-xs flex items-start gap-2">
-                      <AlertCircle className="w-4 h-4 text-rose-600 mt-0.5 shrink-0" />
-                      <div>
-                        <span className="font-bold">Leave Conflict:</span> You have an active leave application ({conflictingLeave.leaveType} [{conflictingLeave.status}]) on {coffForm.workedDate}.
-                      </div>
-                    </div>
-                  );
-                }
-                return null;
-              })()}
-
-              <div className="pt-3 flex items-center justify-end gap-3 border-t border-slate-200">
-                <button
-                  type="button"
-                  onClick={() => setIsCoffModalOpen(false)}
-                  className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold cursor-pointer transition"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={
-                    !!coffList.find(c => c.status !== 'REJECTED' && c.workedDate === coffForm.workedDate) ||
-                    !!leaveRequests.find(l => !l.status.includes('REJECTED') && (l.status as string) !== 'CANCELLED' && coffForm.workedDate >= l.startDate && coffForm.workedDate <= l.endDate)
-                  }
-                  className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold flex items-center gap-2 shadow-sm cursor-pointer transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Claim 1.0 Day C-Off Credit
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>,
-        document.body
-      )}
+      <ClaimCoffModal
+        isOpen={isCoffModalOpen}
+        onClose={() => setIsCoffModalOpen(false)}
+        onSubmit={handleClaimCoff}
+        coffForm={coffForm}
+        setCoffForm={setCoffForm}
+        leaveRequests={leaveRequests}
+        coffList={coffList}
+      />
 
       {/* 4. AVAIL C-OFF LEAVE MODAL */}
-      {isAvailCoffModalOpen && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="w-full max-w-md bg-white border border-slate-200 rounded-3xl p-6 shadow-2xl relative space-y-4 text-slate-900">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-200">
-              <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <Wallet className="w-5 h-5 text-emerald-600" />
-                <span>Avail C-Off Balance as Leave</span>
-              </h2>
-              <button onClick={() => setIsAvailCoffModalOpen(false)} className="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100 transition cursor-pointer">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleAvailCoffSubmit} className="space-y-4 text-xs">
-              <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900">
-                <span className="font-bold">Available Balance: {availableCoffCredits} Days</span>
-                <p className="text-[11px] text-emerald-700 mt-0.5">Availing C-Off grants a full paid day off without deducting your Casual or Sick leave balance.</p>
-              </div>
-
-              <div>
-                <label className="block text-slate-700 font-bold mb-1">Choose Date to Take Off *</label>
-                <input
-                  type="date"
-                  required
-                  value={availDate}
-                  onChange={(e) => setAvailDate(e.target.value)}
-                  className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-emerald-500 font-medium"
-                />
-              </div>
-
-              {/* Conflict banner for availing C-Off */}
-              {(() => {
-                const conflictingLeave = leaveRequests.find(l => !l.status.includes('REJECTED') && (l.status as string) !== 'CANCELLED' && availDate >= l.startDate && availDate <= l.endDate);
-                if (conflictingLeave) {
-                  return (
-                    <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-xs flex items-start gap-2">
-                      <AlertCircle className="w-4 h-4 text-rose-600 mt-0.5 shrink-0" />
-                      <div>
-                        <span className="font-bold">Leave Conflict:</span> You already have an active leave ({conflictingLeave.leaveType} [{conflictingLeave.status}]) on {availDate}.
-                      </div>
-                    </div>
-                  );
-                }
-                const conflictingAvail = coffList.find(c => c.isAvailed && c.availedDate === availDate);
-                if (conflictingAvail) {
-                  return (
-                    <div className="p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-xs flex items-start gap-2">
-                      <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
-                      <div>
-                        <span className="font-bold">Already Availed:</span> A C-Off credit is already redeemed for {availDate}.
-                      </div>
-                    </div>
-                  );
-                }
-                return null;
-              })()}
-
-              <div className="pt-3 flex items-center justify-end gap-3 border-t border-slate-200">
-                <button
-                  type="button"
-                  onClick={() => setIsAvailCoffModalOpen(false)}
-                  className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold cursor-pointer transition"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={
-                    availableCoffCredits <= 0 ||
-                    !!leaveRequests.find(l => !l.status.includes('REJECTED') && (l.status as string) !== 'CANCELLED' && availDate >= l.startDate && availDate <= l.endDate) ||
-                    !!coffList.find(c => c.isAvailed && c.availedDate === availDate)
-                  }
-                  className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold flex items-center gap-2 shadow-sm cursor-pointer transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Confirm C-Off Redemption
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>,
-        document.body
-      )}
+      <AvailCoffModal
+        isOpen={isAvailCoffModalOpen}
+        onClose={() => setIsAvailCoffModalOpen(false)}
+        onSubmit={handleAvailCoffSubmit}
+        availableCoffCredits={availableCoffCredits}
+        availDate={availDate}
+        setAvailDate={setAvailDate}
+        leaveRequests={leaveRequests}
+        coffList={coffList}
+      />
 
       {/* 5. ADD GEOFENCE MODAL */}
-      {isGeofenceModalOpen && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="w-full max-w-md bg-white border border-slate-200 rounded-3xl p-6 shadow-2xl relative space-y-4 text-slate-900">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-200">
-              <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <MapPin className="w-5 h-5 text-blue-600" />
-                <span>Add Authorized Office Geo-Perimeter</span>
-              </h2>
-              <button onClick={() => setIsGeofenceModalOpen(false)} className="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100 transition cursor-pointer">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleAddGeofence} className="space-y-4 text-xs">
-              <div>
-                <label className="block text-slate-700 font-bold mb-1">Office Name *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Hyderabad Innovation Hub"
-                  value={newFenceForm.name}
-                  onChange={(e) => setNewFenceForm({ ...newFenceForm, name: e.target.value })}
-                  className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-blue-500 font-medium"
-                />
-              </div>
-
-              <div>
-                <label className="block text-slate-700 font-bold mb-1">City / Region *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Hyderabad, Telangana"
-                  value={newFenceForm.city}
-                  onChange={(e) => setNewFenceForm({ ...newFenceForm, city: e.target.value })}
-                  className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-blue-500 font-medium"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-slate-700 font-bold mb-1">Latitude *</label>
-                  <input
-                    type="number"
-                    step="0.0001"
-                    required
-                    placeholder="e.g. 17.3850"
-                    value={newFenceForm.latitude}
-                    onChange={(e) => setNewFenceForm({ ...newFenceForm, latitude: e.target.value })}
-                    className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-blue-500 font-mono"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-slate-700 font-bold mb-1">Longitude *</label>
-                  <input
-                    type="number"
-                    step="0.0001"
-                    required
-                    placeholder="e.g. 78.4867"
-                    value={newFenceForm.longitude}
-                    onChange={(e) => setNewFenceForm({ ...newFenceForm, longitude: e.target.value })}
-                    className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-blue-500 font-mono"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-slate-700 font-bold mb-1">Geo-Fence Perimeter Radius (Meters)</label>
-                <select
-                  value={newFenceForm.radiusMeters}
-                  onChange={(e) => setNewFenceForm({ ...newFenceForm, radiusMeters: e.target.value })}
-                  className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-blue-500 font-semibold"
-                >
-                  <option value="150">150 Meters (Tight Campus)</option>
-                  <option value="250">250 Meters (Standard Office Building)</option>
-                  <option value="500">500 Meters (Large Tech Park)</option>
-                  <option value="1000">1,000 Meters (Expanded Zone)</option>
-                </select>
-              </div>
-
-              <div className="pt-3 flex items-center justify-end gap-3 border-t border-slate-200">
-                <button
-                  type="button"
-                  onClick={() => setIsGeofenceModalOpen(false)}
-                  className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold cursor-pointer transition"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold flex items-center gap-2 shadow-sm cursor-pointer transition active:scale-95"
-                >
-                  Register Geo-Fence
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>,
-        document.body
-      )}
+      <AddGeofenceModal
+        isOpen={isGeofenceModalOpen}
+        onClose={() => setIsGeofenceModalOpen(false)}
+        onSubmit={handleAddGeofence}
+        newFenceForm={newFenceForm}
+        setNewFenceForm={setNewFenceForm}
+      />
     </div>
   );
 };
