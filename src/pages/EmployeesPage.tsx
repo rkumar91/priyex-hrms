@@ -365,6 +365,14 @@ export const EmployeesPage: React.FC = () => {
       const res: any = await api.get('/employees/me');
       if (res.success && res.data) {
         setMyProfile(res.data);
+        const fullName = `${res.data.firstName || ''} ${res.data.lastName || ''}`.trim();
+        if (fullName) {
+          updateUser({
+            displayName: fullName,
+            fullName: fullName,
+            photoUrl: res.data.photoUrl || user?.photoUrl,
+          });
+        }
         setSelfEditData({
           personalPhone: res.data.personalPhone || '',
           personalEmail: res.data.personalEmail || '',

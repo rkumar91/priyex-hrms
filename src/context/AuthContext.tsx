@@ -72,12 +72,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         const res: any = await api.get('/auth/me');
         if (res.success && res.data) {
-          const rawName = res.data.displayName || res.data.fullName || res.data.email;
+          let rawName = res.data.displayName || res.data.fullName || res.data.email;
+          let photoUrl = res.data.avatarUrl || res.data.photoUrl;
+
+          // Fetch latest canonical employee profile to guarantee synced name and photo
+          try {
+            const empRes: any = await api.get('/employees/me');
+            if (empRes.success && empRes.data) {
+              const empFullName = `${empRes.data.firstName || ''} ${empRes.data.lastName || ''}`.trim();
+              if (empFullName) {
+                rawName = empFullName;
+              }
+              if (empRes.data.photoUrl) {
+                photoUrl = empRes.data.photoUrl;
+              }
+            }
+          } catch (e) {
+            // Non-employee accounts (e.g. system admins) won't have an employee record, safely ignore
+          }
+
           const sanitizedName = cleanDisplayName(rawName);
           const profile: UserProfile = {
             ...res.data,
             fullName: sanitizedName,
             displayName: sanitizedName,
+            photoUrl: photoUrl || undefined,
           };
           setUser(profile);
           localStorage.setItem('user', JSON.stringify(profile));
