@@ -1,9 +1,10 @@
 import axios from 'axios';
 
 const rawBaseUrl = import.meta.env.VITE_API_BASE_URL;
-const baseURL = rawBaseUrl
-  ? (rawBaseUrl.endsWith('/api/v1') ? rawBaseUrl : `${rawBaseUrl.replace(/\/+$/, '')}/api/v1`)
-  : '/api/v1';
+const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+// Direct Render URL in production avoids Vercel rewrite 10s gateway timeout during cold starts
+const resolvedBase = rawBaseUrl || (!isLocal ? 'https://priyex-hrms-api.onrender.com' : '/api/v1');
+const baseURL = resolvedBase.endsWith('/api/v1') ? resolvedBase : `${resolvedBase.replace(/\/+$/, '')}/api/v1`;
 
 const api = axios.create({
   baseURL,
@@ -63,6 +64,20 @@ export const prewarmBackend = () => {
     const healthUrl = baseURL.endsWith('/api/v1') ? `${baseURL}/health` : `${baseURL}/api/v1/health`;
     fetch(healthUrl, { method: 'GET', keepalive: true }).catch(() => {});
   } catch (e) {}
+};
+
+// Check if backend is awake and responding
+export const checkBackendHealth = async (timeoutMs: number = 5000): Promise<boolean> => {
+  try {
+    const healthUrl = baseURL.endsWith('/api/v1') ? `${baseURL}/health` : `${baseURL}/api/v1/health`;
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeoutMs);
+    const res = await fetch(healthUrl, { signal: controller.signal, method: 'GET' });
+    clearTimeout(id);
+    return res.ok;
+  } catch {
+    return false;
+  }
 };
 
 // Immediately fire background pre-warm ping on script evaluation

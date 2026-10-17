@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { BrandLogo } from '../components/common/BrandLogo';
+import { checkBackendHealth, prewarmBackend } from '../api/client';
 import {
   ShieldCheck,
   Lock,
@@ -11,7 +12,10 @@ import {
   Eye,
   EyeOff,
   Building2,
-  CheckCircle2
+  CheckCircle2,
+  Cloud,
+  Zap,
+  Radio
 } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
@@ -22,6 +26,8 @@ export const LoginPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isWakingUp, setIsWakingUp] = useState(false);
+  const [serverState, setServerState] = useState<'checking' | 'ready' | 'waking'>('checking');
+  const [wakeElapsed, setWakeElapsed] = useState(0);
   const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
@@ -31,16 +37,62 @@ export const LoginPage: React.FC = () => {
     }
   }, [isAuthenticated, navigate]);
 
-  React.useEffect(() => {
+  // Proactive background ping and health status on mount
+  useEffect(() => {
+    prewarmBackend();
+    let isMounted = true;
+    let pollInterval: any;
+
+    const testHealth = async () => {
+      const isUp = await checkBackendHealth(4000);
+      if (!isMounted) return;
+      if (isUp) {
+        setServerState('ready');
+        setIsWakingUp(false);
+        if (pollInterval) clearInterval(pollInterval);
+      } else {
+        setServerState('waking');
+        // Continue polling every 4s until server responds
+        if (!pollInterval) {
+          pollInterval = setInterval(async () => {
+            const up = await checkBackendHealth(4000);
+            if (up && isMounted) {
+              setServerState('ready');
+              setIsWakingUp(false);
+              clearInterval(pollInterval);
+            }
+          }, 4000);
+        }
+      }
+    };
+
+    testHealth();
+
+    return () => {
+      isMounted = false;
+      if (pollInterval) clearInterval(pollInterval);
+    };
+  }, []);
+
+  // Elapsed timer when waiting for cold start during submit
+  useEffect(() => {
     let timer: any;
+    let interval: any;
     if (isSubmitting) {
       timer = setTimeout(() => {
         setIsWakingUp(true);
-      }, 3500);
+      }, 3000);
+      interval = setInterval(() => {
+        setWakeElapsed((prev) => prev + 1);
+      }, 1000);
     } else {
       setIsWakingUp(false);
+      setWakeElapsed(0);
     }
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      clearInterval(interval);
+    };
   }, [isSubmitting]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -85,13 +137,27 @@ export const LoginPage: React.FC = () => {
           {/* Logo & Brand Header */}
           <BrandLogo size="lg" layout="col" className="mb-6 sm:mb-8" />
 
-          {/* Cloud Server Cold-Start Notice */}
-          {isWakingUp && isSubmitting && (
-            <div className="mb-5 p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-center gap-2.5 font-medium animate-in fade-in duration-200">
-              <div className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping shrink-0" />
-              <span className="leading-relaxed">
-                <strong>Waking up cloud server...</strong> Free tier instances spin down after inactivity. Please hold on a few seconds while it starts up.
-              </span>
+          {/* Cloud Server Warming notice (Before Submit) */}
+          {serverState === 'waking' && !isSubmitting && (
+            <div className="mb-5 p-3 rounded-xl bg-amber-50/90 border border-amber-200/80 text-amber-900 text-xs flex items-center justify-between font-medium animate-in fade-in duration-200">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-amber-500 animate-ping shrink-0" />
+                <span>Cloud server is waking up in background...</span>
+              </div>
+              <span className="text-[10px] text-amber-800 bg-amber-100/90 px-2 py-0.5 rounded-full font-semibold">Free Tier</span>
+            </div>
+          )}
+
+          {/* Cloud Server Cold-Start Notice (During Submit) */}
+          {isSubmitting && (isWakingUp || serverState === 'waking') && (
+            <div className="mb-5 p-3.5 rounded-2xl bg-blue-50 border border-blue-200/80 text-blue-950 text-xs flex items-start gap-2.5 font-medium animate-in fade-in duration-200">
+              <div className="w-2.5 h-2.5 rounded-full bg-blue-600 animate-ping shrink-0 mt-0.5" />
+              <div className="leading-relaxed">
+                <strong className="text-blue-900">Waking up cloud server ({wakeElapsed}s)...</strong>
+                <p className="text-slate-600 mt-0.5">
+                  Free tier instances spin down after inactivity. Please keep this tab open while it initializes.
+                </p>
+              </div>
             </div>
           )}
 
@@ -194,7 +260,9 @@ export const LoginPage: React.FC = () => {
               {isSubmitting ? (
                 <span className="flex items-center gap-2 text-sm font-semibold">
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                  Verifying Credentials...
+                  {isWakingUp || serverState === 'waking'
+                    ? `Waking Cloud Server (${wakeElapsed}s)...`
+                    : 'Verifying Credentials...'}
                 </span>
               ) : (
                 <>
@@ -211,7 +279,28 @@ export const LoginPage: React.FC = () => {
               <Building2 className="w-3.5 h-3.5 text-slate-400" />
               <span>Enterprise Edition</span>
             </span>
-            <span className="font-mono text-slate-400">v2.4.0 • Active</span>
+            <div className="flex items-center gap-2">
+              {serverState === 'ready' && (
+                <span className="flex items-center gap-1.5 text-emerald-600 font-medium">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  <span>Cloud Server Ready</span>
+                </span>
+              )}
+              {serverState === 'waking' && (
+                <span className="flex items-center gap-1.5 text-amber-600 font-medium animate-pulse">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                  <span>Waking Server...</span>
+                </span>
+              )}
+              {serverState === 'checking' && (
+                <span className="flex items-center gap-1.5 text-slate-400 font-medium">
+                  <span className="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
+                  <span>Connecting...</span>
+                </span>
+              )}
+              <span className="text-slate-200">|</span>
+              <span className="font-mono text-slate-400">v2.4.0</span>
+            </div>
           </div>
         </div>
 
