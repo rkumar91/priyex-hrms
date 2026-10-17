@@ -56,6 +56,8 @@ export interface OvertimeItem {
   employeeName: string;
   department: string;
   date: string;
+  startTime?: string;
+  endTime?: string;
   shift: string;
   hours: number;
   rateMultiplier: number;
@@ -156,14 +158,16 @@ export const AttendancePage: React.FC = () => {
   const [overtimeList, setOvertimeList] = useState<OvertimeItem[]>(() => {
     const saved = localStorage.getItem('priyex_overtime_list');
     return saved ? JSON.parse(saved) : [
-      { id: 1, employeeName: 'Rajesh Kumar', department: 'Engineering', date: '2026-10-12', shift: 'Evening Extension', hours: 3.5, rateMultiplier: 1.5, estimatedPayout: 2100.00, reason: 'Sprint release critical bugfixes and deployment testing', projectCode: 'PRJ-FINTECH-01', status: 'APPROVED' },
-      { id: 2, employeeName: 'Amit Verma', department: 'Engineering', date: '2026-10-13', shift: 'Night Deployment', hours: 4.0, rateMultiplier: 1.5, estimatedPayout: 2400.00, reason: 'Core database migration and failover validation', projectCode: 'INFRA-PROD-MIG', status: 'PENDING' },
-      { id: 3, employeeName: 'Siddharth Roy', department: 'Operations', date: '2026-10-11', shift: 'Weekend Maintenance', hours: 6.0, rateMultiplier: 2.0, estimatedPayout: 3600.00, reason: 'Emergency server patch rollout during maintenance window', projectCode: 'OPS-MAINT-Q4', status: 'APPROVED' },
+      { id: 1, employeeName: 'Rajesh Kumar', department: 'Engineering', date: '2026-10-12', startTime: '18:00', endTime: '21:30', shift: 'Evening Extension', hours: 3.5, rateMultiplier: 1.5, estimatedPayout: 2100.00, reason: 'Sprint release critical bugfixes and deployment testing', projectCode: 'PRJ-FINTECH-01', status: 'APPROVED' },
+      { id: 2, employeeName: 'Amit Verma', department: 'Engineering', date: '2026-10-13', startTime: '22:00', endTime: '02:00', shift: 'Night Deployment', hours: 4.0, rateMultiplier: 1.5, estimatedPayout: 2400.00, reason: 'Core database migration and failover validation', projectCode: 'INFRA-PROD-MIG', status: 'PENDING' },
+      { id: 3, employeeName: 'Siddharth Roy', department: 'Operations', date: '2026-10-11', startTime: '10:00', endTime: '16:00', shift: 'Weekend Maintenance', hours: 6.0, rateMultiplier: 2.0, estimatedPayout: 3600.00, reason: 'Emergency server patch rollout during maintenance window', projectCode: 'OPS-MAINT-Q4', status: 'APPROVED' },
     ];
   });
   const [isOtModalOpen, setIsOtModalOpen] = useState(false);
   const [otForm, setOtForm] = useState({
     date: new Date().toISOString().split('T')[0],
+    startTime: '18:00',
+    endTime: '20:30',
     hours: '2.5',
     reason: '',
     projectCode: 'CLIENT-PROD-DELIVERY',
@@ -445,6 +449,33 @@ export const AttendancePage: React.FC = () => {
 
   const handleApplyLeaveSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (leaveForm.startDate > leaveForm.endDate) {
+      alert('Leave start date cannot be after end date.');
+      return;
+    }
+
+    // 1. Check for overlapping existing active leaves
+    const conflictingLeave = leaveRequests.find(l => {
+      if (l.status.includes('REJECTED') || (l.status as string) === 'CANCELLED') return false;
+      return !(leaveForm.startDate > l.endDate || leaveForm.endDate < l.startDate);
+    });
+
+    if (conflictingLeave) {
+      alert(`You already have an active leave application (${conflictingLeave.leaveType} from ${conflictingLeave.startDate} to ${conflictingLeave.endDate} [${conflictingLeave.status}]). Overlapping or duplicate leaves are not permitted.`);
+      return;
+    }
+
+    // 2. Check for conflicting approved/pending Overtime during this leave window
+    const conflictingOt = overtimeList.find(o => {
+      if (o.status === 'REJECTED') return false;
+      return o.date >= leaveForm.startDate && o.date <= leaveForm.endDate;
+    });
+
+    if (conflictingOt) {
+      alert(`Conflict detected: You have an active Overtime entry on ${conflictingOt.date} (${conflictingOt.shift} [${conflictingOt.status}]). You cannot apply for full-day leave on a scheduled overtime date.`);
+      return;
+    }
+
     setIsSubmittingLeave(true);
     try {
       const payload = {
@@ -458,7 +489,7 @@ export const AttendancePage: React.FC = () => {
       setIsLeaveModalOpen(false);
       fetchLeaves();
     } catch (err: any) {
-      alert(err?.message || 'Failed to submit leave application');
+      alert(err?.response?.data?.message || err?.message || 'Failed to submit leave application');
     } finally {
       setIsSubmittingLeave(false);
     }
@@ -476,6 +507,38 @@ export const AttendancePage: React.FC = () => {
   const handleApplyOt = (e: React.FormEvent) => {
     e.preventDefault();
     const hrs = parseFloat(otForm.hours);
+    if (isNaN(hrs) || hrs <= 0) {
+      alert('Please enter valid overtime hours.');
+      return;
+    }
+
+    // 1. Conflict Check: Check if employee has an active Leave on this date
+    const conflictingLeave = leaveRequests.find(l => {
+      if (l.status.includes('REJECTED') || (l.status as string) === 'CANCELLED') return false;
+      return otForm.date >= l.startDate && otForm.date <= l.endDate;
+    });
+    if (conflictingLeave) {
+      alert(`Cannot submit Overtime on ${otForm.date}: You have an active leave application (${conflictingLeave.leaveType} [${conflictingLeave.status}]) on this date.`);
+      return;
+    }
+
+    // 2. Duplicate / Overlapping OT Check on same date and time
+    const conflictingOt = overtimeList.find(o => {
+      if (o.status === 'REJECTED') return false;
+      if (o.date !== otForm.date) return false;
+      // If both have startTime and endTime, check time overlap:
+      if (o.startTime && o.endTime && otForm.startTime && otForm.endTime) {
+        return otForm.startTime < o.endTime && otForm.endTime > o.startTime;
+      }
+      return true;
+    });
+
+    if (conflictingOt) {
+      const timeInfo = conflictingOt.startTime ? ` (${conflictingOt.startTime} - ${conflictingOt.endTime})` : '';
+      alert(`An active Overtime request already exists for ${otForm.date}${timeInfo} [${conflictingOt.status}]. Duplicate or overlapping overtime entries are not permitted.`);
+      return;
+    }
+
     const multiplier = otForm.isWeekend ? 2.0 : 1.5;
     const hourlyBase = 350; // standard hourly rate
     const payout = hrs * hourlyBase * multiplier;
@@ -485,6 +548,8 @@ export const AttendancePage: React.FC = () => {
       employeeName: user?.fullName || 'Current Employee',
       department: 'Engineering',
       date: otForm.date,
+      startTime: otForm.startTime,
+      endTime: otForm.endTime,
       shift: otForm.isWeekend ? 'Weekend Emergency Shift' : 'Evening Extension Shift',
       hours: hrs,
       rateMultiplier: multiplier,
@@ -498,6 +563,8 @@ export const AttendancePage: React.FC = () => {
     setIsOtModalOpen(false);
     setOtForm({
       date: new Date().toISOString().split('T')[0],
+      startTime: '18:00',
+      endTime: '20:30',
       hours: '2.5',
       reason: '',
       projectCode: 'CLIENT-PROD-DELIVERY',
@@ -918,7 +985,12 @@ export const AttendancePage: React.FC = () => {
 
                       <td className="py-3.5 px-4">
                         <div className="font-mono font-semibold text-slate-800">{ot.date}</div>
-                        <div className="text-[11px] text-slate-500">{ot.shift}</div>
+                        <div className="text-[11px] text-slate-500">
+                          {ot.shift}
+                          {ot.startTime && ot.endTime ? (
+                            <span className="ml-1 text-blue-600 font-mono font-medium">({ot.startTime} - {ot.endTime})</span>
+                          ) : null}
+                        </div>
                       </td>
 
                       <td className="py-3.5 px-4 text-center font-bold text-slate-900 text-sm">
@@ -1570,6 +1642,47 @@ export const AttendancePage: React.FC = () => {
                 />
               </div>
 
+              {/* Live Conflict / Duplicate Warning Banner */}
+              {(() => {
+                if (leaveForm.startDate && leaveForm.endDate && leaveForm.startDate > leaveForm.endDate) {
+                  return (
+                    <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-xs flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                      <span>Start date cannot be after end date.</span>
+                    </div>
+                  );
+                }
+                const activeLeaveConflict = leaveRequests.find(l => {
+                  if (l.status.includes('REJECTED') || (l.status as string) === 'CANCELLED') return false;
+                  return !(leaveForm.startDate > l.endDate || leaveForm.endDate < l.startDate);
+                });
+                if (activeLeaveConflict) {
+                  return (
+                    <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-xs flex items-start gap-2">
+                      <AlertCircle className="w-4 h-4 text-rose-600 mt-0.5 shrink-0" />
+                      <div>
+                        <span className="font-bold">Duplicate / Overlapping Leave:</span> You already have an active application ({activeLeaveConflict.leaveType} from {activeLeaveConflict.startDate} to {activeLeaveConflict.endDate} [{activeLeaveConflict.status}]). Duplicate requests are not permitted.
+                      </div>
+                    </div>
+                  );
+                }
+                const activeOtConflict = overtimeList.find(o => {
+                  if (o.status === 'REJECTED') return false;
+                  return o.date >= leaveForm.startDate && o.date <= leaveForm.endDate;
+                });
+                if (activeOtConflict) {
+                  return (
+                    <div className="p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-xs flex items-start gap-2">
+                      <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
+                      <div>
+                        <span className="font-bold">Overtime Conflict:</span> You have an active Overtime entry on {activeOtConflict.date} ({activeOtConflict.shift} [{activeOtConflict.status}]).
+                      </div>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
+
               <div className="pt-3 flex items-center justify-end gap-3 border-t border-slate-200">
                 <button
                   type="button"
@@ -1580,8 +1693,13 @@ export const AttendancePage: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  disabled={isSubmittingLeave}
-                  className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold flex items-center gap-2 shadow-sm cursor-pointer transition active:scale-95 disabled:opacity-50"
+                  disabled={
+                    isSubmittingLeave ||
+                    leaveForm.startDate > leaveForm.endDate ||
+                    !!leaveRequests.find(l => !l.status.includes('REJECTED') && (l.status as string) !== 'CANCELLED' && !(leaveForm.startDate > l.endDate || leaveForm.endDate < l.startDate)) ||
+                    !!overtimeList.find(o => o.status !== 'REJECTED' && o.date >= leaveForm.startDate && o.date <= leaveForm.endDate)
+                  }
+                  className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold flex items-center gap-2 shadow-sm cursor-pointer transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSubmittingLeave ? 'Submitting...' : 'Submit Application'}
                 </button>
@@ -1634,6 +1752,56 @@ export const AttendancePage: React.FC = () => {
                 </div>
               </div>
 
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-700 font-bold mb-1">Start Time (24h) *</label>
+                  <input
+                    type="time"
+                    required
+                    value={otForm.startTime}
+                    onChange={(e) => {
+                      const newStart = e.target.value;
+                      let updatedHours = otForm.hours;
+                      if (newStart && otForm.endTime) {
+                        const [sh, sm] = newStart.split(':').map(Number);
+                        const [eh, em] = otForm.endTime.split(':').map(Number);
+                        let diffMinutes = (eh * 60 + em) - (sh * 60 + sm);
+                        if (diffMinutes < 0) diffMinutes += 24 * 60;
+                        if (diffMinutes > 0) {
+                          updatedHours = (diffMinutes / 60).toFixed(1);
+                        }
+                      }
+                      setOtForm({ ...otForm, startTime: newStart, hours: updatedHours });
+                    }}
+                    className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-blue-500 font-mono font-medium"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-slate-700 font-bold mb-1">End Time (24h) *</label>
+                  <input
+                    type="time"
+                    required
+                    value={otForm.endTime}
+                    onChange={(e) => {
+                      const newEnd = e.target.value;
+                      let updatedHours = otForm.hours;
+                      if (otForm.startTime && newEnd) {
+                        const [sh, sm] = otForm.startTime.split(':').map(Number);
+                        const [eh, em] = newEnd.split(':').map(Number);
+                        let diffMinutes = (eh * 60 + em) - (sh * 60 + sm);
+                        if (diffMinutes < 0) diffMinutes += 24 * 60;
+                        if (diffMinutes > 0) {
+                          updatedHours = (diffMinutes / 60).toFixed(1);
+                        }
+                      }
+                      setOtForm({ ...otForm, endTime: newEnd, hours: updatedHours });
+                    }}
+                    className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-blue-500 font-mono font-medium"
+                  />
+                </div>
+              </div>
+
               <div>
                 <label className="block text-slate-700 font-bold mb-1">Project Code / Client Tag</label>
                 <input
@@ -1669,6 +1837,40 @@ export const AttendancePage: React.FC = () => {
                 />
               </div>
 
+              {/* Conflict check warning */}
+              {(() => {
+                const leaveConflict = leaveRequests.find(l => !l.status.includes('REJECTED') && (l.status as string) !== 'CANCELLED' && otForm.date >= l.startDate && otForm.date <= l.endDate);
+                if (leaveConflict) {
+                  return (
+                    <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-xs flex items-start gap-2">
+                      <AlertCircle className="w-4 h-4 text-rose-600 mt-0.5 shrink-0" />
+                      <div>
+                        <span className="font-bold">Leave Conflict:</span> You have an active leave application ({leaveConflict.leaveType} [{leaveConflict.status}]) on this date.
+                      </div>
+                    </div>
+                  );
+                }
+                const otConflict = overtimeList.find(o => {
+                  if (o.status === 'REJECTED') return false;
+                  if (o.date !== otForm.date) return false;
+                  if (o.startTime && o.endTime && otForm.startTime && otForm.endTime) {
+                    return otForm.startTime < o.endTime && otForm.endTime > o.startTime;
+                  }
+                  return true;
+                });
+                if (otConflict) {
+                  return (
+                    <div className="p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-xs flex items-start gap-2">
+                      <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
+                      <div>
+                        <span className="font-bold">Duplicate/Overlap Warning:</span> An active overtime request already exists on {otConflict.date} {otConflict.startTime ? `(${otConflict.startTime} - ${otConflict.endTime})` : ''} [{otConflict.status}].
+                      </div>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
+
               <div className="pt-3 flex items-center justify-end gap-3 border-t border-slate-200">
                 <button
                   type="button"
@@ -1679,9 +1881,19 @@ export const AttendancePage: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold flex items-center gap-2 shadow-sm cursor-pointer transition active:scale-95"
+                  disabled={
+                    !!leaveRequests.find(l => !l.status.includes('REJECTED') && (l.status as string) !== 'CANCELLED' && otForm.date >= l.startDate && otForm.date <= l.endDate) ||
+                    !!overtimeList.find(o => {
+                      if (o.status === 'REJECTED' || o.date !== otForm.date) return false;
+                      if (o.startTime && o.endTime && otForm.startTime && otForm.endTime) {
+                        return otForm.startTime < o.endTime && otForm.endTime > o.startTime;
+                      }
+                      return true;
+                    })
+                  }
+                  className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold flex items-center gap-2 shadow-sm cursor-pointer transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Submit OT for Approval
+                  Submit Overtime Request
                 </button>
               </div>
             </form>
