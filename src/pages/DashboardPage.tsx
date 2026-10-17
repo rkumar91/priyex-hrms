@@ -388,8 +388,35 @@ export const DashboardPage: React.FC = () => {
     },
   ];
 
-  const dynamicActivities = liveActivities.length > 0
-    ? liveActivities.map(act => ({
+  const userDisplayName = user?.displayName || user?.fullName || '';
+
+  const userScopedActivities = isManagerOrAdmin
+    ? liveActivities
+    : liveActivities.filter(act => {
+        // If it's an onboarding event, only show if it matches the current user
+        if (act.type === 'Employee Onboarded' || act.type === 'Employee Enrolled') {
+          return userDisplayName ? act.title?.toLowerCase().includes(userDisplayName.toLowerCase()) : true;
+        }
+        // If it's a leave event formatted as "EmployeeName - LeaveType...", ensure it matches user
+        if (act.type?.includes('Leave') && act.title?.includes(' - ')) {
+          const parts = act.title.split(' - ');
+          if (parts.length > 1 && userDisplayName) {
+            const possibleName = parts[0].trim().toLowerCase();
+            // If first part is another employee's name, filter it out
+            if (!possibleName.includes(userDisplayName.toLowerCase()) && !userDisplayName.toLowerCase().includes(possibleName)) {
+              return false;
+            }
+          }
+        }
+        // Payroll runs are company-wide administrative batch events
+        if (act.type === 'Payroll Run') {
+          return false;
+        }
+        return true;
+      });
+
+  const dynamicActivities = userScopedActivities.length > 0
+    ? userScopedActivities.map(act => ({
         ...act,
         icon: activityIconMap[act.icon] || CheckCircle2,
       }))
