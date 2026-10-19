@@ -55,10 +55,12 @@ export const FormsDownloadCenterTab: React.FC<FormsDownloadCenterTabProps> = ({ 
   // Filters State
   const [companies, setCompanies] = useState<CompanyOption[]>([
     { id: 1, code: 'PRIYEX', legalName: 'Priyex Technologies Private Limited', brandName: 'Priyex Technologies' },
-    { id: 2, code: 'PRIYEX-DIGITAL', legalName: 'Priyex Digital Solutions Private Limited', brandName: 'Priyex Digital' },
-    { id: 3, code: 'PRIYEX-CONSULT', legalName: 'Priyex Global Consulting Private Limited', brandName: 'Priyex Consulting' }
+    { id: 2, code: 'TCS', legalName: 'Tata Consultancy Services Limited', brandName: 'TCS' },
+    { id: 3, code: 'WIPRO', legalName: 'Wipro Limited', brandName: 'Wipro' },
+    { id: 4, code: 'INFOSYS', legalName: 'Infosys Limited', brandName: 'Infosys' }
   ]);
-  const [selectedCompanyId, setSelectedCompanyId] = useState<number>(1);
+  const userCompanyId = user?.company?.id || (user as any)?.companyId || 1;
+  const [selectedCompanyId, setSelectedCompanyId] = useState<number>(Number(userCompanyId));
   const [selectedYear, setSelectedYear] = useState<string>('2026');
   const [selectedMonth, setSelectedMonth] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -79,13 +81,17 @@ export const FormsDownloadCenterTab: React.FC<FormsDownloadCenterTabProps> = ({ 
         const res: any = await api.get('/organization/companies');
         if (res.success && Array.isArray(res.data) && res.data.length > 0) {
           setCompanies(res.data);
+          const userCompId = user?.company?.id || (user as any)?.companyId;
+          if (userCompId && res.data.some((c: any) => c.id === Number(userCompId))) {
+            setSelectedCompanyId(Number(userCompId));
+          }
         }
       } catch (e) {
         // Fallback kept
       }
     };
     fetchCompanies();
-  }, []);
+  }, [user]);
 
   // Fetch Filtered Payslips
   const fetchPayslips = async () => {

@@ -101,6 +101,18 @@ export interface EmployeePayslip {
   paymentDate?: string;
   paymentMode?: string;
   transactionReference?: string;
+
+  // Organization / Company branding info
+  companyLegalName?: string;
+  companyBrandName?: string;
+  companyCode?: string;
+  companyCin?: string;
+  companyGstin?: string;
+  companyLogoUrl?: string;
+  companyAddressLine1?: string;
+  companyCity?: string;
+  companyState?: string;
+  companyPostalCode?: string;
 }
 
 export interface CtcBreakdown {
@@ -181,6 +193,7 @@ export const PayrollPage: React.FC = () => {
   const [employeesCtc, setEmployeesCtc] = useState<CtcBreakdown[]>(fallbackDemoCtcList);
   const [myCtc, setMyCtc] = useState<CtcBreakdown>(fallbackDemoCtc);
   const [myPayslips, setMyPayslips] = useState<EmployeePayslip[]>(fallbackDemoPayslips);
+  const [companies, setCompanies] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isExecuting, setIsExecuting] = useState(false);
   const [feedbackMsg, setFeedbackMsg] = useState<string | null>(null);
@@ -197,6 +210,15 @@ export const PayrollPage: React.FC = () => {
   const fetchData = async () => {
     setIsLoading(true);
     try {
+      try {
+        const compRes: any = await api.get('/organization/companies');
+        if (compRes.success && Array.isArray(compRes.data)) {
+          setCompanies(compRes.data);
+        }
+      } catch {
+        // ignore
+      }
+
       if (canManage) {
         // Fetch payroll runs
         const runsRes: any = await api.get('/payroll/runs');
@@ -1216,19 +1238,60 @@ export const PayrollPage: React.FC = () => {
             <div className="p-4 sm:p-6 overflow-y-auto flex-1 print:p-0 print:overflow-visible">
               {/* Printable Payslip Container */}
               <div className="border border-slate-200 rounded-2xl p-6 space-y-5 text-xs bg-white print:border-none print:p-0">
-              {/* Company Header */}
-              <div className="text-center border-b border-slate-200 pb-4">
-                <h2 className="text-lg font-black text-slate-900 tracking-tight">PRIYEX TECHNOLOGIES PRIVATE LIMITED</h2>
-                <p className="text-[11px] text-slate-500 font-medium mt-0.5">
-                  CIN: U72900DL2023PTC123456 • GSTIN: 07AAACP1234E1Z5
-                </p>
-                <p className="text-[11px] text-slate-500">
-                  Priyex Tech Tower, Sector 62, Noida, Uttar Pradesh - 201301
-                </p>
-                <div className="inline-block mt-2 px-3 py-1 bg-slate-100 rounded-lg text-xs font-bold text-slate-900 uppercase tracking-wider">
-                  Payslip for the month of {selectedPayslip.payPeriod}
-                </div>
-              </div>
+              {/* Dynamic Company Header */}
+              {(() => {
+                const matchedComp = companies.find(c => c.id === Number(selectedPayslip.companyId)) ||
+                  (user?.company?.id === Number(selectedPayslip.companyId) ? user.company : null) ||
+                  user?.company;
+
+                const legalName = selectedPayslip.companyLegalName ||
+                  matchedComp?.legalName ||
+                  user?.company?.legalName ||
+                  'Priyex Technologies Private Limited';
+
+                const cin = selectedPayslip.companyCin ||
+                  matchedComp?.registrationNo ||
+                  user?.company?.registrationNo ||
+                  'U72900UP2024PTC000001';
+
+                const gstin = selectedPayslip.companyGstin ||
+                  matchedComp?.taxId ||
+                  user?.company?.taxId ||
+                  '07AAACP1234E1Z5';
+
+                const address = (selectedPayslip.companyAddressLine1 || matchedComp?.addressLine1)
+                  ? `${selectedPayslip.companyAddressLine1 || matchedComp?.addressLine1}, ${selectedPayslip.companyCity || matchedComp?.city || ''}, ${selectedPayslip.companyState || matchedComp?.state || ''} - ${selectedPayslip.companyPostalCode || matchedComp?.postalCode || ''}`
+                  : (matchedComp?.city ? `${matchedComp.city}, ${matchedComp.state || ''} - ${matchedComp.postalCode || ''}` : 'Nirala Estate, Greater Noida, Uttar Pradesh - 201306');
+
+                const logoUrl = selectedPayslip.companyLogoUrl || matchedComp?.logoUrl || user?.company?.logoUrl;
+
+                return (
+                  <div className="text-center border-b border-slate-200 pb-4">
+                    {logoUrl && (
+                      <div className="flex justify-center mb-2">
+                        <img
+                          src={logoUrl}
+                          alt={legalName}
+                          className="h-10 max-w-[180px] object-contain rounded"
+                          onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                        />
+                      </div>
+                    )}
+                    <h2 className="text-lg font-black text-slate-900 tracking-tight uppercase">
+                      {legalName}
+                    </h2>
+                    <p className="text-[11px] text-slate-500 font-medium mt-0.5">
+                      CIN: {cin} • GSTIN / PAN: {gstin}
+                    </p>
+                    <p className="text-[11px] text-slate-500">
+                      {address}
+                    </p>
+                    <div className="inline-block mt-2 px-3 py-1 bg-slate-100 rounded-lg text-xs font-bold text-slate-900 uppercase tracking-wider">
+                      Payslip for the month of {selectedPayslip.payPeriod}
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Employee & Bank Info Grid */}
               <div className="grid grid-cols-2 gap-x-6 gap-y-1.5 text-slate-700 bg-slate-50 p-4 rounded-xl border border-slate-200/80">
