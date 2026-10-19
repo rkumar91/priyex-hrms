@@ -179,11 +179,29 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu, onAnnouncement
               <BrandLogo size="sm" layout="row" />
             </div>
 
-            {/* Desktop view: Clean Section Breadcrumb */}
+            {/* Desktop view: Clean Section Breadcrumb & Client Logo Badge */}
             <div className="hidden lg:flex items-center gap-2 text-xs font-semibold">
               <span className="text-slate-400 font-medium">HRMS</span>
               <span className="text-slate-300">/</span>
               <span className="text-slate-800 font-bold">{pageTitle}</span>
+
+              {/* Client Workspace Badge */}
+              {user?.company && (
+                <div className="ml-2.5 flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 border border-slate-200/90 rounded-lg text-slate-700 shadow-2xs">
+                  {user.company.logoUrl ? (
+                    <img
+                      src={user.company.logoUrl}
+                      alt={user.company.code}
+                      className="w-4 h-4 object-contain rounded-xs"
+                    />
+                  ) : (
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  )}
+                  <span className="font-bold text-[11px] text-slate-800">
+                    {user.company.brandName || user.company.code}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
 

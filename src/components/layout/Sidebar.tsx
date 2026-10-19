@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
-import { canViewAuditLogs, canManageOrganization, canManageUserRoles, isHrAdmin, canManageAnnouncements } from '../../utils/rbac';
+import { isSuperAdmin, canViewAuditLogs, canManageOrganization, canManageUserRoles, isHrAdmin, canManageAnnouncements } from '../../utils/rbac';
 import { BrandLogo } from '../common/BrandLogo';
 import {
   LayoutDashboard,
@@ -10,6 +10,7 @@ import {
   CalendarCheck,
   CircleDollarSign,
   Building,
+  Building2,
   ShieldAlert,
   ClipboardCheck,
   UserCog,
@@ -179,6 +180,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen = false, onCloseMob
       path: '/banner-notifications',
       icon: Megaphone,
       show: canManageAnnouncements(user)
+    },
+    {
+      name: 'Client Onboarding',
+      path: '/client-onboarding',
+      icon: Building2,
+      show: isSuperAdmin(user)
     },
     {
       name: t('nav.auditLogs', 'Audit & Compliance'),

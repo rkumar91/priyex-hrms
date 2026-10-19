@@ -15,12 +15,16 @@ const api = axios.create({
   withCredentials: true, // Send HttpOnly cookies
 });
 
-// Request interceptor to attach bearer token fallback if present in localStorage
+// Request interceptor to attach bearer token and active tenant company ID
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('accessToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+    const activeCompanyId = localStorage.getItem('priyex_active_company_id');
+    if (activeCompanyId) {
+      config.headers['X-Company-Id'] = activeCompanyId;
     }
     return config;
   },

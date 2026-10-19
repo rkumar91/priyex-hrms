@@ -15,12 +15,14 @@ import {
   X,
   Save,
   Search,
-  Check
+  Check,
+  Sliders
 } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { isHrAdmin } from '../utils/rbac';
 import api from '../api/client';
+import { ClientPoliciesTab } from '../components/organization/ClientPoliciesTab';
 
 export interface OrgLeavePolicy {
   id: number;
@@ -119,12 +121,17 @@ export const OrganizationPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const rawTab = searchParams.get('tab')?.toLowerCase();
 
-  const getOrgTab = (key?: string | null): 'DEPARTMENTS' | 'LEAVE_POLICIES' => {
+  type OrgTab = 'LEAVE_POLICIES' | 'CLIENT_POLICIES' | 'DEPARTMENTS';
+
+  const getOrgTab = (key?: string | null): OrgTab => {
+    if (key === 'client-policies' || key === 'engine' || key === 'clients' || key === 'policies') {
+      return 'CLIENT_POLICIES';
+    }
     if (key === 'entities' || key === 'departments') return 'DEPARTMENTS';
     return 'LEAVE_POLICIES';
   };
 
-  const [activeTab, setActiveTab] = useState<'DEPARTMENTS' | 'LEAVE_POLICIES'>(() => getOrgTab(rawTab));
+  const [activeTab, setActiveTab] = useState<OrgTab>(() => getOrgTab(rawTab));
 
   useEffect(() => {
     if (rawTab) {
@@ -177,6 +184,12 @@ export const OrganizationPage: React.FC = () => {
 
   useEffect(() => {
     fetchPolicies();
+
+    const handleTenantChanged = () => {
+      fetchPolicies();
+    };
+    window.addEventListener('tenant-changed', handleTenantChanged);
+    return () => window.removeEventListener('tenant-changed', handleTenantChanged);
   }, []);
 
   const openCreateModal = () => {
@@ -284,6 +297,7 @@ export const OrganizationPage: React.FC = () => {
 
   const tabMetaMap = {
     LEAVE_POLICIES: { title: 'Annual Leave Quotas', subtitle: 'Statutory leave entitlements, quotas & carry forward rules' },
+    CLIENT_POLICIES: { title: 'Client Policy Engine', subtitle: 'Isolated attendance grace, sandwich rules, OT multipliers & approval chains per client' },
     DEPARTMENTS: { title: 'Departments & Entities', subtitle: 'Corporate branches, legal entities & departmental cost centers' },
   };
 
@@ -317,6 +331,57 @@ export const OrganizationPage: React.FC = () => {
             <span>Create Leave Quota Policy</span>
           </button>
         )}
+      </div>
+
+      {/* ─── TAB NAVIGATION BAR ─── */}
+      <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 pb-3">
+        <button
+          type="button"
+          onClick={() => setActiveTab('LEAVE_POLICIES')}
+          className={`px-4 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center gap-2 cursor-pointer ${
+            activeTab === 'LEAVE_POLICIES'
+              ? 'bg-blue-600 text-white shadow-xs'
+              : 'bg-white text-slate-600 hover:bg-slate-100 hover:text-slate-900 border border-slate-200'
+          }`}
+        >
+          <CalendarCheck2 className="w-4 h-4" />
+          <span>Annual Leave Quotas</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('CLIENT_POLICIES')}
+          className={`px-4 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center gap-2 cursor-pointer ${
+            activeTab === 'CLIENT_POLICIES'
+              ? 'bg-indigo-600 text-white shadow-xs'
+              : 'bg-white text-slate-600 hover:bg-slate-100 hover:text-slate-900 border border-slate-200'
+          }`}
+        >
+          <Sliders className="w-4 h-4" />
+          <span>Client Policy Engine</span>
+          <span
+            className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-bold ${
+              activeTab === 'CLIENT_POLICIES'
+                ? 'bg-white/20 text-white border border-white/30'
+                : 'bg-indigo-50 text-indigo-700 border border-indigo-200'
+            }`}
+          >
+            Multi-Client
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('DEPARTMENTS')}
+          className={`px-4 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center gap-2 cursor-pointer ${
+            activeTab === 'DEPARTMENTS'
+              ? 'bg-blue-600 text-white shadow-xs'
+              : 'bg-white text-slate-600 hover:bg-slate-100 hover:text-slate-900 border border-slate-200'
+          }`}
+        >
+          <Layers className="w-4 h-4" />
+          <span>Departments & Entities</span>
+        </button>
       </div>
 
       {/* ─── TAB 1: ANNUAL LEAVE POLICIES & QUOTAS ─── */}
@@ -479,7 +544,17 @@ export const OrganizationPage: React.FC = () => {
         </div>
       )}
 
-      {/* ─── TAB 2: DEPARTMENTS & LEGAL ENTITIES ─── */}
+      {/* ─── TAB 2: ENTERPRISE CLIENT POLICY ENGINE ─── */}
+      {activeTab === 'CLIENT_POLICIES' && (
+        <ClientPoliciesTab
+          canManage={canManage}
+          onClientSwitch={() => {
+            fetchPolicies();
+          }}
+        />
+      )}
+
+      {/* ─── TAB 3: DEPARTMENTS & LEGAL ENTITIES ─── */}
       {activeTab === 'DEPARTMENTS' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-in fade-in duration-200">
           {/* Company Info Card */}

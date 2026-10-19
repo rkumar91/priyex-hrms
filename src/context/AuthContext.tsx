@@ -10,6 +10,14 @@ export interface UserProfile {
   photoUrl?: string;
   userType?: string;
   companyId?: string | number;
+  company?: {
+    id: number;
+    code: string;
+    legalName: string;
+    brandName?: string;
+    logoUrl?: string;
+    [key: string]: any;
+  };
   employeeId?: string | number;
   roles: string[];
   permissions?: string[];
@@ -135,6 +143,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         fullName: sanitizedName,
         displayName: sanitizedName,
       };
+      if (rawUser.companyId) {
+        localStorage.setItem('priyex_active_company_id', String(rawUser.companyId));
+      }
+      if (rawUser.company) {
+        const companyName = rawUser.company.brandName || rawUser.company.legalName;
+        if (companyName) {
+          localStorage.setItem('priyex_active_company_name', companyName);
+        }
+        if (rawUser.company.logoUrl) {
+          localStorage.setItem('priyex_active_company_logo', rawUser.company.logoUrl);
+        } else {
+          localStorage.removeItem('priyex_active_company_logo');
+        }
+      }
       setUser(activeUser);
       localStorage.setItem('user', JSON.stringify(activeUser));
     }
@@ -149,6 +171,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(null);
       localStorage.removeItem('user');
       localStorage.removeItem('accessToken');
+      localStorage.removeItem('priyex_active_company_id');
+      localStorage.removeItem('priyex_active_company_name');
+      localStorage.removeItem('priyex_active_company_logo');
     }
   };
 
