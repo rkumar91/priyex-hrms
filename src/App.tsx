@@ -7,6 +7,7 @@ import { AppLayout } from './components/layout/AppLayout';
 import { LoginPage } from './pages/LoginPage';
 import { prewarmBackend } from './api/client';
 
+const LandingPage = lazy(() => import('./pages/LandingPage').then(m => ({ default: m.LandingPage })));
 const DashboardPage = lazy(() => import('./pages/DashboardPage').then(m => ({ default: m.DashboardPage })));
 const EmployeesPage = lazy(() => import('./pages/EmployeesPage').then(m => ({ default: m.EmployeesPage })));
 const ProfileRequestsPage = lazy(() => import('./pages/ProfileRequestsPage').then(m => ({ default: m.ProfileRequestsPage })));
@@ -39,10 +40,26 @@ export const App: React.FC = () => {
       <ThemeProvider>
         <LanguageProvider>
           <AuthProvider>
-            <Routes>
-              <Route path="/login" element={<LoginPage />} />
-              <Route element={<AppLayout />}>
-                <Route path="/" element={<DashboardPage />} />
+            <React.Suspense
+              fallback={
+                <div className="min-h-screen w-full bg-slate-900 flex flex-col items-center justify-center gap-3 text-slate-400">
+                  <div className="w-9 h-9 border-3 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin" />
+                  <span className="text-xs font-semibold text-slate-300">Loading Priyex Platform...</span>
+                </div>
+              }
+            >
+              <Routes>
+                {/* Public-Facing Priyex SaaS Marketing & Sales Landing Page */}
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/home" element={<LandingPage />} />
+
+                {/* Client Organization Authentication */}
+                <Route path="/login" element={<LoginPage />} />
+
+                {/* Authenticated Multi-Tenant HRMS Application Suite */}
+                <Route element={<AppLayout />}>
+                <Route path="/dashboard" element={<DashboardPage />} />
+                <Route path="/app" element={<Navigate to="/dashboard" replace />} />
                 <Route path="/employees" element={<EmployeesPage />} />
                 <Route path="/requests" element={<ProfileRequestsPage />} />
                 <Route path="/attendance" element={<AttendancePage />} />
@@ -58,7 +75,8 @@ export const App: React.FC = () => {
               </Route>
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
-          </AuthProvider>
+          </React.Suspense>
+        </AuthProvider>
         </LanguageProvider>
       </ThemeProvider>
     </BrowserRouter>

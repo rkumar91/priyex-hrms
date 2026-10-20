@@ -83,7 +83,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen = false, onCloseMob
   const navigationItems: NavItem[] = [
     {
       name: t('nav.dashboard', 'Dashboard'),
-      path: '/',
+      path: '/dashboard',
       icon: LayoutDashboard,
       show: true
     },

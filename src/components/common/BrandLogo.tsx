@@ -27,17 +27,18 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
   const { user } = useAuth();
   const [imgError, setImgError] = useState(false);
 
-  // Check if we should resolve branding from tenant context
+  // Check if we should resolve branding from tenant context (only for authenticated tenant users)
   const activeCompany = user?.company;
   const isSuper = isSuperAdmin(user);
+  const shouldCheckTenant = useTenantContext && !isSuper && Boolean(user);
 
   // Determine logo URL
   const resolvedLogoUrl =
     customLogoUrl !== undefined
       ? customLogoUrl
-      : useTenantContext && !isSuper && activeCompany?.logoUrl
+      : shouldCheckTenant && activeCompany?.logoUrl
       ? activeCompany.logoUrl
-      : useTenantContext && !isSuper
+      : shouldCheckTenant
       ? localStorage.getItem('priyex_active_company_logo')
       : null;
 
@@ -45,9 +46,9 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
   const resolvedBrandName =
     customBrandName !== undefined && customBrandName !== null
       ? customBrandName
-      : useTenantContext && !isSuper && (activeCompany?.brandName || activeCompany?.legalName)
+      : shouldCheckTenant && (activeCompany?.brandName || activeCompany?.legalName)
       ? activeCompany.brandName || activeCompany.legalName
-      : useTenantContext && !isSuper && localStorage.getItem('priyex_active_company_name')
+      : shouldCheckTenant
       ? localStorage.getItem('priyex_active_company_name')
       : null;
 

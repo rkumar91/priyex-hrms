@@ -264,7 +264,7 @@ export const OnboardingPage: React.FC = () => {
           </div>
         </div>
         <button
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/dashboard')}
           className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-md transition cursor-pointer"
         >
           Go to Dashboard
@@ -299,7 +299,7 @@ export const OnboardingPage: React.FC = () => {
         </div>
 
         <button
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/dashboard')}
           className="px-6 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition cursor-pointer"
         >
           Return to Dashboard

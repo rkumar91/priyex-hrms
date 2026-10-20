@@ -21,6 +21,7 @@ import {
   Crown,
   UserCircle,
   Command,
+  Globe,
   X
 } from 'lucide-react';
 import { NotificationCenter } from '../notifications/NotificationCenter';
@@ -53,7 +54,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu, onAnnouncement
   const searchRef = useRef<HTMLInputElement>(null);
 
   const getPageTitle = (pathname: string) => {
-    if (pathname === '/') return t('nav.dashboard', 'Dashboard');
+    if (pathname === '/' || pathname === '/dashboard') return t('nav.dashboard', 'Dashboard');
     if (pathname.startsWith('/employees')) return t('nav.employees', 'Employees');
     if (pathname.startsWith('/attendance')) return t('nav.attendance', 'Attendance & Leave');
     if (pathname.startsWith('/payroll')) return t('nav.payroll', 'Payroll & Compensation');
@@ -179,29 +180,11 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu, onAnnouncement
               <BrandLogo size="sm" layout="row" />
             </div>
 
-            {/* Desktop view: Clean Section Breadcrumb & Client Logo Badge */}
+            {/* Desktop view: Clean Section Breadcrumb */}
             <div className="hidden lg:flex items-center gap-2 text-xs font-semibold">
               <span className="text-slate-400 font-medium">HRMS</span>
               <span className="text-slate-300">/</span>
               <span className="text-slate-800 font-bold">{pageTitle}</span>
-
-              {/* Client Workspace Badge */}
-              {user?.company && (
-                <div className="ml-2.5 flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 border border-slate-200/90 rounded-lg text-slate-700 shadow-2xs">
-                  {user.company.logoUrl ? (
-                    <img
-                      src={user.company.logoUrl}
-                      alt={user.company.code}
-                      className="w-4 h-4 object-contain rounded-xs"
-                    />
-                  ) : (
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                  )}
-                  <span className="font-bold text-[11px] text-slate-800">
-                    {user.company.brandName || user.company.code}
-                  </span>
-                </div>
-              )}
             </div>
           </div>
 
@@ -386,6 +369,14 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu, onAnnouncement
                     <User className="w-3 h-3" />
                     <span>View Profile</span>
                   </button>
+                  <Link
+                    to="/"
+                    onClick={() => setIsProfileOpen(false)}
+                    className="w-full py-2 px-3 rounded-lg hover:bg-slate-100 text-slate-700 text-[11px] font-bold transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer border border-slate-200/60"
+                  >
+                    <Globe className="w-3 h-3 text-blue-600" />
+                    <span>Priyex SaaS Website</span>
+                  </Link>
                   <button
                     type="button"
                     onClick={() => {

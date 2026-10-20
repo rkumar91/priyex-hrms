@@ -17,7 +17,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ onOpenMenu }) => {
   const { t } = useLanguage();
 
   const tabs = [
-    { name: t('nav.dashboard', 'Dashboard'), path: '/', icon: LayoutDashboard },
+    { name: t('nav.dashboard', 'Dashboard'), path: '/dashboard', icon: LayoutDashboard },
     { name: t('nav.employees', 'Directory'), path: '/employees', icon: Users },
     { name: t('nav.requests', 'Requests'), path: '/requests', icon: ClipboardCheck },
     { name: t('nav.attendance', 'Attendance'), path: '/attendance', icon: CalendarCheck },
