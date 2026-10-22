@@ -14,7 +14,8 @@ import {
   ShieldCheck,
   ChevronRight,
   ArrowRight,
-  MessageSquare
+  MessageSquare,
+  AlertCircle
 } from 'lucide-react';
 import api from '../../api/client';
 
@@ -54,6 +55,7 @@ export const BookDemoModal: React.FC<BookDemoModalProps> = ({
   const [message, setMessage] = useState('');
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [confirmationData, setConfirmationData] = useState<{
     inquiryId: string;
     assignedConsultant: string;
@@ -72,6 +74,7 @@ export const BookDemoModal: React.FC<BookDemoModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setSubmitError(null);
 
     const payload = {
       fullName,
@@ -86,26 +89,23 @@ export const BookDemoModal: React.FC<BookDemoModalProps> = ({
       message
     };
 
-    let generatedInquiryId = `PRX-DEMO-2026-${Math.floor(1000 + Math.random() * 9000)}`;
-
     try {
       const res: any = await api.post('/public/leads', payload);
       const data = res?.data || res;
-      generatedInquiryId = data.inquiryId || generatedInquiryId;
+      const inquiryId = data.inquiryId || `PRX-DEMO-2026-${Math.floor(1000 + Math.random() * 9000)}`;
       setConfirmationData({
-        inquiryId: generatedInquiryId,
+        inquiryId,
         assignedConsultant: data.assignedConsultant || 'Ananya Sharma (Senior HR Solutions Architect)',
-        scheduledWindow: `${preferredDate} (${preferredTimeSlot})`,
-        confirmationEmail: workEmail
+        scheduledWindow: data.scheduledWindow || `${preferredDate} (${preferredTimeSlot})`,
+        confirmationEmail: data.confirmationEmail || workEmail
       });
-    } catch (err) {
-      // Graceful fallback if backend is sleeping or spinning up
-      setConfirmationData({
-        inquiryId: generatedInquiryId,
-        assignedConsultant: 'Ananya Sharma (Senior HR Solutions Architect)',
-        scheduledWindow: `${preferredDate} (${preferredTimeSlot})`,
-        confirmationEmail: workEmail
-      });
+    } catch (err: any) {
+      console.error('Failed to book demo:', err);
+      const errorMsg =
+        typeof err === 'string'
+          ? err
+          : err?.message || 'Unable to confirm demo schedule at this moment. Please try again or connect directly with our enterprise team below.';
+      setSubmitError(errorMsg);
     } finally {
       setIsSubmitting(false);
     }
@@ -113,6 +113,7 @@ export const BookDemoModal: React.FC<BookDemoModalProps> = ({
 
   const handleResetAndClose = () => {
     setConfirmationData(null);
+    setSubmitError(null);
     onClose();
   };
 
@@ -252,6 +253,44 @@ export const BookDemoModal: React.FC<BookDemoModalProps> = ({
           ) : (
             /* Lead Capture Form */
             <form onSubmit={handleSubmit} className="space-y-4">
+              {submitError && (
+                <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs space-y-2 animate-in fade-in">
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-semibold text-rose-800">{submitError}</p>
+                      <p className="text-[11px] text-rose-600 mt-0.5">
+                        Our cloud server might be waking up or experiencing high traffic. You can retry now or reach our team instantly via:
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2 pt-1 pl-6">
+                    <a
+                      href={`https://wa.me/919901694683?text=${encodeURIComponent(
+                        `Hi Priyex Team, I would like to schedule an HRMS demo for ${companyName || 'my organization'}. Name: ${fullName || 'Prospect'}, Email: ${workEmail}, Phone: ${phoneNumber || 'N/A'}`
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] transition shadow-xs"
+                    >
+                      <Phone className="w-3 h-3" />
+                      <span>Instant WhatsApp Booking</span>
+                    </a>
+                    <a
+                      href={`mailto:tech.priyex@gmail.com?subject=${encodeURIComponent(
+                        `Demo Request for ${companyName || 'Enterprise'}`
+                      )}&body=${encodeURIComponent(
+                        `Hello Priyex Solutions Team,\n\nI would like to schedule a demo session.\n\nFull Name: ${fullName}\nCompany: ${companyName}\nEmail: ${workEmail}\nPhone: ${phoneNumber}\nPreferred Window: ${preferredDate} (${preferredTimeSlot})\nRequirements: ${message}`
+                      )}`}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold text-[11px] transition shadow-xs"
+                    >
+                      <Mail className="w-3 h-3" />
+                      <span>Direct Email Desk</span>
+                    </a>
+                  </div>
+                </div>
+              )}
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Full Name */}
                 <div>

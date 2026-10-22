@@ -10,7 +10,8 @@ import {
   Headphones,
   ShieldCheck,
   ArrowRight,
-  MessageSquare
+  MessageSquare,
+  AlertCircle
 } from 'lucide-react';
 import api from '../../api/client';
 
@@ -27,6 +28,7 @@ export const ContactSalesModal: React.FC<ContactSalesModalProps> = ({ isOpen, on
   const [employeeCount, setEmployeeCount] = useState('51-250');
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [inquiryId, setInquiryId] = useState<string | null>(null);
 
   if (!isOpen) return null;
@@ -34,8 +36,7 @@ export const ContactSalesModal: React.FC<ContactSalesModalProps> = ({ isOpen, on
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-
-    let generatedRef = `PRX-SALES-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    setSubmitError(null);
 
     try {
       const res: any = await api.post('/public/leads', {
@@ -49,11 +50,15 @@ export const ContactSalesModal: React.FC<ContactSalesModalProps> = ({ isOpen, on
         message
       });
       const data = res?.data || res;
-      generatedRef = data.inquiryId || generatedRef;
-      setInquiryId(generatedRef);
-    } catch (err) {
-      // Graceful fallback
-      setInquiryId(generatedRef);
+      const ref = data.inquiryId || `PRX-SALES-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+      setInquiryId(ref);
+    } catch (err: any) {
+      console.error('Failed to submit sales consultation:', err);
+      const errorMsg =
+        typeof err === 'string'
+          ? err
+          : err?.message || 'Unable to submit consultation request. Please try again or reach out directly to our team below.';
+      setSubmitError(errorMsg);
     } finally {
       setIsSubmitting(false);
     }
@@ -61,6 +66,7 @@ export const ContactSalesModal: React.FC<ContactSalesModalProps> = ({ isOpen, on
 
   const handleResetAndClose = () => {
     setInquiryId(null);
+    setSubmitError(null);
     onClose();
   };
 
@@ -157,6 +163,44 @@ export const ContactSalesModal: React.FC<ContactSalesModalProps> = ({ isOpen, on
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-3.5">
+              {submitError && (
+                <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs space-y-2 animate-in fade-in">
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-semibold text-rose-800">{submitError}</p>
+                      <p className="text-[11px] text-rose-600 mt-0.5">
+                        Our cloud server might be waking up. You can retry now or connect directly with our enterprise desk:
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2 pt-1 pl-6">
+                    <a
+                      href={`https://wa.me/919901694683?text=${encodeURIComponent(
+                        `Hi Priyex Sales Team, I would like to inquire about enterprise pricing for ${companyName || 'my organization'}. Contact: ${fullName || 'Prospect'}, Email: ${workEmail}, Phone: ${phoneNumber || 'N/A'}`
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] transition shadow-xs"
+                    >
+                      <Phone className="w-3 h-3" />
+                      <span>WhatsApp Sales Desk</span>
+                    </a>
+                    <a
+                      href={`mailto:tech.priyex@gmail.com?subject=${encodeURIComponent(
+                        `Enterprise Sales Inquiry for ${companyName || 'Enterprise'}`
+                      )}&body=${encodeURIComponent(
+                        `Hello Priyex Enterprise Sales,\n\nI would like to inquire about pricing and architecture.\n\nFull Name: ${fullName}\nCompany: ${companyName}\nEmail: ${workEmail}\nPhone: ${phoneNumber}\nWorkforce: ${employeeCount}\nRequirements: ${message}`
+                      )}`}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold text-[11px] transition shadow-xs"
+                    >
+                      <Mail className="w-3 h-3" />
+                      <span>Direct Email</span>
+                    </a>
+                  </div>
+                </div>
+              )}
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">Your Name *</label>
