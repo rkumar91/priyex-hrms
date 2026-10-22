@@ -37,7 +37,13 @@ import {
   MapPin,
   TrendingUp,
   Cpu,
-  Database
+  Database,
+  Bot,
+  Zap,
+  Radio,
+  SlidersHorizontal,
+  Send,
+  Activity
 } from 'lucide-react';
 
 export const LandingPage: React.FC = () => {
@@ -54,8 +60,41 @@ export const LandingPage: React.FC = () => {
   // Hero interactive architectural demo state
   const [heroTenant, setHeroTenant] = useState<'HQ_GLOBAL' | 'TECH_SUBSIDIARY' | 'FINANCE_DIVISION' | 'REGIONAL_BRANCH'>('HQ_GLOBAL');
 
-  // Interactive Product Sandbox State
-  const [sandboxTab, setSandboxTab] = useState<'overview' | 'payroll' | 'attendance' | 'multitenant' | 'mobile'>('overview');
+  // Interactive Product Sandbox State (Includes Dayforce Continuous Engine & AI Assistant)
+  const [sandboxTab, setSandboxTab] = useState<'continuous-engine' | 'ai-assistant' | 'overview' | 'payroll' | 'attendance' | 'multitenant' | 'mobile'>('continuous-engine');
+
+  // Dayforce-style Continuous Calculation Engine State
+  const [ceMonthlyBase, setCeMonthlyBase] = useState(85000);
+  const [ceWorkHours, setCeWorkHours] = useState(9.5); // standard 8h + 1.5h OT
+  const [ceOvertimeType, setCeOvertimeType] = useState<'regular' | 'holiday'>('regular');
+  const [ceTaxRegime, setCeTaxRegime] = useState<'new' | 'old'>('new');
+  const [ceEngineView, setCeEngineView] = useState<'continuous' | 'traditional'>('continuous');
+
+  // Dayforce-style AI Assistant State
+  const [aiActivePromptId, setAiActivePromptId] = useState<number>(1);
+  const [aiIsTyping, setAiIsTyping] = useState<boolean>(false);
+  const [aiCustomInput, setAiCustomInput] = useState<string>('');
+  const [aiConversation, setAiConversation] = useState<Array<{ sender: 'user' | 'ai'; text: string; data?: any; actions?: string[] }>>([
+    {
+      sender: 'user',
+      text: 'Run April 2026 payroll variance check for Greater Noida and Bangalore tech hubs.'
+    },
+    {
+      sender: 'ai',
+      text: 'Audited 1,280 active headcount across Greater Noida HQ and Bangalore campuses. Continuous Calculation Engine has reconciled 100% of shift punches against biometric geofence logs.',
+      data: {
+        variance: '0.00% (Clean)',
+        auditedStaff: 1280,
+        statutoryPassed: 'EPF, ESI, PT, TDS Section 115BAC',
+        overtimeApproved: '₹1,42,800 across 34 engineers',
+        complianceHash: 'SHA256-PRIYEX-2026-04-OK'
+      },
+      actions: ['Download Statutory Audit Sheet', 'Auto-Approve 4 Clean Exceptions', 'Send Summary to Leadership']
+    }
+  ]);
+
+  // Top Announcement Ticker State (Dayforce inspired)
+  const [tickerIndex, setTickerIndex] = useState(0);
 
   // Sandbox: Payroll simulator
   const [simMonthlyGross, setSimMonthlyGross] = useState(85000);
@@ -108,6 +147,151 @@ export const LandingPage: React.FC = () => {
   const annualHoursSaved = monthlyHoursSaved * 12;
   const hourlyRate = 650; // INR average hourly cost of HR specialist
   const annualSavingsInLakhs = ((annualHoursSaved * hourlyRate) / 100000).toFixed(1);
+
+  // Continuous Engine dynamic calculations (Dayforce style real-time calculation)
+  const ceDailyBase = Math.round(ceMonthlyBase / 26);
+  const ceHourlyRate = Math.round(ceDailyBase / 8);
+  const ceOvertimeHours = Math.max(0, ceWorkHours - 8);
+  const ceOvertimeMultiplierVal = ceOvertimeType === 'holiday' ? 2.0 : 1.5;
+  const ceOvertimePay = Math.round(ceOvertimeHours * ceHourlyRate * ceOvertimeMultiplierVal * 26);
+  const ceCalculatedGross = ceMonthlyBase + ceOvertimePay;
+  const ceBasic = Math.round(ceCalculatedGross * 0.5);
+  const ceHra = Math.round(ceCalculatedGross * 0.25);
+  const cePfEmployee = Math.min(Math.round(ceBasic * 0.12), 1800);
+  const cePfEmployer = Math.min(Math.round(ceBasic * 0.12), 1800);
+  const ceEsi = ceCalculatedGross <= 21000 ? Math.round(ceCalculatedGross * 0.0075) : 0;
+  const cePt = 200;
+  const ceTds = ceTaxRegime === 'new' ? Math.round(ceCalculatedGross * 0.04) : Math.round(ceCalculatedGross * 0.065);
+  const ceTotalDeductions = cePfEmployee + ceEsi + cePt + ceTds;
+  const ceNetTakeHome = ceCalculatedGross - ceTotalDeductions;
+
+  // Dayforce Ticker Announcements
+  const tickerAnnouncements = [
+    {
+      badge: 'Dayforce Benchmark',
+      text: 'Continuous Calculation Engine Active — 0ms calculation latency across 100% of shift punches.',
+      linkText: 'Explore Engine'
+    },
+    {
+      badge: 'Multi-Tenant Cloud 2.0',
+      text: 'Strict Logical Tenant Perimeters, JWT Cryptographic Verification & Biometric Geofences.',
+      linkText: 'Read Architecture'
+    },
+    {
+      badge: 'Forrester Model Impact',
+      text: 'Delivers 176% Estimated Enterprise ROI with 45-Minute Month-End Payroll Closure.',
+      linkText: 'Calculate ROI'
+    }
+  ];
+
+  useEffect(() => {
+    const t = setInterval(() => {
+      setTickerIndex((prev) => (prev + 1) % 3);
+    }, 4500);
+    return () => clearInterval(t);
+  }, []);
+
+  // AI Prompt Library for Interactive Assistant
+  const aiPromptLibrary = [
+    {
+      id: 1,
+      chip: '⚡ April 2026 Payroll Variance & Tax Audit',
+      query: 'Run April 2026 payroll variance check for Greater Noida and Bangalore tech hubs.',
+      reply: 'Audited 1,280 active headcount across Greater Noida HQ and Bangalore campuses. Continuous Calculation Engine has reconciled 100% of shift punches against biometric geofence logs.',
+      data: {
+        variance: '0.00% (Clean)',
+        auditedStaff: 1280,
+        statutoryPassed: 'EPF, ESI, PT, TDS Section 115BAC',
+        overtimeApproved: '₹1,42,800 across 34 engineers',
+        complianceHash: 'SHA256-PRIYEX-2026-04-OK'
+      },
+      actions: ['Download Statutory Audit Sheet', 'Auto-Approve 4 Clean Exceptions', 'Send Summary to Leadership']
+    },
+    {
+      id: 2,
+      chip: '📍 Greater Noida Geofence Attendance Anomaly',
+      query: 'Check biometric geofence attendance exceptions for Greater Noida Campus today.',
+      reply: 'Scanned 842 clock-in attempts against the 250m perimeter (Lat 28.5355, Lon 77.3910). 838 punches verified successfully within radius; 4 field engineers logged remote check-ins with client-site GPS tags.',
+      data: {
+        variance: '99.5% In-Perimeter',
+        auditedStaff: 842,
+        statutoryPassed: 'Biometric Authenticated',
+        overtimeApproved: '4 Field Approvals Pending',
+        complianceHash: 'GEOFENCE-RADAR-OK'
+      },
+      actions: ['Approve 4 Field Client GPS Logs', 'View Geofence Map Radar', 'Notify Security Desk']
+    },
+    {
+      id: 3,
+      chip: '⚖️ Compare Old vs New Tax Regime (Sec 115BAC)',
+      query: 'Compare tax deduction impact between Old and New Tax Regime for ₹15 Lakhs CTC.',
+      reply: 'Analysis completed for ₹15,00,000 CTC. Under the New Tax Regime (Section 115BAC revised slabs), employee tax liability is ₹1,40,400 with standard deduction ₹75,000. Under the Old Regime, employee requires minimum ₹3,85,000 in 80C, 80D, and HRA deductions to break even.',
+      data: {
+        variance: '₹22,400 Avg Savings',
+        auditedStaff: '₹15,00,000 CTC',
+        statutoryPassed: 'Section 115BAC Compliant',
+        overtimeApproved: '72% Opted for New Regime',
+        complianceHash: 'CBDT-CIRCULAR-VALID'
+      },
+      actions: ['Generate Tax Comparison PDF', 'Send Regime Election Reminder', 'Update Payroll Preferences']
+    },
+    {
+      id: 4,
+      chip: '📋 Generate Statutory EPF/ESI Reconciliation',
+      query: 'Prepare statutory ECR file preview and remittance statement for EPFO & ESIC.',
+      reply: 'Generated automated Electronic Challan cum Return (ECR) for current cycle. Total EPF contribution ₹15,36,000 (12% Employee + 12% Employer split into EPS & EPF A/c 1). ESIC contribution calculated for 42 eligible staff under ₹21,000 ceiling.',
+      data: {
+        variance: 'ECR Format Ready',
+        auditedStaff: 1280,
+        statutoryPassed: 'EPFO & ESIC Compliant',
+        overtimeApproved: '₹15.36 Lakhs Remittance',
+        complianceHash: 'ECR-PORTAL-VALID-2026'
+      },
+      actions: ['Download ECR Text File', 'Export Challan Payment Receipt', 'Lock Payroll Cycle']
+    }
+  ];
+
+  const handleSelectAiPrompt = (prompt: typeof aiPromptLibrary[0]) => {
+    setAiActivePromptId(prompt.id);
+    setAiIsTyping(true);
+    setAiConversation([
+      { sender: 'user', text: prompt.query }
+    ]);
+    setTimeout(() => {
+      setAiConversation([
+        { sender: 'user', text: prompt.query },
+        { sender: 'ai', text: prompt.reply, data: prompt.data, actions: prompt.actions }
+      ]);
+      setAiIsTyping(false);
+    }, 700);
+  };
+
+  const handleSendCustomAiQuery = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!aiCustomInput.trim()) return;
+    const q = aiCustomInput.trim();
+    setAiCustomInput('');
+    setAiIsTyping(true);
+    setAiConversation((prev) => [...prev, { sender: 'user', text: q }]);
+    setTimeout(() => {
+      setAiConversation((prev) => [
+        ...prev,
+        {
+          sender: 'ai',
+          text: `Analyzing "${q}" across active multi-tenant workspace perimeters. Continuous Calculation Engine verified all queries against your tenant policy.`,
+          data: {
+            variance: 'Analyzed in 0.12s',
+            auditedStaff: 'Workspace Live',
+            statutoryPassed: '100% Policy Match',
+            overtimeApproved: 'Priyex AI Audited',
+            complianceHash: 'AI-REPLY-OK'
+          },
+          actions: ['View Detailed Audit Logs', 'Create Automated Policy', 'Ask Follow-up Query']
+        }
+      ]);
+      setAiIsTyping(false);
+    }, 900);
+  };
 
   // Simulated Payroll Run
   const handleTriggerPayrollRun = () => {
@@ -214,23 +398,45 @@ export const LandingPage: React.FC = () => {
           </div>
         </div>
       ) : (
-        <div className="bg-slate-950 text-slate-300 px-4 py-2 text-xs font-medium border-b border-slate-800/80 safe-area-top">
+        <div className="bg-slate-950 text-slate-300 px-4 py-2 text-xs font-medium border-b border-slate-800/80 safe-area-top relative overflow-hidden">
           <div className="max-w-7xl xl:max-w-[1440px] mx-auto flex items-center justify-between gap-4">
             <div className="flex items-center gap-2.5 truncate">
-              <span className="bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold text-[10px] px-2.5 py-0.5 rounded-full uppercase tracking-wider shrink-0">
-                Cloud 2.0
+              <span className="bg-gradient-to-r from-emerald-500/20 to-teal-500/20 text-emerald-400 border border-emerald-500/30 font-bold text-[10px] px-2.5 py-0.5 rounded-full uppercase tracking-wider shrink-0 animate-pulse">
+                {tickerAnnouncements[tickerIndex].badge}
               </span>
-              <span className="text-slate-300 truncate text-[11px] sm:text-xs">
-                Priyex Multi-Tenant Cloud Architecture Released — Dedicated client isolation, custom workflows & real-time payroll.
+              <span className="text-slate-200 truncate text-[11px] sm:text-xs transition-opacity duration-300">
+                {tickerAnnouncements[tickerIndex].text}
               </span>
             </div>
-            <button
-              onClick={() => setIsProductTourOpen(true)}
-              className="hidden sm:inline-flex items-center gap-1 text-emerald-400 hover:text-emerald-300 font-semibold transition text-xs shrink-0 cursor-pointer group"
-            >
-              <span>Explore Interactive Tour</span>
-              <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-            </button>
+            <div className="flex items-center gap-3 shrink-0">
+              <div className="hidden md:flex items-center gap-1.5">
+                {tickerAnnouncements.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setTickerIndex(i)}
+                    className={`w-1.5 h-1.5 rounded-full transition-all cursor-pointer ${
+                      tickerIndex === i ? 'w-4 bg-emerald-400' : 'bg-slate-700 hover:bg-slate-500'
+                    }`}
+                  />
+                ))}
+              </div>
+              <button
+                onClick={() => {
+                  if (tickerIndex === 0) {
+                    setSandboxTab('continuous-engine');
+                    document.getElementById('sandbox')?.scrollIntoView({ behavior: 'smooth' });
+                  } else if (tickerIndex === 1) {
+                    setIsProductTourOpen(true);
+                  } else {
+                    document.getElementById('roi-calculator')?.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
+                className="hidden sm:inline-flex items-center gap-1 text-emerald-400 hover:text-emerald-300 font-semibold transition text-xs cursor-pointer group"
+              >
+                <span>{tickerAnnouncements[tickerIndex].linkText}</span>
+                <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -778,6 +984,36 @@ export const LandingPage: React.FC = () => {
           {/* Sandbox Module Tabs */}
           <div className="flex flex-wrap items-center justify-center gap-2 mb-8">
             <button
+              onClick={() => setSandboxTab('continuous-engine')}
+              className={`px-4 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center gap-2 cursor-pointer ${
+                sandboxTab === 'continuous-engine'
+                  ? 'bg-gradient-to-r from-emerald-600 to-teal-700 text-white shadow-lg shadow-emerald-600/30 ring-2 ring-emerald-400'
+                  : 'bg-slate-900 text-slate-200 hover:bg-slate-800'
+              }`}
+            >
+              <Zap className="w-4 h-4 text-emerald-400 animate-pulse" />
+              <span>Continuous Pay Engine</span>
+              <span className="text-[9px] bg-emerald-400/20 text-emerald-300 px-1.5 py-0.5 rounded uppercase font-black">
+                Dayforce Live
+              </span>
+            </button>
+
+            <button
+              onClick={() => setSandboxTab('ai-assistant')}
+              className={`px-4 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center gap-2 cursor-pointer ${
+                sandboxTab === 'ai-assistant'
+                  ? 'bg-gradient-to-r from-cyan-600 to-blue-700 text-white shadow-lg shadow-cyan-600/30 ring-2 ring-cyan-400'
+                  : 'bg-slate-900 text-slate-200 hover:bg-slate-800'
+              }`}
+            >
+              <Bot className="w-4 h-4 text-cyan-400" />
+              <span>Priyex AI Copilot</span>
+              <span className="text-[9px] bg-cyan-400/20 text-cyan-300 px-1.5 py-0.5 rounded uppercase font-black">
+                Interactive
+              </span>
+            </button>
+
+            <button
               onClick={() => setSandboxTab('overview')}
               className={`px-4 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center gap-2 cursor-pointer ${
                 sandboxTab === 'overview'
@@ -841,6 +1077,413 @@ export const LandingPage: React.FC = () => {
           {/* Sandbox Interactive Stage */}
           <div className="bg-slate-50 border border-slate-200/90 rounded-3xl p-6 sm:p-8 shadow-xl min-h-[440px]">
             
+            {/* TAB: CONTINUOUS CALCULATION ENGINE (Dayforce Style) */}
+            {sandboxTab === 'continuous-engine' && (
+              <div className="space-y-6 animate-in fade-in duration-300">
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-slate-200">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="flex h-2 w-2 relative">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                      </span>
+                      <h3 className="font-black text-xl text-slate-950 flex items-center gap-2">
+                        <span>Continuous Calculation Engine</span>
+                        <span className="text-xs font-mono font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md border border-emerald-200">
+                          0ms Calculation Latency
+                        </span>
+                      </h3>
+                    </div>
+                    <p className="text-xs text-slate-600 mt-1 max-w-2xl leading-relaxed">
+                      Traditional batch payroll waits until month-end, creating 5 days of manual spreadsheets and calculation errors. Priyex continuously recalculates gross earnings, statutory EPF/ESI, and net take-home with every shift punch.
+                    </p>
+                  </div>
+
+                  {/* Architecture Comparison Toggle */}
+                  <div className="flex items-center gap-1 bg-slate-200/80 p-1 rounded-xl self-start">
+                    <button
+                      onClick={() => setCeEngineView('continuous')}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                        ceEngineView === 'continuous'
+                          ? 'bg-emerald-600 text-white shadow-xs'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      ⚡ Priyex Continuous
+                    </button>
+                    <button
+                      onClick={() => setCeEngineView('traditional')}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                        ceEngineView === 'traditional'
+                          ? 'bg-rose-600 text-white shadow-xs'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      ⏳ Traditional Batch
+                    </button>
+                  </div>
+                </div>
+
+                {ceEngineView === 'traditional' ? (
+                  <div className="bg-rose-50/70 border border-rose-200 rounded-2xl p-6 text-slate-800 space-y-4">
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center font-bold shrink-0">
+                        ⚠️
+                      </div>
+                      <div>
+                        <h4 className="font-extrabold text-rose-950 text-base">The Hidden Cost of Traditional Batch HRMS</h4>
+                        <p className="text-xs text-rose-800/90 mt-1 leading-relaxed">
+                          In legacy systems, payroll only processes once every 30 days. When an employee logs overtime, swaps a shift, or applies for leave, calculations are held in static queues.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
+                      <div className="bg-white p-3.5 rounded-xl border border-rose-200/70">
+                        <span className="text-[10px] font-bold text-rose-600 uppercase">Turnaround Delay</span>
+                        <div className="text-2xl font-black text-rose-950 mt-1">4 to 5 Days</div>
+                        <span className="text-[11px] text-slate-500">Spent on manual Excel cross-checks</span>
+                      </div>
+                      <div className="bg-white p-3.5 rounded-xl border border-rose-200/70">
+                        <span className="text-[10px] font-bold text-rose-600 uppercase">Discrepancy Rate</span>
+                        <div className="text-2xl font-black text-rose-950 mt-1">12.4%</div>
+                        <span className="text-[11px] text-slate-500">Of payslips require retro corrections</span>
+                      </div>
+                      <div className="bg-white p-3.5 rounded-xl border border-rose-200/70">
+                        <span className="text-[10px] font-bold text-rose-600 uppercase">Employee Friction</span>
+                        <div className="text-2xl font-black text-rose-950 mt-1">High</div>
+                        <span className="text-[11px] text-slate-500">Employees cannot see their live pay accrual</span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setCeEngineView('continuous')}
+                      className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition cursor-pointer"
+                    >
+                      Switch to Priyex Continuous Engine →
+                    </button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                    {/* Left: Interactive Controls */}
+                    <div className="lg:col-span-5 bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-5">
+                      <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                        <span className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                          <SlidersHorizontal className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>Simulate Shift & Pay</span>
+                        </span>
+                        <span className="text-[11px] font-mono text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                          LIVE REACTIVE
+                        </span>
+                      </div>
+
+                      {/* Control 1: Monthly Base CTC */}
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="font-semibold text-slate-600">Base Monthly Salary:</span>
+                          <span className="font-mono font-bold text-slate-900 text-sm">
+                            ₹{ceMonthlyBase.toLocaleString()}
+                          </span>
+                        </div>
+                        <input
+                          type="range"
+                          min={30000}
+                          max={250000}
+                          step={5000}
+                          value={ceMonthlyBase}
+                          onChange={(e) => setCeMonthlyBase(Number(e.target.value))}
+                          className="w-full accent-emerald-600 cursor-pointer"
+                        />
+                        <div className="flex justify-between text-[10px] font-mono text-slate-400">
+                          <span>₹30K</span>
+                          <span>₹1.4L</span>
+                          <span>₹2.5L</span>
+                        </div>
+                      </div>
+
+                      {/* Control 2: Daily Hours Logged (Overtime Slider) */}
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="font-semibold text-slate-600">Shift Working Hours:</span>
+                          <span className="font-mono font-bold text-emerald-600 text-sm">
+                            {ceWorkHours} hrs {ceWorkHours > 8 ? `(+${(ceWorkHours - 8).toFixed(1)}h OT)` : '(Standard)'}
+                          </span>
+                        </div>
+                        <input
+                          type="range"
+                          min={8}
+                          max={12}
+                          step={0.5}
+                          value={ceWorkHours}
+                          onChange={(e) => setCeWorkHours(Number(e.target.value))}
+                          className="w-full accent-emerald-600 cursor-pointer"
+                        />
+                        <div className="flex justify-between text-[10px] font-mono text-slate-400">
+                          <span>8h (Standard)</span>
+                          <span>10h (+2h OT)</span>
+                          <span>12h (+4h Double)</span>
+                        </div>
+                      </div>
+
+                      {/* Control 3: Overtime Multiplier */}
+                      <div className="space-y-1.5">
+                        <span className="text-xs font-semibold text-slate-600 block">Overtime Rate Multiplier:</span>
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            onClick={() => setCeOvertimeType('regular')}
+                            className={`p-2 rounded-xl text-xs font-bold border transition cursor-pointer text-center ${
+                              ceOvertimeType === 'regular'
+                                ? 'bg-emerald-50 border-emerald-300 text-emerald-900'
+                                : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                            }`}
+                          >
+                            Standard OT (1.5x)
+                          </button>
+                          <button
+                            onClick={() => setCeOvertimeType('holiday')}
+                            className={`p-2 rounded-xl text-xs font-bold border transition cursor-pointer text-center ${
+                              ceOvertimeType === 'holiday'
+                                ? 'bg-emerald-50 border-emerald-300 text-emerald-900'
+                                : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                            }`}
+                          >
+                            Weekend/Holiday (2.0x)
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Control 4: Tax Regime */}
+                      <div className="space-y-1.5">
+                        <span className="text-xs font-semibold text-slate-600 block">Statutory Tax Regime:</span>
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            onClick={() => setCeTaxRegime('new')}
+                            className={`p-2 rounded-xl text-xs font-bold border transition cursor-pointer text-center ${
+                              ceTaxRegime === 'new'
+                                ? 'bg-cyan-50 border-cyan-300 text-cyan-900'
+                                : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                            }`}
+                          >
+                            New Regime (Sec 115BAC)
+                          </button>
+                          <button
+                            onClick={() => setCeTaxRegime('old')}
+                            className={`p-2 rounded-xl text-xs font-bold border transition cursor-pointer text-center ${
+                              ceTaxRegime === 'old'
+                                ? 'bg-cyan-50 border-cyan-300 text-cyan-900'
+                                : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                            }`}
+                          >
+                            Old Regime (80C / HRA)
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Right: Real-time Live Computed Payslip Output Card */}
+                    <div className="lg:col-span-7 bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 text-white p-6 rounded-2xl border border-slate-800 shadow-xl space-y-5">
+                      <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
+                          <span className="text-xs font-mono font-bold text-slate-300 uppercase tracking-widest">
+                            Real-Time Continuous Ledger
+                          </span>
+                        </div>
+                        <span className="text-[11px] font-mono text-emerald-400 bg-emerald-950/60 border border-emerald-800/80 px-2 py-0.5 rounded">
+                          Audited SHA-256
+                        </span>
+                      </div>
+
+                      {/* Net Take-Home Highlight Banner */}
+                      <div className="bg-gradient-to-r from-emerald-950/60 to-teal-950/60 p-4 rounded-xl border border-emerald-500/30 flex items-center justify-between">
+                        <div>
+                          <span className="text-xs text-emerald-300 font-semibold block">Continuous Net Take-Home Pay</span>
+                          <span className="text-3xl sm:text-4xl font-black text-emerald-400 font-mono tracking-tight mt-0.5 block">
+                            ₹{ceNetTakeHome.toLocaleString()}
+                          </span>
+                          <span className="text-[10px] text-slate-400">Accrued automatically with zero month-end variance</span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-[10px] uppercase font-bold text-slate-400 block">Gross Accrual</span>
+                          <span className="text-lg font-bold text-white font-mono">
+                            ₹{ceCalculatedGross.toLocaleString()}
+                          </span>
+                          {ceOvertimePay > 0 && (
+                            <span className="text-[10px] text-teal-400 block font-semibold">
+                              +₹{ceOvertimePay.toLocaleString()} OT
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Statutory Breakdown Matrix */}
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
+                        <div className="bg-slate-900/90 p-2.5 rounded-xl border border-slate-800">
+                          <span className="text-[10px] text-slate-400 uppercase font-bold block">EPF (12%)</span>
+                          <span className="text-sm font-bold text-slate-100 font-mono">₹{cePfEmployee.toLocaleString()}</span>
+                          <span className="text-[9px] text-slate-500 block">EPFO Cap Valid</span>
+                        </div>
+                        <div className="bg-slate-900/90 p-2.5 rounded-xl border border-slate-800">
+                          <span className="text-[10px] text-slate-400 uppercase font-bold block">ESI (0.75%)</span>
+                          <span className="text-sm font-bold text-slate-100 font-mono">₹{ceEsi.toLocaleString()}</span>
+                          <span className="text-[9px] text-slate-500 block">{ceCalculatedGross <= 21000 ? 'Eligible' : 'Exempt (>21K)'}</span>
+                        </div>
+                        <div className="bg-slate-900/90 p-2.5 rounded-xl border border-slate-800">
+                          <span className="text-[10px] text-slate-400 uppercase font-bold block">State PT</span>
+                          <span className="text-sm font-bold text-slate-100 font-mono">₹{cePt.toLocaleString()}</span>
+                          <span className="text-[9px] text-slate-500 block">Monthly Slab</span>
+                        </div>
+                        <div className="bg-slate-900/90 p-2.5 rounded-xl border border-slate-800">
+                          <span className="text-[10px] text-slate-400 uppercase font-bold block">TDS Tax</span>
+                          <span className="text-sm font-bold text-amber-400 font-mono">₹{ceTds.toLocaleString()}</span>
+                          <span className="text-[9px] text-slate-500 block">{ceTaxRegime === 'new' ? '115BAC Slab' : 'Old Regime'}</span>
+                        </div>
+                      </div>
+
+                      {/* Engine Heartbeat Footer */}
+                      <div className="pt-2 border-t border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between text-[11px] text-slate-400 gap-2">
+                        <div className="flex items-center gap-2">
+                          <Activity className="w-3.5 h-3.5 text-emerald-400" />
+                          <span>Status: Continuous Calculation active for 1,280 employees</span>
+                        </div>
+                        <span className="text-slate-500 font-mono text-[10px]">Audit Checksum: 0ms Latency</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* TAB: DAYFORCE-STYLE AI COPILOT INTERACTIVE PLAYGROUND */}
+            {sandboxTab === 'ai-assistant' && (
+              <div className="space-y-6 animate-in fade-in duration-300">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
+                  <div>
+                    <h3 className="font-black text-xl text-slate-900 flex items-center gap-2">
+                      <Bot className="w-6 h-6 text-cyan-600" />
+                      <span>Priyex Intelligence Copilot — AI Assistant</span>
+                    </h3>
+                    <p className="text-xs text-slate-600 mt-1">
+                      Ask complex workforce, statutory compliance, or headcount queries in natural language. Powered by strictly tenant-isolated multi-tenant RAG.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-mono font-bold bg-cyan-50 text-cyan-800 px-3 py-1 rounded-full border border-cyan-200">
+                      Dayforce Assistant Experience
+                    </span>
+                  </div>
+                </div>
+
+                {/* Prompt Suggestion Chips */}
+                <div className="space-y-2">
+                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
+                    Click an Executive Query to Test-Drive AI:
+                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    {aiPromptLibrary.map((p) => (
+                      <button
+                        key={p.id}
+                        onClick={() => handleSelectAiPrompt(p)}
+                        className={`text-xs font-semibold px-3.5 py-2 rounded-xl transition-all cursor-pointer border ${
+                          aiActivePromptId === p.id
+                            ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
+                            : 'bg-white text-slate-700 border-slate-200 hover:border-cyan-400 hover:bg-cyan-50/50'
+                        }`}
+                      >
+                        {p.chip}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Live Chat Stage */}
+                <div className="bg-slate-900 rounded-2xl p-5 text-white border border-slate-800 space-y-4 min-h-[320px] flex flex-col justify-between">
+                  <div className="space-y-4">
+                    {aiConversation.map((msg, idx) => (
+                      <div
+                        key={idx}
+                        className={`flex gap-3 text-xs leading-relaxed ${
+                          msg.sender === 'user' ? 'justify-end' : 'justify-start'
+                        }`}
+                      >
+                        {msg.sender === 'ai' && (
+                          <div className="w-7 h-7 rounded-lg bg-cyan-600 text-white flex items-center justify-center shrink-0 font-bold">
+                            <Bot className="w-4 h-4" />
+                          </div>
+                        )}
+                        <div
+                          className={`p-3.5 rounded-2xl max-w-xl ${
+                            msg.sender === 'user'
+                              ? 'bg-emerald-600 text-white font-medium'
+                              : 'bg-slate-800/90 text-slate-100 border border-slate-700/80 space-y-3'
+                          }`}
+                        >
+                          <p>{msg.text}</p>
+
+                          {/* Structured Dynamic Data Cards */}
+                          {msg.data && (
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-2 border-t border-slate-700">
+                              <div className="bg-slate-900/80 p-2 rounded-lg border border-slate-700/60">
+                                <span className="text-[10px] text-slate-400 uppercase font-bold block">Calculation Status</span>
+                                <span className="text-xs font-bold text-emerald-400">{msg.data.variance}</span>
+                              </div>
+                              <div className="bg-slate-900/80 p-2 rounded-lg border border-slate-700/60">
+                                <span className="text-[10px] text-slate-400 uppercase font-bold block">Headcount Verified</span>
+                                <span className="text-xs font-bold text-cyan-400">{msg.data.auditedStaff}</span>
+                              </div>
+                              <div className="bg-slate-900/80 p-2 rounded-lg border border-slate-700/60 col-span-2 sm:col-span-1">
+                                <span className="text-[10px] text-slate-400 uppercase font-bold block">Statutory Gate</span>
+                                <span className="text-xs font-bold text-indigo-300">{msg.data.statutoryPassed}</span>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Quick Action Buttons */}
+                          {msg.actions && msg.actions.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5 pt-1">
+                              {msg.actions.map((act, i) => (
+                                <button
+                                  key={i}
+                                  onClick={() => alert(`Simulated Action Executed: ${act}`)}
+                                  className="text-[10px] font-bold bg-cyan-950/80 hover:bg-cyan-900 text-cyan-300 border border-cyan-800/80 px-2.5 py-1 rounded-md transition cursor-pointer"
+                                >
+                                  ⚡ {act}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+
+                    {aiIsTyping && (
+                      <div className="flex items-center gap-2 text-xs text-cyan-400 font-mono">
+                        <Bot className="w-4 h-4 animate-spin" />
+                        <span>Priyex AI Copilot is verifying tenant data perimeters...</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Working Input Box */}
+                  <form onSubmit={handleSendCustomAiQuery} className="pt-3 border-t border-slate-800 flex items-center gap-2">
+                    <input
+                      type="text"
+                      placeholder="Ask Priyex AI anything about payroll, statutory compliance, or attendance..."
+                      value={aiCustomInput}
+                      onChange={(e) => setAiCustomInput(e.target.value)}
+                      className="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-500"
+                    />
+                    <button
+                      type="submit"
+                      disabled={aiIsTyping || !aiCustomInput.trim()}
+                      className="px-4 py-2.5 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white rounded-xl font-bold text-xs transition flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <span>Ask AI</span>
+                      <Send className="w-3.5 h-3.5" />
+                    </button>
+                  </form>
+                </div>
+              </div>
+            )}
+
             {/* TAB 1: EXECUTIVE DASHBOARD */}
             {sandboxTab === 'overview' && (
               <div className="space-y-6 animate-in fade-in duration-300">

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-export type ThemeId = 'sapphire' | 'indigo' | 'emerald' | 'violet' | 'teal' | 'rose' | 'amber' | 'blue' | 'dark';
+export type ThemeId = 'dayforce' | 'sapphire' | 'indigo' | 'emerald' | 'violet' | 'teal' | 'rose' | 'amber' | 'blue' | 'dark';
 
 export interface ThemeOption {
   id: ThemeId;
@@ -18,6 +18,20 @@ export interface ThemeOption {
 }
 
 export const THEME_OPTIONS: ThemeOption[] = [
+  {
+    id: 'dayforce',
+    name: 'Dayforce Obsidian',
+    subtitle: 'High-contrast midnight navy, electric cyan & precision emerald',
+    previewColor: '#06b6d4',
+    primaryColor: '#06b6d4',
+    badgeClass: 'bg-cyan-500',
+    gradientStyle: 'linear-gradient(135deg, #070e1b 0%, #0c182b 50%, #082f49 100%)',
+    pageBg: 'linear-gradient(135deg, #070e1b 0%, #0c182b 50%, #0f243e 100%)',
+    cardBg: '#0f1f38',
+    textColor: '#f8fafc',
+    accentClass: 'text-cyan-400',
+    isDark: true,
+  },
   {
     id: 'sapphire',
     name: 'Enterprise Sapphire',
@@ -139,6 +153,22 @@ export const THEME_OPTIONS: ThemeOption[] = [
 ];
 
 const THEME_SCALES: Record<ThemeId, Record<string, string>> = {
+  dayforce: {
+    '--brand-50': '#ecfeff',
+    '--brand-100': '#cffafe',
+    '--brand-200': '#a5f3fc',
+    '--brand-300': '#67e8f9',
+    '--brand-400': '#22d3ee',
+    '--brand-500': '#06b6d4',
+    '--brand-600': '#0891b2',
+    '--brand-700': '#0e7490',
+    '--brand-800': '#155e75',
+    '--brand-900': '#164e63',
+    '--brand-950': '#083344',
+    '--brand-primary': '#06b6d4',
+    '--brand-glow': 'rgba(6, 182, 212, 0.35)',
+    '--theme-page-bg': 'linear-gradient(135deg, #070e1b 0%, #0c182b 50%, #0f243e 100%)',
+  },
   sapphire: {
     '--brand-50': '#eff6ff',
     '--brand-100': '#dbeafe',
