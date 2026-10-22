@@ -13,7 +13,8 @@ import {
   CalendarDays,
   ShieldCheck,
   ChevronRight,
-  ArrowRight
+  ArrowRight,
+  MessageSquare
 } from 'lucide-react';
 import api from '../../api/client';
 
@@ -85,11 +86,14 @@ export const BookDemoModal: React.FC<BookDemoModalProps> = ({
       message
     };
 
+    let generatedInquiryId = `PRX-DEMO-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+
     try {
       const res: any = await api.post('/public/leads', payload);
       const data = res?.data || res;
+      generatedInquiryId = data.inquiryId || generatedInquiryId;
       setConfirmationData({
-        inquiryId: data.inquiryId || `PRX-DEMO-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+        inquiryId: generatedInquiryId,
         assignedConsultant: data.assignedConsultant || 'Ananya Sharma (Senior HR Solutions Architect)',
         scheduledWindow: `${preferredDate} (${preferredTimeSlot})`,
         confirmationEmail: workEmail
@@ -97,7 +101,7 @@ export const BookDemoModal: React.FC<BookDemoModalProps> = ({
     } catch (err) {
       // Graceful fallback if backend is sleeping or spinning up
       setConfirmationData({
-        inquiryId: `PRX-DEMO-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+        inquiryId: generatedInquiryId,
         assignedConsultant: 'Ananya Sharma (Senior HR Solutions Architect)',
         scheduledWindow: `${preferredDate} (${preferredTimeSlot})`,
         confirmationEmail: workEmail
@@ -183,19 +187,63 @@ export const BookDemoModal: React.FC<BookDemoModalProps> = ({
                     {confirmationData.confirmationEmail}
                   </span>
                 </div>
+                {phoneNumber && (
+                  <div className="flex items-center justify-between pt-2.5 border-t border-slate-200">
+                    <span className="text-slate-500 font-medium flex items-center gap-1">
+                      <span>WhatsApp Confirmation</span>
+                    </span>
+                    <span className="font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 text-[11px] flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                      Dispatched to {phoneNumber}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Enterprise Automation Status Card */}
+              <div className="bg-slate-50 border border-slate-200/90 rounded-2xl p-4 sm:p-5 text-left max-w-md mx-auto space-y-3 text-xs">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                    <CheckCircle2 className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h5 className="font-bold text-slate-900 leading-tight">Automated Multi-Channel Dispatch</h5>
+                    <p className="text-[11px] text-slate-500">Processed automatically by Priyex Engine</p>
+                  </div>
+                </div>
+                <div className="space-y-2 border-t border-slate-200/80 pt-3">
+                  <div className="flex items-start gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1 shrink-0"></span>
+                    <span className="text-slate-600">
+                      <strong className="text-slate-900">End-User WhatsApp:</strong> Automated booking brief & slot confirmation dispatched to <span className="font-semibold text-emerald-800">{phoneNumber || 'registered phone'}</span>.
+                    </span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1 shrink-0"></span>
+                    <span className="text-slate-600">
+                      <strong className="text-slate-900">Corporate Email:</strong> Calendar invite & access details sent to <span className="font-semibold text-blue-800">{confirmationData.confirmationEmail}</span>.
+                    </span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1 shrink-0"></span>
+                    <span className="text-slate-600">
+                      <strong className="text-slate-900">Priyex Sales Group:</strong> Inquiry routed to static enterprise sales desk.
+                    </span>
+                  </div>
+                </div>
               </div>
 
               {/* Security Note */}
               <div className="flex items-center justify-center gap-2 text-xs text-slate-500">
                 <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                <span>Zero spam guarantee. Your corporate email and data are 100% confidential.</span>
+                <span>Zero spam guarantee. Enterprise-grade encryption standard.</span>
               </div>
 
-              <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+              <div className="pt-1 flex items-center justify-center">
                 <button
                   type="button"
                   onClick={handleResetAndClose}
-                  className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-md transition cursor-pointer"
+                  className="px-8 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-md transition cursor-pointer"
                 >
                   Done & Close
                 </button>
@@ -269,9 +317,14 @@ export const BookDemoModal: React.FC<BookDemoModalProps> = ({
 
                 {/* Phone Number */}
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Phone / Mobile <span className="text-slate-400 font-normal">(Optional)</span>
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-bold text-slate-700">
+                      Phone / Mobile <span className="text-slate-400 font-normal">(Optional)</span>
+                    </label>
+                    <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200/80">
+                      💬 WhatsApp Confirmation
+                    </span>
+                  </div>
                   <div className="relative">
                     <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
                     <input

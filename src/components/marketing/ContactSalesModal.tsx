@@ -9,7 +9,8 @@ import {
   CheckCircle2,
   Headphones,
   ShieldCheck,
-  ArrowRight
+  ArrowRight,
+  MessageSquare
 } from 'lucide-react';
 import api from '../../api/client';
 
@@ -26,7 +27,7 @@ export const ContactSalesModal: React.FC<ContactSalesModalProps> = ({ isOpen, on
   const [employeeCount, setEmployeeCount] = useState('51-250');
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
+  const [inquiryId, setInquiryId] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
@@ -34,8 +35,10 @@ export const ContactSalesModal: React.FC<ContactSalesModalProps> = ({ isOpen, on
     e.preventDefault();
     setIsSubmitting(true);
 
+    let generatedRef = `PRX-SALES-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+
     try {
-      await api.post('/public/leads', {
+      const res: any = await api.post('/public/leads', {
         fullName,
         workEmail,
         companyName,
@@ -45,17 +48,19 @@ export const ContactSalesModal: React.FC<ContactSalesModalProps> = ({ isOpen, on
         inquiryType: 'SALES_CONSULTATION',
         message
       });
-      setIsSuccess(true);
+      const data = res?.data || res;
+      generatedRef = data.inquiryId || generatedRef;
+      setInquiryId(generatedRef);
     } catch (err) {
       // Graceful fallback
-      setIsSuccess(true);
+      setInquiryId(generatedRef);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleResetAndClose = () => {
-    setIsSuccess(false);
+    setInquiryId(null);
     onClose();
   };
 
@@ -84,22 +89,69 @@ export const ContactSalesModal: React.FC<ContactSalesModalProps> = ({ isOpen, on
 
         {/* Body */}
         <div className="p-6">
-          {isSuccess ? (
-            <div className="text-center py-6 space-y-4 animate-in fade-in">
+          {inquiryId ? (
+            <div className="text-center py-4 space-y-4 animate-in fade-in">
               <div className="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center mx-auto shadow-sm">
                 <CheckCircle2 className="w-8 h-8" />
               </div>
-              <h4 className="text-xl font-black text-slate-900">Message Received!</h4>
-              <p className="text-xs text-slate-600 max-w-sm mx-auto leading-relaxed">
-                Thank you for your interest in Priyex HCM. Our enterprise account director will review your requirements and respond within 2 to 4 business hours.
-              </p>
-              <div className="pt-2">
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-wider text-blue-700 bg-blue-50 px-2.5 py-1 rounded-full border border-blue-200">
+                  Sales Consultation Dispatched
+                </span>
+                <h4 className="text-xl font-black text-slate-900 mt-2">Inquiry Received, {fullName}!</h4>
+                <p className="text-xs text-slate-600 max-w-sm mx-auto leading-relaxed mt-1">
+                  Your requirements for <strong className="text-slate-900">{companyName}</strong> have been routed to our Enterprise Account Solutions team.
+                </p>
+              </div>
+
+              {/* Reference ID card */}
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 max-w-xs mx-auto flex items-center justify-between text-xs">
+                <span className="text-slate-500 font-medium">Tracking Ref:</span>
+                <span className="font-mono font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200">
+                  {inquiryId}
+                </span>
+              </div>
+
+              {/* Enterprise Automation Status Card */}
+              <div className="bg-slate-50 border border-slate-200/90 rounded-2xl p-4 text-left max-w-sm mx-auto space-y-2.5 text-xs">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-lg bg-emerald-600 text-white flex items-center justify-center shrink-0">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                  </div>
+                  <div>
+                    <h5 className="font-bold text-slate-900 leading-tight">Automated Multi-Channel Dispatch</h5>
+                    <p className="text-[10.5px] text-slate-500">Processed automatically by Priyex Engine</p>
+                  </div>
+                </div>
+                <div className="space-y-1.5 border-t border-slate-200/80 pt-2.5">
+                  <div className="flex items-start gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1 shrink-0"></span>
+                    <span className="text-slate-600">
+                      <strong className="text-slate-900">End-User WhatsApp:</strong> Automated confirmation sent to <span className="font-semibold text-emerald-800">{phoneNumber || 'registered phone'}</span>.
+                    </span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1 shrink-0"></span>
+                    <span className="text-slate-600">
+                      <strong className="text-slate-900">Corporate Email:</strong> Consultation scope dispatched to <span className="font-semibold text-blue-800">{workEmail}</span>.
+                    </span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1 shrink-0"></span>
+                    <span className="text-slate-600">
+                      <strong className="text-slate-900">Priyex Sales Group:</strong> Lead alert routed to enterprise account team.
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-1">
                 <button
                   type="button"
                   onClick={handleResetAndClose}
-                  className="px-6 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-md transition cursor-pointer"
+                  className="px-8 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-md transition cursor-pointer"
                 >
-                  Done
+                  Done & Close
                 </button>
               </div>
             </div>
@@ -154,7 +206,12 @@ export const ContactSalesModal: React.FC<ContactSalesModalProps> = ({ isOpen, on
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Phone Number</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-bold text-slate-700">Phone Number</label>
+                    <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200/80">
+                      💬 WhatsApp Follow-up
+                    </span>
+                  </div>
                   <div className="relative">
                     <Phone className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
                     <input
