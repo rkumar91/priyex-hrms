@@ -1,4 +1,17 @@
 {
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "priyex-hrms.vercel.app"
+        }
+      ],
+      "destination": "https://www.priyex.com/:path*",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/:path*",
@@ -10,3 +23,4 @@
     }
   ]
 }
+
