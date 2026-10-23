@@ -15,7 +15,8 @@ import {
   ChevronRight,
   ArrowRight,
   MessageSquare,
-  AlertCircle
+  AlertCircle,
+  ExternalLink
 } from 'lucide-react';
 import api from '../../api/client';
 
@@ -119,17 +120,21 @@ export const BookDemoModal: React.FC<BookDemoModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-md animate-in fade-in duration-200 overflow-y-auto">
-      <div className="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden my-auto animate-in zoom-in-95 duration-200">
+      <div className={`bg-white rounded-3xl ${confirmationData ? 'max-w-md' : 'max-w-2xl'} w-full shadow-2xl border border-slate-200 overflow-hidden my-auto animate-in zoom-in-95 duration-200 transition-all`}>
         
         {/* Modal Top Header Bar */}
-        <div className="px-6 py-4.5 bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 text-white flex items-center justify-between">
+        <div className="px-5 py-4 bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 text-white flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-white shadow-md shadow-emerald-500/20">
               <Sparkles className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="font-bold text-base leading-tight">Schedule an Interactive Live Demo</h3>
-              <p className="text-xs text-slate-300">Experience tailored multi-tenant HRMS for your organization</p>
+              <h3 className="font-bold text-sm sm:text-base leading-tight">
+                {confirmationData ? 'Booking Confirmation' : 'Schedule an Interactive Live Demo'}
+              </h3>
+              <p className="text-[11px] text-slate-300">
+                {confirmationData ? 'Priyex Enterprise Solutions Desk' : 'Experience tailored multi-tenant HRMS for your organization'}
+              </p>
             </div>
           </div>
           <button
@@ -141,114 +146,122 @@ export const BookDemoModal: React.FC<BookDemoModalProps> = ({
         </div>
 
         {/* Content Area */}
-        <div className="p-6 sm:p-7">
+        <div className={confirmationData ? "p-5 sm:p-6" : "p-6 sm:p-7"}>
           {confirmationData ? (
-            /* Confirmation Screen */
-            <div className="text-center py-6 space-y-5 animate-in fade-in duration-300">
-              <div className="w-16 h-16 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center mx-auto shadow-sm animate-bounce">
-                <CheckCircle2 className="w-9 h-9" />
-              </div>
-
-              <div>
-                <span className="text-[11px] font-black uppercase tracking-wider text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+            /* Compact Enterprise Confirmation Screen */
+            <div className="text-center space-y-4 animate-in fade-in duration-300">
+              {/* Status Header */}
+              <div className="flex flex-col items-center">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center shadow-xs mb-2">
+                  <CheckCircle2 className="w-6 h-6" />
+                </div>
+                <span className="text-[10px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
                   Demo Session Booked
                 </span>
-                <h4 className="text-2xl font-black text-slate-900 mt-2">
+                <h4 className="text-xl font-black text-slate-900 mt-1.5 tracking-tight">
                   You're All Set, {fullName}!
                 </h4>
-                <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-md mx-auto">
-                  A personalized 1-on-1 walkthrough of the Priyex HRMS SaaS Platform has been reserved for <strong className="text-slate-900">{companyName}</strong>.
+                <p className="text-xs text-slate-500 max-w-xs mx-auto mt-0.5 leading-relaxed">
+                  Walkthrough session reserved for <strong className="text-slate-800">{companyName}</strong>
                 </p>
               </div>
 
-              {/* Confirmation Details Card */}
-              <div className="bg-slate-50 border border-slate-200/90 rounded-2xl p-4 sm:p-5 text-left max-w-md mx-auto space-y-3 text-xs">
+              {/* Unified Reservation & Dispatch Card */}
+              <div className="bg-slate-50/90 border border-slate-200/90 rounded-2xl p-4 text-left space-y-2.5 text-xs shadow-xs">
+                {/* Header: Ref & Status Pill */}
                 <div className="flex items-center justify-between pb-2.5 border-b border-slate-200">
-                  <span className="text-slate-500 font-medium">Booking Reference</span>
-                  <span className="font-mono font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-200">
-                    {confirmationData.inquiryId}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between pb-2.5 border-b border-slate-200">
-                  <span className="text-slate-500 font-medium">Scheduled Window</span>
-                  <span className="font-semibold text-slate-900 flex items-center gap-1.5">
-                    <Calendar className="w-3.5 h-3.5 text-blue-600" />
-                    {confirmationData.scheduledWindow}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between pb-2.5 border-b border-slate-200">
-                  <span className="text-slate-500 font-medium">Assigned Solutions Lead</span>
-                  <span className="font-semibold text-slate-900">
-                    {confirmationData.assignedConsultant}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-500 font-medium">Confirmation Sent To</span>
-                  <span className="font-semibold text-slate-900 truncate max-w-[200px]">
-                    {confirmationData.confirmationEmail}
-                  </span>
-                </div>
-                {phoneNumber && (
-                  <div className="flex items-center justify-between pt-2.5 border-t border-slate-200">
-                    <span className="text-slate-500 font-medium flex items-center gap-1">
-                      <span>WhatsApp Confirmation</span>
-                    </span>
-                    <span className="font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 text-[11px] flex items-center gap-1">
-                      <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                      Dispatched to {phoneNumber}
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-slate-500 font-medium">Ref ID:</span>
+                    <span className="font-mono font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-200 text-[11px]">
+                      {confirmationData.inquiryId}
                     </span>
                   </div>
-                )}
+                  <span className="inline-flex items-center gap-1 text-[10.5px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    Confirmed
+                  </span>
+                </div>
+
+                {/* Reservation Details */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500 font-medium flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                      <span>Window</span>
+                    </span>
+                    <span className="font-semibold text-slate-900 text-right truncate max-w-[210px]">
+                      {confirmationData.scheduledWindow}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500 font-medium flex items-center gap-1.5">
+                      <ShieldCheck className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                      <span>Lead</span>
+                    </span>
+                    <span className="font-semibold text-slate-900 text-right truncate max-w-[210px]">
+                      {confirmationData.assignedConsultant}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500 font-medium flex items-center gap-1.5">
+                      <Mail className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      <span>Invite Email</span>
+                    </span>
+                    <span className="font-semibold text-slate-900 text-right truncate max-w-[200px]" title={confirmationData.confirmationEmail}>
+                      {confirmationData.confirmationEmail}
+                    </span>
+                  </div>
+
+                  {phoneNumber && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-500 font-medium flex items-center gap-1.5">
+                        <span className="text-[11px]">💬</span>
+                        <span>WhatsApp</span>
+                      </span>
+                      <span className="font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 text-[10.5px]">
+                        Dispatched ({phoneNumber})
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Dispatch Status Ribbon */}
+                <div className="pt-2 border-t border-slate-200/80 flex items-center justify-between text-[11px] text-slate-500">
+                  <span className="flex items-center gap-1 text-slate-600">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Automated calendar dispatch active</span>
+                  </span>
+                  <span className="text-[10px] font-semibold text-slate-400">Priyex Cloud</span>
+                </div>
               </div>
 
-              {/* Enterprise Automation Status Card */}
-              <div className="bg-slate-50 border border-slate-200/90 rounded-2xl p-4 sm:p-5 text-left max-w-md mx-auto space-y-3 text-xs">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
-                    <CheckCircle2 className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h5 className="font-bold text-slate-900 leading-tight">Automated Multi-Channel Dispatch</h5>
-                    <p className="text-[11px] text-slate-500">Processed automatically by Priyex Engine</p>
-                  </div>
-                </div>
-                <div className="space-y-2 border-t border-slate-200/80 pt-3">
-                  <div className="flex items-start gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1 shrink-0"></span>
-                    <span className="text-slate-600">
-                      <strong className="text-slate-900">End-User WhatsApp:</strong> Automated booking brief & slot confirmation dispatched to <span className="font-semibold text-emerald-800">{phoneNumber || 'registered phone'}</span>.
-                    </span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1 shrink-0"></span>
-                    <span className="text-slate-600">
-                      <strong className="text-slate-900">Corporate Email:</strong> Calendar invite & access details sent to <span className="font-semibold text-blue-800">{confirmationData.confirmationEmail}</span>.
-                    </span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1 shrink-0"></span>
-                    <span className="text-slate-600">
-                      <strong className="text-slate-900">Priyex Sales Group:</strong> Inquiry routed to static enterprise sales desk.
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Security Note */}
-              <div className="flex items-center justify-center gap-2 text-xs text-slate-500">
-                <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                <span>Zero spam guarantee. Enterprise-grade encryption standard.</span>
-              </div>
-
-              <div className="pt-1 flex items-center justify-center">
+              {/* Action Buttons */}
+              <div className="pt-1 flex items-center justify-center gap-2.5">
+                <a
+                  href="https://www.priyex.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs transition border border-slate-200 cursor-pointer"
+                >
+                  <span>Open Platform</span>
+                  <ExternalLink className="w-3 h-3 text-slate-500" />
+                </a>
                 <button
                   type="button"
                   onClick={handleResetAndClose}
-                  className="px-8 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-md transition cursor-pointer"
+                  className="px-6 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-md transition cursor-pointer"
                 >
                   Done & Close
                 </button>
               </div>
+
+              {/* Trust Footer */}
+              <p className="text-[10.5px] text-slate-400 flex items-center justify-center gap-1 pt-0.5">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Zero spam guarantee • Enterprise encryption standard</span>
+              </p>
             </div>
           ) : (
             /* Lead Capture Form */
