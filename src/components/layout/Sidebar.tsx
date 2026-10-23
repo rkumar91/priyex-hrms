@@ -135,7 +135,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen = false, onCloseMob
       show: true,
       children: [
         { name: 'Profile Requests', tabKey: 'profile_requests' },
-        { name: 'HR Queries', tabKey: 'hr_queries' }
+        { name: 'HR Queries', tabKey: 'hr_queries' },
+        { name: 'Separations & Exits', tabKey: 'separations' }
       ]
     },
     {

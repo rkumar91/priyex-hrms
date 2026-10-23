@@ -24,8 +24,10 @@ import {
   HelpCircle,
   Reply,
   Shield,
-  Tag
+  Tag,
+  LogOut
 } from 'lucide-react';
+import { SeparationTab } from '../components/separation/SeparationTab';
 
 export interface ProfileRequest {
   id: number;
@@ -72,13 +74,14 @@ export const ProfileRequestsPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const rawTab = searchParams.get('tab')?.toLowerCase();
 
-  const getRequestsTab = (key?: string | null): 'PROFILE_REQUESTS' | 'HR_QUERIES' => {
+  const getRequestsTab = (key?: string | null): 'PROFILE_REQUESTS' | 'HR_QUERIES' | 'SEPARATIONS' => {
+    if (key === 'separations' || key === 'separation' || key === 'exit') return 'SEPARATIONS';
     if (key === 'hr_queries' || key === 'queries') return 'HR_QUERIES';
     return 'PROFILE_REQUESTS';
   };
 
-  // Tabs: 'PROFILE_REQUESTS' vs 'HR_QUERIES'
-  const [activeTab, setActiveTab] = useState<'PROFILE_REQUESTS' | 'HR_QUERIES'>(() => getRequestsTab(rawTab));
+  // Tabs: 'PROFILE_REQUESTS' vs 'HR_QUERIES' vs 'SEPARATIONS'
+  const [activeTab, setActiveTab] = useState<'PROFILE_REQUESTS' | 'HR_QUERIES' | 'SEPARATIONS'>(() => getRequestsTab(rawTab));
 
   useEffect(() => {
     if (rawTab) {
@@ -269,6 +272,11 @@ export const ProfileRequestsPage: React.FC = () => {
       title: 'HR Helpdesk & Queries',
       subtitle: 'Confidential employee questions & HR ticketing support',
       badge: openQueriesCount > 0 ? `${openQueriesCount} Active` : null
+    },
+    SEPARATIONS: {
+      title: 'Separations & Exits',
+      subtitle: 'Employee resignation, admin termination, clearances & access deactivation',
+      badge: null
     }
   };
 
@@ -295,6 +303,58 @@ export const ProfileRequestsPage: React.FC = () => {
           <p className="text-sm text-slate-500 mt-1 font-normal">
             {tabMetaMap[activeTab].subtitle}
           </p>
+        </div>
+
+        {/* Tab Switcher Pills */}
+        <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-2xl border border-slate-200/80 self-start sm:self-center">
+          <button
+            type="button"
+            onClick={() => setActiveTab('PROFILE_REQUESTS')}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+              activeTab === 'PROFILE_REQUESTS'
+                ? 'bg-white text-slate-900 shadow-sm border border-slate-200/80'
+                : 'text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            <ClipboardCheck className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Profile Requests</span>
+            {pendingRequestsCount > 0 && (
+              <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-amber-100 text-amber-800 font-bold ml-0.5">
+                {pendingRequestsCount}
+              </span>
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('HR_QUERIES')}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+              activeTab === 'HR_QUERIES'
+                ? 'bg-white text-slate-900 shadow-sm border border-slate-200/80'
+                : 'text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            <MessageSquare className="w-3.5 h-3.5 text-blue-600" />
+            <span>HR Queries</span>
+            {openQueriesCount > 0 && (
+              <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-blue-100 text-blue-800 font-bold ml-0.5">
+                {openQueriesCount}
+              </span>
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('SEPARATIONS')}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+              activeTab === 'SEPARATIONS'
+                ? 'bg-white text-slate-900 shadow-sm border border-slate-200/80'
+                : 'text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            <LogOut className="w-3.5 h-3.5 text-rose-600" />
+            <span>Separations &amp; Exits</span>
+          </button>
         </div>
       </div>
 
@@ -570,6 +630,9 @@ export const ProfileRequestsPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* TAB 3: SEPARATIONS & EXITS */}
+      {activeTab === 'SEPARATIONS' && <SeparationTab />}
 
       {/* Modal: Review Profile Request (Approve / Reject) */}
       {reviewModalData && createPortal(

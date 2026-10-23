@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { canManageEmployees, canDeactivateEmployees } from '../utils/rbac';
 import api from '../api/client';
@@ -160,6 +160,7 @@ export const EmployeesPage: React.FC = () => {
   const canManage = canManageEmployees(user);
   const canDeactivate = canDeactivateEmployees(user);
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
 
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -1090,10 +1091,13 @@ export const EmployeesPage: React.FC = () => {
                               )}
                               {canDeactivate && !isSelf && (
                                 <button
-                                  onClick={() => { setActiveMenuId(null); handleDelete(emp.id); }}
+                                  onClick={() => {
+                                    setActiveMenuId(null);
+                                    navigate('/requests?tab=separations');
+                                  }}
                                   className="w-full px-3 py-2 text-rose-600 hover:bg-rose-50 flex items-center gap-2 font-medium cursor-pointer border-t border-slate-100"
                                 >
-                                  <Trash2 className="w-3.5 h-3.5 text-rose-600" /> Deactivate
+                                  <Trash2 className="w-3.5 h-3.5 text-rose-600" /> Initiate Separation
                                 </button>
                               )}
                             </div>
