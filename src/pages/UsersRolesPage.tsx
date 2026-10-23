@@ -550,7 +550,7 @@ export const UsersRolesPage: React.FC = () => {
               <div className="mt-3 bg-amber-50 border border-amber-200 rounded-2xl p-3 text-xs text-amber-800 flex items-start gap-2">
                 <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                 <span>
-                  This employee does not have a user account yet. Assigning a role will automatically create their system credentials with default password <b>Admin@123</b>.
+                  This employee does not have a user account yet. Assigning a role will automatically initialize their system user account.
                 </span>
               </div>
             )}
