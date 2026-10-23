@@ -22,6 +22,7 @@ import {
   ExternalLink,
   Sparkles
 } from 'lucide-react';
+import CascadingAddressFields from '../components/common/CascadingAddressFields';
 
 interface EmployeeDoc {
   id: number;
@@ -209,6 +210,7 @@ export const OnboardingPage: React.FC = () => {
         permanentCity: formData.sameAsCurrent ? formData.city : formData.permanentCity,
         permanentState: formData.sameAsCurrent ? formData.state : formData.permanentState,
         permanentPostalCode: formData.sameAsCurrent ? formData.postalCode : formData.permanentPostalCode,
+        permanentCountry: formData.sameAsCurrent ? formData.country : formData.permanentCountry,
       };
 
       const res: any = await api.post('/employees/onboarding/submit', payload);
@@ -506,10 +508,12 @@ export const OnboardingPage: React.FC = () => {
           </div>
 
           {/* Current Address */}
-          <div className="space-y-3 text-xs">
-            <h3 className="font-bold text-slate-900">Current Residential Address</h3>
+          <div className="space-y-3 text-xs bg-slate-50/70 p-4 rounded-2xl border border-slate-200">
+            <h3 className="font-bold text-slate-900 flex items-center gap-1.5">
+              <Home className="w-4 h-4 text-blue-600" /> Current Residential Address
+            </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="sm:col-span-2">
+              <div>
                 <label className="block text-slate-700 font-bold mb-1">Address Line 1 *</label>
                 <input
                   type="text"
@@ -517,50 +521,43 @@ export const OnboardingPage: React.FC = () => {
                   value={formData.addressLine1}
                   onChange={(e) => setFormData({ ...formData, addressLine1: e.target.value })}
                   placeholder="Flat/House No., Building, Street"
-                  className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-blue-500"
+                  className="w-full bg-white text-slate-900 rounded-xl px-3 py-2 border border-slate-200 focus:outline-none focus:border-blue-500 font-medium text-xs"
                 />
               </div>
-
               <div>
-                <label className="block text-slate-700 font-bold mb-1">City *</label>
+                <label className="block text-slate-700 font-bold mb-1">Address Line 2 (Optional)</label>
                 <input
                   type="text"
-                  required
-                  value={formData.city}
-                  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                  placeholder="Bengaluru"
-                  className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-slate-700 font-bold mb-1">State *</label>
-                <input
-                  type="text"
-                  required
-                  value={formData.state}
-                  onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                  placeholder="Karnataka"
-                  className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-slate-700 font-bold mb-1">Postal Code (PIN) *</label>
-                <input
-                  type="text"
-                  required
-                  value={formData.postalCode}
-                  onChange={(e) => setFormData({ ...formData, postalCode: e.target.value })}
-                  placeholder="560103"
-                  className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-blue-500"
+                  value={formData.addressLine2}
+                  onChange={(e) => setFormData({ ...formData, addressLine2: e.target.value })}
+                  placeholder="Apartment, suite, landmark, etc."
+                  className="w-full bg-white text-slate-900 rounded-xl px-3 py-2 border border-slate-200 focus:outline-none focus:border-blue-500 font-medium text-xs"
                 />
               </div>
             </div>
+
+            {/* Cascading Country -> State -> City -> PIN */}
+            <CascadingAddressFields
+              country={formData.country || 'India'}
+              state={formData.state || ''}
+              city={formData.city || ''}
+              postalCode={formData.postalCode || ''}
+              required
+              theme="blue"
+              onChange={({ country, state, city, postalCode }) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  country,
+                  state,
+                  city,
+                  postalCode,
+                }));
+              }}
+            />
           </div>
 
           {/* Same as current toggle */}
-          <div className="pt-2">
+          <div className="pt-1">
             <label className="flex items-center gap-2.5 p-3 rounded-xl border border-slate-200 bg-slate-50/60 cursor-pointer text-xs">
               <input
                 type="checkbox"
@@ -573,37 +570,51 @@ export const OnboardingPage: React.FC = () => {
           </div>
 
           {!formData.sameAsCurrent && (
-            <div className="space-y-3 text-xs pt-2 border-t border-slate-100">
-              <h3 className="font-bold text-slate-900">Permanent Address</h3>
+            <div className="space-y-3 text-xs bg-slate-50/70 p-4 rounded-2xl border border-slate-200">
+              <h3 className="font-bold text-slate-900 flex items-center gap-1.5">
+                <Home className="w-4 h-4 text-teal-600" /> Permanent Residential Address
+              </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="sm:col-span-2">
+                <div>
                   <label className="block text-slate-700 font-bold mb-1">Permanent Address Line 1 *</label>
                   <input
                     type="text"
                     value={formData.permanentAddressLine1}
                     onChange={(e) => setFormData({ ...formData, permanentAddressLine1: e.target.value })}
-                    className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-blue-500"
+                    placeholder="House No., Building, Street"
+                    className="w-full bg-white text-slate-900 rounded-xl px-3 py-2 border border-slate-200 focus:outline-none focus:border-blue-500 font-medium text-xs"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-700 font-bold mb-1">Permanent City *</label>
+                  <label className="block text-slate-700 font-bold mb-1">Permanent Address Line 2 (Optional)</label>
                   <input
                     type="text"
-                    value={formData.permanentCity}
-                    onChange={(e) => setFormData({ ...formData, permanentCity: e.target.value })}
-                    className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-700 font-bold mb-1">Permanent State *</label>
-                  <input
-                    type="text"
-                    value={formData.permanentState}
-                    onChange={(e) => setFormData({ ...formData, permanentState: e.target.value })}
-                    className="w-full bg-slate-50 text-slate-900 rounded-xl px-3 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-blue-500"
+                    value={formData.permanentAddressLine2}
+                    onChange={(e) => setFormData({ ...formData, permanentAddressLine2: e.target.value })}
+                    placeholder="Landmark, Area"
+                    className="w-full bg-white text-slate-900 rounded-xl px-3 py-2 border border-slate-200 focus:outline-none focus:border-blue-500 font-medium text-xs"
                   />
                 </div>
               </div>
+
+              {/* Cascading Country -> State -> City -> PIN for Permanent Address */}
+              <CascadingAddressFields
+                country={formData.permanentCountry || formData.country || 'India'}
+                state={formData.permanentState || ''}
+                city={formData.permanentCity || ''}
+                postalCode={formData.permanentPostalCode || ''}
+                prefixLabel="Permanent"
+                theme="blue"
+                onChange={({ country, state, city, postalCode }) => {
+                  setFormData((prev) => ({
+                    ...prev,
+                    permanentCountry: country,
+                    permanentState: state,
+                    permanentCity: city,
+                    permanentPostalCode: postalCode,
+                  }));
+                }}
+              />
             </div>
           )}
 
@@ -917,7 +928,7 @@ export const OnboardingPage: React.FC = () => {
               </h3>
               <div className="space-y-1 text-slate-600">
                 <p>{formData.addressLine1 || 'No address provided'}</p>
-                <p>{formData.city}, {formData.state} - {formData.postalCode}</p>
+                <p>{formData.city ? `${formData.city}, ${formData.state} - ${formData.postalCode}, ${formData.country}` : 'Not provided'}</p>
                 <p className="text-[11px] text-slate-400">
                   {formData.sameAsCurrent ? 'Permanent address matches current' : 'Separate permanent address provided'}
                 </p>

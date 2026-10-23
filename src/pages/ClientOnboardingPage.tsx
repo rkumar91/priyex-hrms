@@ -25,6 +25,7 @@ import {
   Image as ImageIcon,
   UploadCloud
 } from 'lucide-react';
+import CascadingAddressFields from '../components/common/CascadingAddressFields';
 
 interface ClientOverview {
   id: number;
@@ -647,14 +648,21 @@ export const ClientOnboardingPage: React.FC = () => {
                       className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs"
                     />
                   </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">City & Country</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Bengaluru, India"
-                      value={formData.city}
-                      onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs"
+                  <div className="sm:col-span-2 bg-slate-50 p-3 rounded-2xl border border-slate-200">
+                    <CascadingAddressFields
+                      country={formData.country || 'India'}
+                      state={formData.state || ''}
+                      city={formData.city || ''}
+                      showPostalCode={false}
+                      theme="indigo"
+                      onChange={({ country, state, city }) => {
+                        setFormData((prev) => ({
+                          ...prev,
+                          country,
+                          state,
+                          city,
+                        }));
+                      }}
                     />
                   </div>
 

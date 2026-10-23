@@ -2,6 +2,7 @@ import React from 'react';
 import { createPortal } from 'react-dom';
 import { Edit3, X, Camera, UploadCloud, Trash2, Users, MapPin, Home, HeartPulse } from 'lucide-react';
 import ProfileImageHover from '../common/ProfileImageHover';
+import CascadingAddressFields from '../common/CascadingAddressFields';
 import api from '../../api/client';
 
 interface EditContactModalProps {
@@ -192,57 +193,47 @@ export const EditContactModal: React.FC<EditContactModalProps> = ({
             <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
               <MapPin className="w-3.5 h-3.5 text-emerald-600" /> Current Residential Address
             </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
-              <div className="sm:col-span-2">
-                <label className="block text-slate-700 font-bold mb-1">Address Line 1</label>
-                <input
-                  type="text"
-                  placeholder="Flat 402, Green Valley Apartments"
-                  value={selfEditData.addressLine1}
-                  onChange={(e) => setSelfEditData({ ...selfEditData, addressLine1: e.target.value })}
-                  className="w-full bg-white text-slate-900 rounded-xl px-3 py-2 border border-slate-200 focus:outline-none focus:border-emerald-500 font-medium"
-                />
+            <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-700 font-bold mb-1">Address Line 1</label>
+                  <input
+                    type="text"
+                    placeholder="Flat 402, Green Valley Apartments"
+                    value={selfEditData.addressLine1}
+                    onChange={(e) => setSelfEditData({ ...selfEditData, addressLine1: e.target.value })}
+                    className="w-full bg-white text-slate-900 rounded-xl px-3 py-2 border border-slate-200 focus:outline-none focus:border-emerald-500 font-medium"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-700 font-bold mb-1">Address Line 2 (Optional)</label>
+                  <input
+                    type="text"
+                    placeholder="Sector / Landmark"
+                    value={selfEditData.addressLine2}
+                    onChange={(e) => setSelfEditData({ ...selfEditData, addressLine2: e.target.value })}
+                    className="w-full bg-white text-slate-900 rounded-xl px-3 py-2 border border-slate-200 focus:outline-none focus:border-emerald-500 font-medium"
+                  />
+                </div>
               </div>
-              <div>
-                <label className="block text-slate-700 font-bold mb-1">Address Line 2 (Optional)</label>
-                <input
-                  type="text"
-                  placeholder="Sector / Landmark"
-                  value={selfEditData.addressLine2}
-                  onChange={(e) => setSelfEditData({ ...selfEditData, addressLine2: e.target.value })}
-                  className="w-full bg-white text-slate-900 rounded-xl px-3 py-2 border border-slate-200 focus:outline-none focus:border-emerald-500 font-medium"
-                />
-              </div>
-              <div>
-                <label className="block text-slate-700 font-bold mb-1">City</label>
-                <input
-                  type="text"
-                  placeholder="Greater Noida"
-                  value={selfEditData.city}
-                  onChange={(e) => setSelfEditData({ ...selfEditData, city: e.target.value })}
-                  className="w-full bg-white text-slate-900 rounded-xl px-3 py-2 border border-slate-200 focus:outline-none focus:border-emerald-500 font-medium"
-                />
-              </div>
-              <div>
-                <label className="block text-slate-700 font-bold mb-1">State</label>
-                <input
-                  type="text"
-                  placeholder="Uttar Pradesh"
-                  value={selfEditData.state}
-                  onChange={(e) => setSelfEditData({ ...selfEditData, state: e.target.value })}
-                  className="w-full bg-white text-slate-900 rounded-xl px-3 py-2 border border-slate-200 focus:outline-none focus:border-emerald-500 font-medium"
-                />
-              </div>
-              <div>
-                <label className="block text-slate-700 font-bold mb-1">Postal Code (PIN)</label>
-                <input
-                  type="text"
-                  placeholder="201306"
-                  value={selfEditData.postalCode}
-                  onChange={(e) => setSelfEditData({ ...selfEditData, postalCode: e.target.value })}
-                  className="w-full bg-white text-slate-900 rounded-xl px-3 py-2 border border-slate-200 focus:outline-none focus:border-emerald-500 font-medium"
-                />
-              </div>
+
+              {/* Cascading Country -> State -> City -> Postal Code */}
+              <CascadingAddressFields
+                country={selfEditData.country || 'India'}
+                state={selfEditData.state || ''}
+                city={selfEditData.city || ''}
+                postalCode={selfEditData.postalCode || ''}
+                theme="emerald"
+                onChange={({ country, state, city, postalCode }) => {
+                  setSelfEditData((prev: any) => ({
+                    ...prev,
+                    country,
+                    state,
+                    city,
+                    postalCode,
+                  }));
+                }}
+              />
             </div>
           </div>
 
@@ -277,47 +268,48 @@ export const EditContactModal: React.FC<EditContactModalProps> = ({
               </label>
             </div>
             {!sameAsCurrent && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
-                <div className="sm:col-span-2">
-                  <label className="block text-slate-700 font-bold mb-1">Permanent Address Line 1</label>
-                  <input
-                    type="text"
-                    placeholder="House / Street"
-                    value={selfEditData.permanentAddressLine1}
-                    onChange={(e) => setSelfEditData({ ...selfEditData, permanentAddressLine1: e.target.value })}
-                    className="w-full bg-white text-slate-900 rounded-xl px-3 py-2 border border-slate-200 focus:outline-none focus:border-emerald-500 font-medium"
-                  />
+              <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-slate-700 font-bold mb-1">Permanent Address Line 1</label>
+                    <input
+                      type="text"
+                      placeholder="House / Street"
+                      value={selfEditData.permanentAddressLine1}
+                      onChange={(e) => setSelfEditData({ ...selfEditData, permanentAddressLine1: e.target.value })}
+                      className="w-full bg-white text-slate-900 rounded-xl px-3 py-2 border border-slate-200 focus:outline-none focus:border-emerald-500 font-medium"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-slate-700 font-bold mb-1">Permanent Address Line 2 (Optional)</label>
+                    <input
+                      type="text"
+                      placeholder="Sector / Landmark"
+                      value={selfEditData.permanentAddressLine2}
+                      onChange={(e) => setSelfEditData({ ...selfEditData, permanentAddressLine2: e.target.value })}
+                      className="w-full bg-white text-slate-900 rounded-xl px-3 py-2 border border-slate-200 focus:outline-none focus:border-emerald-500 font-medium"
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-slate-700 font-bold mb-1">City</label>
-                  <input
-                    type="text"
-                    placeholder="City"
-                    value={selfEditData.permanentCity}
-                    onChange={(e) => setSelfEditData({ ...selfEditData, permanentCity: e.target.value })}
-                    className="w-full bg-white text-slate-900 rounded-xl px-3 py-2 border border-slate-200 focus:outline-none focus:border-emerald-500 font-medium"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-700 font-bold mb-1">State</label>
-                  <input
-                    type="text"
-                    placeholder="State"
-                    value={selfEditData.permanentState}
-                    onChange={(e) => setSelfEditData({ ...selfEditData, permanentState: e.target.value })}
-                    className="w-full bg-white text-slate-900 rounded-xl px-3 py-2 border border-slate-200 focus:outline-none focus:border-emerald-500 font-medium"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-700 font-bold mb-1">Postal Code (PIN)</label>
-                  <input
-                    type="text"
-                    placeholder="PIN Code"
-                    value={selfEditData.permanentPostalCode}
-                    onChange={(e) => setSelfEditData({ ...selfEditData, permanentPostalCode: e.target.value })}
-                    className="w-full bg-white text-slate-900 rounded-xl px-3 py-2 border border-slate-200 focus:outline-none focus:border-emerald-500 font-medium"
-                  />
-                </div>
+
+                {/* Cascading Country -> State -> City -> Postal Code for Permanent Address */}
+                <CascadingAddressFields
+                  country={selfEditData.permanentCountry || selfEditData.country || 'India'}
+                  state={selfEditData.permanentState || ''}
+                  city={selfEditData.permanentCity || ''}
+                  postalCode={selfEditData.permanentPostalCode || ''}
+                  prefixLabel="Permanent"
+                  theme="emerald"
+                  onChange={({ country, state, city, postalCode }) => {
+                    setSelfEditData((prev: any) => ({
+                      ...prev,
+                      permanentCountry: country,
+                      permanentState: state,
+                      permanentCity: city,
+                      permanentPostalCode: postalCode,
+                    }));
+                  }}
+                />
               </div>
             )}
           </div>

@@ -50,6 +50,7 @@ import { CriticalChangeRequestModal } from '../components/employees/CriticalChan
 import { SendHrQueryModal } from '../components/employees/SendHrQueryModal';
 import { AssignManagerModal } from '../components/employees/AssignManagerModal';
 import { EditContactModal } from '../components/employees/EditContactModal';
+import CascadingAddressFields from '../components/common/CascadingAddressFields';
 
 export interface Employee {
   id: string | number;
@@ -1403,8 +1404,8 @@ export const EmployeesPage: React.FC = () => {
                   <Home className="w-3.5 h-3.5 text-emerald-600" />
                   <span>Residential Address</span>
                 </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
-                  <div className="sm:col-span-2">
+                <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-3">
+                  <div>
                     <label className="block text-slate-700 font-bold mb-1">Address Line 1</label>
                     <input
                       type="text"
@@ -1415,44 +1416,33 @@ export const EmployeesPage: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-slate-700 font-bold mb-1">City</label>
+                    <label className="block text-slate-700 font-bold mb-1">Address Line 2 (Optional)</label>
                     <input
                       type="text"
-                      placeholder="e.g. Noida / New Delhi"
-                      value={formData.city}
-                      onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                      placeholder="Sector / Landmark"
+                      value={formData.addressLine2}
+                      onChange={(e) => setFormData({ ...formData, addressLine2: e.target.value })}
                       className="w-full bg-white text-slate-900 rounded-xl px-3 py-2 border border-slate-200 focus:outline-none focus:border-emerald-500 font-medium"
                     />
                   </div>
-                  <div>
-                    <label className="block text-slate-700 font-bold mb-1">State</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Uttar Pradesh"
-                      value={formData.state}
-                      onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                      className="w-full bg-white text-slate-900 rounded-xl px-3 py-2 border border-slate-200 focus:outline-none focus:border-emerald-500 font-medium"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-slate-700 font-bold mb-1">PIN / Postal Code</label>
-                    <input
-                      type="text"
-                      placeholder="201306"
-                      value={formData.postalCode}
-                      onChange={(e) => setFormData({ ...formData, postalCode: e.target.value })}
-                      className="w-full bg-white text-slate-900 rounded-xl px-3 py-2 border border-slate-200 focus:outline-none focus:border-emerald-500 font-medium"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-slate-700 font-bold mb-1">Country</label>
-                    <input
-                      type="text"
-                      value={formData.country}
-                      onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                      className="w-full bg-white text-slate-900 rounded-xl px-3 py-2 border border-slate-200 focus:outline-none focus:border-emerald-500 font-medium"
-                    />
-                  </div>
+
+                  {/* Cascading Country -> State -> City -> PIN */}
+                  <CascadingAddressFields
+                    country={formData.country || 'India'}
+                    state={formData.state || ''}
+                    city={formData.city || ''}
+                    postalCode={formData.postalCode || ''}
+                    theme="emerald"
+                    onChange={({ country, state, city, postalCode }) => {
+                      setFormData((prev) => ({
+                        ...prev,
+                        country,
+                        state,
+                        city,
+                        postalCode,
+                      }));
+                    }}
+                  />
                 </div>
               </div>
 
