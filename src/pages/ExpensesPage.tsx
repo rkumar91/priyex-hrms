@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useAuth } from '../context/AuthContext';
-import { isHrAdmin } from '../utils/rbac';
+import { isHrAdmin, isManager } from '../utils/rbac';
 import api from '../api/client';
 import {
   Receipt,
@@ -30,7 +30,10 @@ import {
   UploadCloud,
   Trash2,
   Image as ImageIcon,
-  Paperclip
+  Paperclip,
+  User,
+  ShieldAlert,
+  Users
 } from 'lucide-react';
 
 export interface ExpenseClaim {
@@ -78,6 +81,7 @@ const INITIAL_EXPENSES: ExpenseClaim[] = [
   {
     id: 1,
     claimNumber: 'EXP-2026-081',
+    employeeId: 101,
     employeeName: 'Rakesh K. Sharma',
     department: 'Engineering',
     category: 'TRAVEL',
@@ -90,7 +94,7 @@ const INITIAL_EXPENSES: ExpenseClaim[] = [
     projectCode: 'PRJ-FINTECH-01',
     receiptName: 'Flight_Tickets_Indigo_BLR.pdf',
     status: 'APPROVED',
-    managerId: 2,
+    managerId: 102,
     managerName: 'Priya Sharma',
     managerComment: 'Verified travel dates and itinerary.',
     hrComment: 'Approved for payout per travel policy band 4.',
@@ -99,6 +103,7 @@ const INITIAL_EXPENSES: ExpenseClaim[] = [
   {
     id: 2,
     claimNumber: 'EXP-2026-082',
+    employeeId: 103,
     employeeName: 'Amit Verma',
     department: 'Engineering',
     category: 'CLIENT_ENTERTAINMENT',
@@ -111,12 +116,13 @@ const INITIAL_EXPENSES: ExpenseClaim[] = [
     projectCode: 'HR-TALENT-2026',
     receiptName: 'Oberoi_Invoice_RecruitersDinner.pdf',
     status: 'PENDING_MANAGER',
-    managerId: 1,
+    managerId: 101,
     managerName: 'Rakesh K. Sharma',
   },
   {
     id: 3,
     claimNumber: 'EXP-2026-083',
+    employeeId: 101,
     employeeName: 'Rakesh K. Sharma',
     department: 'Engineering',
     category: 'MOBILE_INTERNET',
@@ -129,7 +135,7 @@ const INITIAL_EXPENSES: ExpenseClaim[] = [
     projectCode: 'CORP-WFH-ALLOWANCE',
     receiptName: 'Airtel_Bill_Oct2026.pdf',
     status: 'REIMBURSED',
-    managerId: 2,
+    managerId: 102,
     managerName: 'Priya Sharma',
     managerComment: 'Approved WFH recurring allowance.',
     hrComment: 'Processed via September payroll cycle.',
@@ -140,6 +146,7 @@ const INITIAL_EXPENSES: ExpenseClaim[] = [
   {
     id: 4,
     claimNumber: 'EXP-2026-084',
+    employeeId: 103,
     employeeName: 'Amit Verma',
     department: 'Engineering',
     category: 'TRAINING',
@@ -152,7 +159,7 @@ const INITIAL_EXPENSES: ExpenseClaim[] = [
     projectCode: 'DEV-UPSKILL-Q4',
     receiptName: 'AWS_Exam_Receipt_12500.pdf',
     status: 'PENDING_HR',
-    managerId: 1,
+    managerId: 101,
     managerName: 'Rakesh K. Sharma',
     managerComment: 'Approved under tech skills enhancement budget.',
     approverRemarks: 'Approved under tech skills enhancement budget.',
@@ -160,6 +167,7 @@ const INITIAL_EXPENSES: ExpenseClaim[] = [
   {
     id: 5,
     claimNumber: 'EXP-2026-085',
+    employeeId: 104,
     employeeName: 'Siddharth Roy',
     department: 'Operations',
     category: 'MEALS',
@@ -172,12 +180,28 @@ const INITIAL_EXPENSES: ExpenseClaim[] = [
     projectCode: 'OPS-RELEASE-V2',
     receiptName: 'CCD_Snacks_Receipt.pdf',
     status: 'PENDING',
+    managerId: 101,
+    managerName: 'Rakesh K. Sharma',
   },
 ];
 
 export const ExpensesPage: React.FC = () => {
   const { user } = useAuth();
   const isHrOrAdmin = isHrAdmin(user);
+  const isMgr = isManager(user);
+
+  // Helper: Identifies if a claim was filed by the currently logged-in user ("Self")
+  const isClaimMine = (c: ExpenseClaim): boolean => {
+    if (user?.employeeId && c.employeeId && String(c.employeeId) === String(user.employeeId)) {
+      return true;
+    }
+    const currentName = (user?.fullName || user?.displayName || '').toLowerCase().trim();
+    const claimEmpName = (c.employeeName || '').toLowerCase().trim();
+    if (currentName && claimEmpName && (claimEmpName === currentName || claimEmpName.includes(currentName) || currentName.includes(claimEmpName))) {
+      return true;
+    }
+    return false;
+  };
 
   const [claims, setClaims] = useState<ExpenseClaim[]>(() => {
     const saved = localStorage.getItem('priyex_expense_claims');
@@ -186,8 +210,24 @@ export const ExpensesPage: React.FC = () => {
 
   const [filterCategory, setFilterCategory] = useState<string>('ALL');
   const [filterStatus, setFilterStatus] = useState<string>('ALL');
-  const [scopeFilter, setScopeFilter] = useState<'ALL' | 'TEAM' | 'MY'>('ALL');
+  // Default scope: HR/Admin -> ALL, Manager -> TEAM, Standard Employee -> MY
+  const [scopeFilter, setScopeFilter] = useState<'ALL' | 'TEAM' | 'MY'>(
+    isHrOrAdmin ? 'ALL' : (isMgr ? 'TEAM' : 'MY')
+  );
+  // Quick toggle for HR/Admin on ALL tab to focus purely on other employees
+  const [excludeSelfInAudit, setExcludeSelfInAudit] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
+
+  // Sync scope if user context is resolved asynchronously
+  useEffect(() => {
+    if (user) {
+      if (!isHrAdmin(user) && !isManager(user)) {
+        setScopeFilter('MY');
+      } else if (!isHrAdmin(user) && isManager(user) && scopeFilter === 'ALL') {
+        setScopeFilter('TEAM');
+      }
+    }
+  }, [user?.employeeId, user?.roles]);
 
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
   const [selectedReceiptClaim, setSelectedReceiptClaim] = useState<ExpenseClaim | null>(null);
@@ -261,10 +301,11 @@ export const ExpensesPage: React.FC = () => {
     localStorage.setItem('priyex_expense_claims', JSON.stringify(claims));
   }, [claims]);
 
-  // Fetch from backend API
+  // Fetch from backend API with role-scoped query parameter
   const fetchApiClaims = async () => {
     try {
-      const res: any = await api.get('/expenses');
+      const scopeParam = isHrOrAdmin ? '' : (isMgr ? '?scope=team' : '?scope=mine');
+      const res: any = await api.get(`/expenses${scopeParam}`);
       if (res?.success && Array.isArray(res.data) && res.data.length > 0) {
         setClaims(res.data);
       }
@@ -275,34 +316,53 @@ export const ExpensesPage: React.FC = () => {
 
   useEffect(() => {
     fetchApiClaims();
-  }, []);
+  }, [user?.employeeId, user?.roles]);
 
-  // Filtered claims
-  const filteredClaims = claims.filter((c) => {
-    if (scopeFilter === 'TEAM') {
-      const isMyTeam = c.managerId === user?.employeeId;
-      if (isHrOrAdmin) return isMyTeam || c.status === 'PENDING_MANAGER';
-      return isMyTeam;
-    }
+  // Filtered claims based on current scope, search, and category/status filters
+  const filteredClaims = useMemo(() => {
+    return claims.filter((c) => {
+      const isMine = isClaimMine(c);
+
+      // 1. Role Scope Filter
+      if (scopeFilter === 'MY') {
+        if (!isMine) return false;
+      } else if (scopeFilter === 'TEAM') {
+        const isMyTeam = Number(c.managerId) === Number(user?.employeeId);
+        if (!isHrOrAdmin && !isMyTeam) return false;
+      } else {
+        // scopeFilter === 'ALL' (HR / Admin only)
+        if (excludeSelfInAudit && isMine) return false;
+      }
+
+      // 2. Metadata Filters
+      const matchCategory = filterCategory === 'ALL' || c.category === filterCategory;
+      const matchStatus = filterStatus === 'ALL' || c.status === filterStatus;
+      const matchSearch =
+        (c.claimNumber || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (c.employeeName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (c.merchant || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (c.description || '').toLowerCase().includes(searchQuery.toLowerCase());
+
+      return matchCategory && matchStatus && matchSearch;
+    });
+  }, [claims, scopeFilter, excludeSelfInAudit, filterCategory, filterStatus, searchQuery, user?.employeeId, user?.fullName, isHrOrAdmin]);
+
+  // Scoped Analytics Metrics (Personal vs Team vs Corporate)
+  const scopedClaimsForMetrics = useMemo(() => {
     if (scopeFilter === 'MY') {
-      return c.employeeId === user?.employeeId || (c.employeeName && user?.fullName && c.employeeName.toLowerCase().includes(user.fullName.toLowerCase()));
+      return claims.filter(isClaimMine);
     }
-    const matchCategory = filterCategory === 'ALL' || c.category === filterCategory;
-    const matchStatus = filterStatus === 'ALL' || c.status === filterStatus;
-    const matchSearch =
-      c.claimNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      c.employeeName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      c.merchant.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      c.description.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchCategory && matchStatus && matchSearch;
-  });
+    if (scopeFilter === 'TEAM') {
+      return claims.filter(c => Number(c.managerId) === Number(user?.employeeId));
+    }
+    return claims;
+  }, [claims, scopeFilter, user?.employeeId, user?.fullName]);
 
-  // Analytics Metrics
-  const totalClaimed = claims.reduce((acc, c) => acc + c.amount, 0);
-  const totalApproved = claims.filter(c => c.status === 'APPROVED' || c.status === 'REIMBURSED').reduce((acc, c) => acc + c.amount, 0);
-  const pendingCount = claims.filter(c => c.status === 'PENDING' || c.status === 'PENDING_MANAGER' || c.status === 'PENDING_HR').length;
-  const pendingAmount = claims.filter(c => c.status === 'PENDING' || c.status === 'PENDING_MANAGER' || c.status === 'PENDING_HR').reduce((acc, c) => acc + c.amount, 0);
-  const reimbursedCount = claims.filter(c => c.status === 'REIMBURSED').length;
+  const totalClaimed = scopedClaimsForMetrics.reduce((acc, c) => acc + (c.amount || 0), 0);
+  const totalApproved = scopedClaimsForMetrics.filter(c => c.status === 'APPROVED' || c.status === 'REIMBURSED').reduce((acc, c) => acc + (c.amount || 0), 0);
+  const pendingCount = scopedClaimsForMetrics.filter(c => c.status === 'PENDING' || c.status === 'PENDING_MANAGER' || c.status === 'PENDING_HR').length;
+  const pendingAmount = scopedClaimsForMetrics.filter(c => c.status === 'PENDING' || c.status === 'PENDING_MANAGER' || c.status === 'PENDING_HR').reduce((acc, c) => acc + (c.amount || 0), 0);
+  const reimbursedCount = scopedClaimsForMetrics.filter(c => c.status === 'REIMBURSED').length;
 
   // Actions (Multi-Tier Workflow)
   const handleManagerApprove = async (id: number) => {
@@ -492,31 +552,39 @@ export const ExpensesPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Corporate Summary Cards */}
+      {/* Dynamic Summary KPI Cards (Contextual: Self vs Team vs Corporate) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         <div className="glass-panel rounded-2xl p-5 border border-slate-200/90 bg-white/90 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Claims Filed</span>
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+              {scopeFilter === 'MY' ? 'My Total Claims' : scopeFilter === 'TEAM' ? 'Team Claims Filed' : 'Total Corporate Claims'}
+            </span>
             <div className="p-2 rounded-xl bg-blue-50 text-blue-600">
               <DollarSign className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3">
             <span className="text-2xl font-extrabold text-slate-900">₹{totalClaimed.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
-            <p className="text-xs text-slate-500 mt-0.5">{claims.length} total corporate filings</p>
+            <p className="text-xs text-slate-500 mt-0.5">
+              {scopeFilter === 'MY' ? `${scopedClaimsForMetrics.length} personal claims submitted` : scopeFilter === 'TEAM' ? `${scopedClaimsForMetrics.length} direct report filings` : `${claims.length} total corporate filings`}
+            </p>
           </div>
         </div>
 
         <div className="glass-panel rounded-2xl p-5 border border-slate-200/90 bg-white/90 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Pending Approvals</span>
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+              {scopeFilter === 'MY' ? 'My Pending Review' : scopeFilter === 'TEAM' ? 'Awaiting My Decision' : 'Pending Approvals'}
+            </span>
             <div className="p-2 rounded-xl bg-amber-50 text-amber-600">
               <Clock className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3">
             <span className="text-2xl font-extrabold text-amber-600">₹{pendingAmount.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
-            <p className="text-xs text-slate-500 mt-0.5">{pendingCount} claims awaiting manager review</p>
+            <p className="text-xs text-slate-500 mt-0.5">
+              {scopeFilter === 'MY' ? `${pendingCount} claims under manager/HR review` : scopeFilter === 'TEAM' ? `${pendingCount} claims requiring your signoff` : `${pendingCount} corporate claims awaiting review`}
+            </p>
           </div>
         </div>
 
@@ -529,13 +597,17 @@ export const ExpensesPage: React.FC = () => {
           </div>
           <div className="mt-3">
             <span className="text-2xl font-extrabold text-emerald-600">₹{totalApproved.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
-            <p className="text-xs text-slate-500 mt-0.5">Compliant with financial policy thresholds</p>
+            <p className="text-xs text-slate-500 mt-0.5">
+              {scopeFilter === 'MY' ? 'Ready for payroll bank disbursement' : 'Compliant with financial policy thresholds'}
+            </p>
           </div>
         </div>
 
         <div className="glass-panel rounded-2xl p-5 border border-slate-200/90 bg-white/90 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Disbursed via Payroll</span>
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+              {scopeFilter === 'MY' ? 'Reimbursed to You' : 'Disbursed via Payroll'}
+            </span>
             <div className="p-2 rounded-xl bg-purple-50 text-purple-600">
               <CreditCard className="w-4 h-4" />
             </div>
@@ -551,43 +623,73 @@ export const ExpensesPage: React.FC = () => {
       <div className="glass-panel rounded-2xl p-4 bg-white/95 border border-slate-200/90 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
         {/* Scope Switcher Tabs */}
         <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl text-xs font-semibold shrink-0">
-          <button
-            type="button"
-            onClick={() => setScopeFilter('ALL')}
-            className={`px-3 py-1.5 rounded-lg transition cursor-pointer ${
-              scopeFilter === 'ALL'
-                ? 'bg-white text-slate-900 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            All Filings ({claims.length})
-          </button>
-          <button
-            type="button"
-            onClick={() => setScopeFilter('TEAM')}
-            className={`px-3 py-1.5 rounded-lg transition cursor-pointer flex items-center gap-1.5 ${
-              scopeFilter === 'TEAM'
-                ? 'bg-white text-indigo-700 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <span>Team Approvals</span>
-            {claims.filter(c => c.status === 'PENDING_MANAGER').length > 0 && (
-              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-            )}
-          </button>
+          {/* All Filings Tab: Only visible to HR and Organization Admins */}
+          {isHrOrAdmin && (
+            <button
+              type="button"
+              onClick={() => setScopeFilter('ALL')}
+              className={`px-3 py-1.5 rounded-lg transition cursor-pointer flex items-center gap-1.5 ${
+                scopeFilter === 'ALL'
+                  ? 'bg-white text-slate-900 shadow-xs font-bold'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <span>All Corporate Filings</span>
+              <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-200 text-slate-700 font-bold">
+                {claims.length}
+              </span>
+            </button>
+          )}
+
+          {/* Team Approvals Tab: Visible to Managers, HR, and Admins */}
+          {(isMgr || isHrOrAdmin) && (
+            <button
+              type="button"
+              onClick={() => setScopeFilter('TEAM')}
+              className={`px-3 py-1.5 rounded-lg transition cursor-pointer flex items-center gap-1.5 ${
+                scopeFilter === 'TEAM'
+                  ? 'bg-white text-indigo-700 shadow-xs font-bold'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Users className="w-3.5 h-3.5" />
+              <span>Team Approvals</span>
+              {claims.filter(c => Number(c.managerId) === Number(user?.employeeId) && c.status === 'PENDING_MANAGER').length > 0 && (
+                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" title="Pending team approvals require review" />
+              )}
+            </button>
+          )}
+
+          {/* My Expenses Tab: Visible to Everyone (Personal / Self) */}
           <button
             type="button"
             onClick={() => setScopeFilter('MY')}
-            className={`px-3 py-1.5 rounded-lg transition cursor-pointer ${
+            className={`px-3 py-1.5 rounded-lg transition cursor-pointer flex items-center gap-1.5 ${
               scopeFilter === 'MY'
-                ? 'bg-white text-slate-900 shadow-xs'
+                ? 'bg-white text-blue-700 shadow-xs font-bold'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            My Expenses
+            <User className="w-3.5 h-3.5" />
+            <span>My Expenses</span>
+            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-blue-100 text-blue-800 font-bold">
+              {claims.filter(isClaimMine).length}
+            </span>
           </button>
         </div>
+
+        {/* HR Self-Exclusion Toggle on All Filings Tab */}
+        {isHrOrAdmin && scopeFilter === 'ALL' && (
+          <label className="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer bg-slate-50 hover:bg-slate-100 px-2.5 py-1.5 rounded-xl border border-slate-200 transition shrink-0 select-none">
+            <input
+              type="checkbox"
+              checked={excludeSelfInAudit}
+              onChange={(e) => setExcludeSelfInAudit(e.target.checked)}
+              className="rounded border-slate-300 text-blue-600 focus:ring-0 cursor-pointer"
+            />
+            <span className="font-semibold text-slate-700">Exclude My Own Claims</span>
+          </label>
+        )}
 
         <div className="flex items-center gap-2 flex-1">
           <div className="relative flex-1 max-w-md">
@@ -645,21 +747,42 @@ export const ExpensesPage: React.FC = () => {
 
       {/* Claims Master Table */}
       <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-slate-900 text-sm">Corporate Expense Register</span>
+        <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-slate-50/50">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-bold text-slate-900 text-sm">
+              {scopeFilter === 'MY'
+                ? 'My Personal Claims Register'
+                : scopeFilter === 'TEAM'
+                ? 'Team Expense Approvals Register'
+                : 'Corporate Expense Register'}
+            </span>
             <span className="text-xs px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 font-bold border border-blue-200">
               {filteredClaims.length} records
             </span>
+            {scopeFilter === 'MY' && (
+              <span className="text-[11px] px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200 font-medium">
+                Viewing Personal Filings
+              </span>
+            )}
           </div>
-          <span className="text-xs text-slate-400">Two-Tier Approval: Manager Review &rarr; HR Signoff &rarr; Bank Reimbursement</span>
+          <span className="text-xs text-slate-400">
+            Two-Tier Approval: Manager Review &rarr; HR Signoff &rarr; Bank Reimbursement
+          </span>
         </div>
 
         {filteredClaims.length === 0 ? (
           <div className="p-12 text-center text-slate-500">
             <Receipt className="w-10 h-10 mx-auto text-slate-300 mb-3" />
-            <p className="text-sm font-semibold">No expense claims match your search or filter.</p>
-            <p className="text-xs text-slate-400 mt-1">Try resetting the status or category filter.</p>
+            <p className="text-sm font-semibold">
+              {scopeFilter === 'MY'
+                ? 'You have not submitted any expense claims yet.'
+                : 'No expense claims match your search or filter.'}
+            </p>
+            <p className="text-xs text-slate-400 mt-1">
+              {scopeFilter === 'MY'
+                ? 'Click "File New Expense Claim" above to submit an expense report.'
+                : 'Try resetting the status or category filter.'}
+            </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -681,6 +804,7 @@ export const ExpensesPage: React.FC = () => {
                 {filteredClaims.map((claim) => {
                   const cat = CATEGORY_CONFIG[claim.category] || CATEGORY_CONFIG.TRAVEL;
                   const Icon = cat.icon;
+                  const isMine = isClaimMine(claim);
                   const isManagerPending = claim.status === 'PENDING_MANAGER';
                   const isHrPending = claim.status === 'PENDING_HR';
                   const isReadyForPayout = claim.status === 'APPROVED';
@@ -688,14 +812,36 @@ export const ExpensesPage: React.FC = () => {
                   const isMgrDeclined = claim.status === 'REJECTED_MANAGER';
                   const isHrDeclined = claim.status === 'REJECTED_HR' || claim.status === 'REJECTED';
 
+                  // Manager rights check: Can approve if current user is the employee's direct manager or HR/Admin
+                  const canActAsManager = !isMine && (isHrOrAdmin || (user?.employeeId && Number(claim.managerId) === Number(user.employeeId)));
+
                   return (
-                    <tr key={claim.id} className="hover:bg-slate-50/70 transition-colors">
+                    <tr
+                      key={claim.id}
+                      className={`transition-colors border-l-4 ${
+                        isMine
+                          ? 'bg-blue-50/30 hover:bg-blue-50/60 border-l-blue-600'
+                          : 'hover:bg-slate-50/70 border-l-transparent'
+                      }`}
+                    >
                       <td className="py-3.5 px-4 font-mono font-bold text-blue-700">
                         {claim.claimNumber}
                       </td>
 
                       <td className="py-3.5 px-4">
-                        <div className="font-bold text-slate-900">{claim.employeeName}</div>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="font-bold text-slate-900">{claim.employeeName}</span>
+                          {isMine && (
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 border border-blue-200 shadow-2xs">
+                              <User className="w-2.5 h-2.5" /> You (Self)
+                            </span>
+                          )}
+                          {!isMine && scopeFilter === 'TEAM' && (
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-600">
+                              Direct Report
+                            </span>
+                          )}
+                        </div>
                         <div className="text-[11px] text-slate-400">{claim.department}</div>
                         {claim.managerName && (
                           <div className="text-[10px] text-slate-500 font-medium mt-0.5">
@@ -747,7 +893,7 @@ export const ExpensesPage: React.FC = () => {
                       {/* Two-Tier Approval Status Stepper Cell */}
                       <td className="py-3.5 px-4 text-center">
                         <div className="inline-flex flex-col items-center gap-1">
-                          <span className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-extrabold border ${
+                          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold border ${
                             isReadyForPayout ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
                             isPaid ? 'bg-purple-50 text-purple-700 border-purple-200' :
                             isHrPending ? 'bg-indigo-50 text-indigo-700 border-indigo-200' :
@@ -755,20 +901,45 @@ export const ExpensesPage: React.FC = () => {
                             isMgrDeclined || isHrDeclined ? 'bg-rose-50 text-rose-700 border-rose-200' :
                             'bg-slate-100 text-slate-700 border-slate-200'
                           }`}>
-                            {isManagerPending ? 'Tier 1: Pending Manager' :
-                             isHrPending ? 'Tier 2: Pending HR' :
-                             isReadyForPayout ? 'Approved for Payout' :
-                             isPaid ? 'Reimbursed' :
-                             isMgrDeclined ? 'Rejected by Manager' :
-                             isHrDeclined ? 'Rejected by HR' :
-                             claim.status}
+                            {isManagerPending ? (
+                              <>
+                                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                                <span>Tier 1: Pending Manager</span>
+                              </>
+                            ) : isHrPending ? (
+                              <>
+                                <Clock className="w-3 h-3 text-indigo-600" />
+                                <span>Tier 2: Pending HR</span>
+                              </>
+                            ) : isReadyForPayout ? (
+                              <>
+                                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                                <span>Approved for Payout</span>
+                              </>
+                            ) : isPaid ? (
+                              <>
+                                <CreditCard className="w-3 h-3 text-purple-600" />
+                                <span>Reimbursed</span>
+                              </>
+                            ) : isMgrDeclined ? (
+                              <>
+                                <XCircle className="w-3 h-3 text-rose-600" />
+                                <span>Rejected by Manager</span>
+                              </>
+                            ) : isHrDeclined ? (
+                              <>
+                                <XCircle className="w-3 h-3 text-rose-600" />
+                                <span>Rejected by HR</span>
+                              </>
+                            ) : (
+                              claim.status
+                            )}
                           </span>
 
                           {/* Micro Sub-tracker */}
                           <div className="flex items-center gap-1 text-[9px] text-slate-400 font-medium">
                             {isManagerPending ? (
                               <span className="text-amber-600 flex items-center gap-0.5">
-                                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
                                 Awaiting {claim.managerName || 'Manager'}
                               </span>
                             ) : isHrPending ? (
@@ -793,69 +964,85 @@ export const ExpensesPage: React.FC = () => {
                       {/* Contextual Action Buttons */}
                       <td className="py-3.5 px-4 text-right">
                         <div className="flex items-center justify-end gap-1.5">
-                          {isManagerPending && (
-                            <>
-                              <button
-                                type="button"
-                                onClick={() => handleManagerApprove(claim.id)}
-                                className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] transition cursor-pointer flex items-center gap-1 shadow-xs"
-                                title="Approve as Direct Manager"
-                              >
-                                <CheckCircle2 className="w-3 h-3" /> Approve (Mgr)
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleManagerReject(claim.id)}
-                                className="px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold text-[11px] transition cursor-pointer flex items-center gap-1 shadow-xs"
-                                title="Reject as Direct Manager"
-                              >
-                                <XCircle className="w-3 h-3" /> Reject
-                              </button>
-                            </>
-                          )}
-
-                          {isHrPending && isHrOrAdmin && (
-                            <>
-                              <button
-                                type="button"
-                                onClick={() => handleHrApprove(claim.id)}
-                                className="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[11px] transition cursor-pointer flex items-center gap-1 shadow-xs"
-                                title="Grant Final HR Signoff"
-                              >
-                                <CheckCircle2 className="w-3 h-3" /> Final HR Approve
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleHrReject(claim.id)}
-                                className="px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold text-[11px] transition cursor-pointer flex items-center gap-1 shadow-xs"
-                                title="Reject as HR"
-                              >
-                                <XCircle className="w-3 h-3" /> Reject
-                              </button>
-                            </>
-                          )}
-
-                          {isReadyForPayout && isHrOrAdmin && (
-                            <button
-                              type="button"
-                              onClick={() => handleReimburse(claim.id)}
-                              className="px-2.5 py-1 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-bold text-[11px] transition cursor-pointer flex items-center gap-1 shadow-xs"
-                              title="Disburse payout via corporate banking"
+                          {/* CRITICAL GOVERNANCE: Prevent Self-Approval (Separation of Duties) */}
+                          {isMine ? (
+                            <span
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-500 border border-slate-200 text-[11px] font-semibold"
+                              title="Self-approval is forbidden by financial audit policies. Your claim must be reviewed by an authorized independent approver."
                             >
-                              <CreditCard className="w-3 h-3" /> Reimburse
-                            </button>
-                          )}
-
-                          {isPaid && (
-                            <span className="text-[11px] text-purple-700 font-mono font-semibold" title={`Ref: ${claim.reimbursementRef}`}>
-                              Paid: {claim.reimbursementRef || 'Direct Transfer'}
+                              <ShieldAlert className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                              <span>Self-Claim</span>
                             </span>
-                          )}
+                          ) : (
+                            <>
+                              {/* Stage 1: Manager Approve / Reject (Manager or HR/Admin) */}
+                              {isManagerPending && canActAsManager && (
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleManagerApprove(claim.id)}
+                                    className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] transition cursor-pointer flex items-center gap-1 shadow-xs"
+                                    title="Approve as Direct Manager"
+                                  >
+                                    <CheckCircle2 className="w-3 h-3" /> Approve (Mgr)
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleManagerReject(claim.id)}
+                                    className="px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold text-[11px] transition cursor-pointer flex items-center gap-1 shadow-xs"
+                                    title="Reject as Direct Manager"
+                                  >
+                                    <XCircle className="w-3 h-3" /> Reject
+                                  </button>
+                                </>
+                              )}
 
-                          {(isMgrDeclined || isHrDeclined) && (
-                            <span className="text-[11px] text-rose-600 italic">
-                              {claim.approverRemarks || claim.managerComment || claim.hrComment || 'Declined'}
-                            </span>
+                              {/* Stage 2: HR Audit & Payout Signoff */}
+                              {isHrPending && isHrOrAdmin && (
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleHrApprove(claim.id)}
+                                    className="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[11px] transition cursor-pointer flex items-center gap-1 shadow-xs"
+                                    title="Grant Final HR Signoff"
+                                  >
+                                    <CheckCircle2 className="w-3 h-3" /> Final HR Approve
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleHrReject(claim.id)}
+                                    className="px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold text-[11px] transition cursor-pointer flex items-center gap-1 shadow-xs"
+                                    title="Reject as HR"
+                                  >
+                                    <XCircle className="w-3 h-3" /> Reject
+                                  </button>
+                                </>
+                              )}
+
+                              {/* Stage 3: Direct Bank Reimbursement */}
+                              {isReadyForPayout && isHrOrAdmin && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleReimburse(claim.id)}
+                                  className="px-2.5 py-1 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-bold text-[11px] transition cursor-pointer flex items-center gap-1 shadow-xs"
+                                  title="Disburse payout via corporate banking"
+                                >
+                                  <CreditCard className="w-3 h-3" /> Reimburse
+                                </button>
+                              )}
+
+                              {isPaid && (
+                                <span className="text-[11px] text-purple-700 font-mono font-semibold" title={`Ref: ${claim.reimbursementRef}`}>
+                                  Paid: {claim.reimbursementRef || 'Direct Transfer'}
+                                </span>
+                              )}
+
+                              {(isMgrDeclined || isHrDeclined) && (
+                                <span className="text-[11px] text-rose-600 italic">
+                                  {claim.approverRemarks || claim.managerComment || claim.hrComment || 'Declined'}
+                                </span>
+                              )}
+                            </>
                           )}
                         </div>
                       </td>
