@@ -15,6 +15,11 @@ export const isSuperAdmin = (user: UserProfile | null): boolean => {
   return hasRole(user, ['SUPER_ADMIN', 'PLATFORM_ADMIN']);
 };
 
+/** SaaS Platform Owner / Staff: Access to the dedicated Priyex SaaS Management Console */
+export const isSaasOwner = (user: UserProfile | null): boolean => {
+  return hasRole(user, ['SUPER_ADMIN', 'PLATFORM_ADMIN', 'SAAS_ADMIN', 'SAAS_SALES', 'SAAS_FINANCE', 'SAAS_SUPPORT']);
+};
+
 /** Organization Admin: Manages all HRMS data within their own organization */
 export const isAdmin = (user: UserProfile | null): boolean => {
   return hasRole(user, ['SUPER_ADMIN', 'PLATFORM_ADMIN', 'ADMIN', 'COMPANY_ADMIN']);

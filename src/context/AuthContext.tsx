@@ -28,7 +28,7 @@ interface AuthContextType {
   user: UserProfile | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (credentials: { email: string; password: string }) => Promise<void>;
+  login: (credentials: { email: string; password: string }) => Promise<UserProfile | null>;
   logout: () => Promise<void>;
   updateUser: (partial: Partial<UserProfile>) => void;
 }
@@ -159,7 +159,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       setUser(activeUser);
       localStorage.setItem('user', JSON.stringify(activeUser));
+      return activeUser;
     }
+    return null;
   };
 
   const logout = async () => {

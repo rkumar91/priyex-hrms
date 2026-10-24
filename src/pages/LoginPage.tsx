@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { isSaasOwner } from '../utils/rbac';
 import { BrandLogo } from '../components/common/BrandLogo';
 import { checkBackendHealth, prewarmBackend } from '../api/client';
 import api from '../api/client';
@@ -78,14 +79,18 @@ export const LoginPage: React.FC = () => {
   const debounceTimerRef = useRef<any>(null);
 
 
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/dashboard', { replace: true });
+      if (isSaasOwner(user)) {
+        navigate('/saas-console?tab=overview', { replace: true });
+      } else {
+        navigate('/dashboard', { replace: true });
+      }
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, user, navigate]);
 
   // Proactive background ping and health status on mount
   useEffect(() => {
@@ -280,8 +285,12 @@ export const LoginPage: React.FC = () => {
     setError(null);
     setIsSubmitting(true);
     try {
-      await login({ email: email.trim(), password });
-      navigate('/dashboard');
+      const loggedInUser: any = await login({ email: email.trim(), password });
+      if (isSaasOwner(loggedInUser)) {
+        navigate('/saas-console?tab=overview');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err: any) {
       const errMsg =
         err?.message || (typeof err === 'string' ? err : 'Invalid email or password. Please verify your credentials.');

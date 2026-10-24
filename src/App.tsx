@@ -21,6 +21,7 @@ const OnboardingPage = lazy(() => import('./pages/OnboardingPage').then(m => ({ 
 const BannerNotificationsPage = lazy(() => import('./pages/BannerNotificationsPage').then(m => ({ default: m.BannerNotificationsPage })));
 const ExpensesPage = lazy(() => import('./pages/ExpensesPage').then(m => ({ default: m.ExpensesPage })));
 const ClientOnboardingPage = lazy(() => import('./pages/ClientOnboardingPage').then(m => ({ default: m.ClientOnboardingPage })));
+const SaasConsolePage = lazy(() => import('./pages/SaasConsolePage').then(m => ({ default: m.SaasConsolePage })));
 
 export const App: React.FC = () => {
   useEffect(() => {
@@ -71,6 +72,7 @@ export const App: React.FC = () => {
                 <Route path="/audit-logs" element={<AuditLogsPage />} />
                 <Route path="/onboarding" element={<OnboardingPage />} />
                 <Route path="/client-onboarding" element={<ClientOnboardingPage />} />
+                <Route path="/saas-console" element={<SaasConsolePage />} />
                 <Route path="/banner-notifications" element={<BannerNotificationsPage />} />
               </Route>
               <Route path="*" element={<Navigate to="/" replace />} />
