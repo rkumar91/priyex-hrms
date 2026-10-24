@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Priyex HRMS — End-to-End Platform Architecture & Operational Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #1e3a8a;
+      --primary-dark: #0f172a;
+      --accent: #2563eb;
+      --emerald: #059669;
+      --amber: #d97706;
+      --slate-50: #f8fafc;
+      --slate-100: #f1f5f9;
+      --slate-200: #e2e8f0;
+      --slate-300: #cbd5e1;
+      --slate-600: #475569;
+      --slate-700: #334155;
+      --slate-800: #1e293b;
+      --slate-900: #0f172a;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: var(--slate-800);
+      background-color: #f8fafc;
+      line-height: 1.6;
+      font-size: 14px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      background: #ffffff;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+      border: 1px solid var(--slate-200);
+    }
+
+    /* Print control floating toolbar */
+    .top-toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--slate-900);
+      color: #ffffff;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 2px solid var(--accent);
+    }
+
+    .top-toolbar .title {
+      font-weight: 700;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .top-toolbar .badge {
+      background: rgba(37, 99, 235, 0.3);
+      color: #60a5fa;
+      border: 1px solid rgba(96, 165, 250, 0.4);
+      padding: 2px 8px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .toolbar-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s ease;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: #2563eb;
+      color: #ffffff;
+    }
+    .btn-primary:hover {
+      background: #1d4ed8;
+    }
+
+    .btn-secondary {
+      background: var(--slate-800);
+      color: #cbd5e1;
+      border: 1px solid var(--slate-700);
+    }
+    .btn-secondary:hover {
+      background: var(--slate-700);
+      color: #ffffff;
+    }
+
+    /* Document Cover */
+    .cover-page {
+      padding: 60px 50px 40px;
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+      color: #ffffff;
+      border-bottom: 4px solid var(--accent);
+      position: relative;
+    }
+
+    .cover-page .brand-mark {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+
+    .cover-page .brand-mark span {
+      color: #38bdf8;
+    }
+
+    .cover-page h1 {
+      font-size: 32px;
+      font-weight: 800;
+      line-height: 1.25;
+      margin-bottom: 12px;
+      letter-spacing: -0.5px;
+      color: #ffffff;
+    }
+
+    .cover-page .subtitle {
+      font-size: 16px;
+      color: #cbd5e1;
+      max-width: 760px;
+      line-height: 1.5;
+      margin-bottom: 28px;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .meta-item .label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #94a3b8;
+      margin-bottom: 4px;
+    }
+
+    .meta-item .value {
+      font-size: 13px;
+      font-weight: 600;
+      color: #ffffff;
+    }
+
+    /* Table of contents */
+    .toc-section {
+      padding: 36px 50px;
+      background: #f8fafc;
+      border-bottom: 1px solid var(--slate-200);
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--slate-900);
+      letter-spacing: -0.3px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .toc-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .toc-card {
+      background: #ffffff;
+      border: 1px solid var(--slate-200);
+      padding: 12px 16px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.15s ease;
+    }
+
+    .toc-card:hover {
+      border-color: var(--accent);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .toc-number {
+      font-weight: 800;
+      font-size: 12px;
+      background: var(--slate-100);
+      color: var(--slate-700);
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .toc-info .name {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--slate-900);
+    }
+
+    .toc-info .category {
+      font-size: 11px;
+      color: var(--slate-600);
+    }
+
+    /* Workflow Modules */
+    .flow-section {
+      padding: 40px 50px;
+      border-bottom: 1px solid var(--slate-200);
+      page-break-inside: avoid;
+    }
+
+    .flow-header {
+      margin-bottom: 20px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .flow-badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: var(--slate-100);
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+
+    .flow-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--slate-900);
+      letter-spacing: -0.3px;
+      margin-bottom: 4px;
+    }
+
+    .flow-tagline {
+      font-size: 13px;
+      color: var(--slate-600);
+      font-style: italic;
+    }
+
+    .content-box {
+      background: var(--slate-50);
+      border: 1px solid var(--slate-200);
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+
+    .content-box p {
+      font-size: 13.5px;
+      color: var(--slate-700);
+      line-height: 1.6;
+    }
+
+    .subheading {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--slate-900);
+      margin: 20px 0 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .subheading::before {
+      content: "";
+      display: inline-block;
+      width: 4px;
+      height: 14px;
+      background: var(--accent);
+      border-radius: 2px;
+    }
+
+    .pillars-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .pillar-card {
+      background: #ffffff;
+      border: 1px solid var(--slate-200);
+      padding: 12px 14px;
+      border-radius: 8px;
+      font-size: 12.5px;
+      color: var(--slate-700);
+    }
+
+    .pillar-card strong {
+      color: var(--slate-900);
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    /* Steps Table */
+    .steps-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+      font-size: 12.5px;
+    }
+
+    .steps-table th {
+      background: var(--slate-100);
+      color: var(--slate-800);
+      font-weight: 700;
+      text-align: left;
+      padding: 8px 12px;
+      border: 1px solid var(--slate-200);
+    }
+
+    .steps-table td {
+      padding: 10px 12px;
+      border: 1px solid var(--slate-200);
+      vertical-align: top;
+    }
+
+    .steps-table tr:nth-child(even) td {
+      background: #fafafa;
+    }
+
+    .actor-tag {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    /* Code Snippet */
+    .code-block {
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 12px 16px;
+      border-radius: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      line-height: 1.5;
+      overflow-x: auto;
+      margin-bottom: 16px;
+    }
+
+    .code-method {
+      color: #38bdf8;
+      font-weight: 700;
+    }
+
+    /* Rule Alert */
+    .rule-alert {
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-left: 4px solid #f59e0b;
+      padding: 12px 16px;
+      border-radius: 6px;
+      font-size: 12.5px;
+      color: #78350f;
+      margin-bottom: 16px;
+    }
+
+    /* Document Footer */
+    .doc-footer {
+      padding: 30px 50px;
+      background: var(--slate-900);
+      color: var(--slate-300);
+      font-size: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .doc-footer a {
+      color: #60a5fa;
+      text-decoration: none;
+    }
+
+    /* PRINT SPECIFIC STYLES */
+    @media print {
+      body {
+        background: #ffffff;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .container {
+        border: none;
+        box-shadow: none;
+        max-width: 100%;
+        margin: 0;
+      }
+      .cover-page {
+        padding: 40px;
+        page-break-after: always;
+      }
+      .flow-section {
+        padding: 30px 0;
+        page-break-inside: avoid;
+        page-break-after: always;
+      }
+      .flow-section:last-of-type {
+        page-break-after: auto;
+      }
+      @page {
+        margin: 15mm;
+        size: A4 portrait;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Floating Print Toolbar (Hidden during actual print) -->
+  <div class="top-toolbar no-print">
+    <div class="title">
+      <span>Priyex Enterprise HRMS</span>
+      <span class="badge">Architecture & Operational Manual</span>
+    </div>
+    <div class="toolbar-actions">
+      <button class="btn btn-secondary" onclick="window.history.back()">
+        ← Back to Portal
+      </button>
+      <button class="btn btn-primary" onclick="window.print()">
+        🖨️ Print / Save as PDF
+      </button>
+    </div>
+  </div>
+
+  <div class="container">
+    
+    <!-- ════ COVER PAGE ════ -->
+    <div class="cover-page">
+      <div class="brand-mark">
+        Priyex<span>.HRMS</span>
+      </div>
+      <h1>Enterprise Operational Manual & End-to-End Architecture Guide</h1>
+      <p class="subtitle">
+        A comprehensive reference specification detailing all 9 core operational workflows — from logical multi-tenant data perimeters to real-time biometric attendance, continuous Indian payroll calculation, and role-based governance.
+      </p>
+      <div class="meta-grid">
+        <div class="meta-item">
+          <div class="label">Document Version</div>
+          <div class="value">v2.4.0 (Enterprise Edition)</div>
+        </div>
+        <div class="meta-item">
+          <div class="label">Security Level</div>
+          <div class="value">Strict Logical Isolation</div>
+        </div>
+        <div class="meta-item">
+          <div class="label">Statutory Alignment</div>
+          <div class="value">Indian Labor & Income Tax Acts</div>
+        </div>
+        <div class="meta-item">
+          <div class="label">Status</div>
+          <div class="value">Production Approved</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ TABLE OF CONTENTS ════ -->
+    <div class="toc-section">
+      <div class="section-title">
+        📑 Operational Workflows Directory
+      </div>
+      <div class="toc-grid">
+        <a href="#flow-1" class="toc-card">
+          <div class="toc-number">01</div>
+          <div class="toc-info">
+            <div class="name">Multi-Tenant Architecture & Data Perimeters</div>
+            <div class="category">Infrastructure & Isolation</div>
+          </div>
+        </a>
+        <a href="#flow-2" class="toc-card">
+          <div class="toc-number">02</div>
+          <div class="toc-info">
+            <div class="name">Domain Auto-Detection & Cryptographic JWT</div>
+            <div class="category">Identity & Access Management</div>
+          </div>
+        </a>
+        <a href="#flow-3" class="toc-card">
+          <div class="toc-number">03</div>
+          <div class="toc-info">
+            <div class="name">Employee Lifecycle & Master Directory</div>
+            <div class="category">Core HR Operations</div>
+          </div>
+        </a>
+        <a href="#flow-4" class="toc-card">
+          <div class="toc-number">04</div>
+          <div class="toc-info">
+            <div class="name">Biometric Attendance, Geofencing & Shifts</div>
+            <div class="category">Time & Workforce Presence</div>
+          </div>
+        </a>
+        <a href="#flow-5" class="toc-card">
+          <div class="toc-number">05</div>
+          <div class="toc-info">
+            <div class="name">Continuous Payroll (CCE) & Indian Statutory Tax</div>
+            <div class="category">Compensation & Compliance</div>
+          </div>
+        </a>
+        <a href="#flow-6" class="toc-card">
+          <div class="toc-number">06</div>
+          <div class="toc-info">
+            <div class="name">Leave Policies, Approvals & Carry-Forward</div>
+            <div class="category">Time-Off Governance</div>
+          </div>
+        </a>
+        <a href="#flow-7" class="toc-card">
+          <div class="toc-number">07</div>
+          <div class="toc-info">
+            <div class="name">Performance Appraisals, OKRs & 360° Reviews</div>
+            <div class="category">Talent Development</div>
+          </div>
+        </a>
+        <a href="#flow-8" class="toc-card">
+          <div class="toc-number">08</div>
+          <div class="toc-info">
+            <div class="name">Separation, Clearance & Full & Final (F&F)</div>
+            <div class="category">Offboarding & Gratuity</div>
+          </div>
+        </a>
+        <a href="#flow-9" class="toc-card">
+          <div class="toc-number">09</div>
+          <div class="toc-info">
+            <div class="name">Role-Based Access Control (RBAC) & Audit Trails</div>
+            <div class="category">Enterprise Security & Compliance</div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <!-- ════ FLOW 01: MULTI-TENANCY ════ -->
+    <div class="flow-section" id="flow-1">
+      <div class="flow-header">
+        <div>
+          <span class="flow-badge">Workflow 01 • Infrastructure</span>
+          <h2 class="flow-title">Multi-Tenant Architecture & Data Perimeter Isolation</h2>
+          <div class="flow-tagline">Strict cryptographic tenant isolation with dynamic domain resolution</div>
+        </div>
+      </div>
+      <div class="content-box">
+        <p>
+          Priyex HRMS operates as a true multi-tenant Cloud HCM. Every client organization operates within a distinct logical tenant boundary. All persistent database records (employee rosters, biometric logs, salary registers, identity documents) are strictly bound to a tenant foreign key, enforced at the query level by Hibernate Session filters and Spring Security perimeters.
+        </p>
+      </div>
+
+      <div class="subheading">Architectural Pillars</div>
+      <div class="pillars-grid">
+        <div class="pillar-card">
+          <strong>1. Logical Schema Isolation</strong>
+          Tenant identifier indexing ensures sub-millisecond multi-tenant queries without database proliferation overhead.
+        </div>
+        <div class="pillar-card">
+          <strong>2. Domain Detection Engine</strong>
+          Dynamic DNS and email domain lookups route user requests directly to corresponding organizational profiles.
+        </div>
+        <div class="pillar-card">
+          <strong>3. White-Label Branding</strong>
+          Independent branding injection dynamically loads client company logos, legal names, and primary color palettes.
+        </div>
+        <div class="pillar-card">
+          <strong>4. Rapid Workspace Provisioning</strong>
+          Automated database seeding provisions statutory defaults, base holiday calendars, and organization hierarchies in under 60 seconds.
+        </div>
+      </div>
+
+      <div class="subheading">Operational Execution Sequence</div>
+      <table class="steps-table">
+        <thead>
+          <tr>
+            <th style="width: 20%;">Phase</th>
+            <th style="width: 25%;">Primary Actor</th>
+            <th style="width: 55%;">Execution & System Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>1. Tenant Provisioning</strong></td>
+            <td><span class="actor-tag">SaaS Administrator</span></td>
+            <td>New client profile registered with corporate name, company code (e.g. TCS, WIPRO), and email domains. System creates tenant record and seeds standard leave and tax schemas.</td>
+          </tr>
+          <tr>
+            <td><strong>2. Domain Binding</strong></td>
+            <td><span class="actor-tag">Tenant Admin</span></td>
+            <td>Corporate email domains (e.g., @company.com) bound to tenant profile, enabling zero-confusion client routing on the public portal.</td>
+          </tr>
+          <tr>
+            <td><strong>3. Policy Customization</strong></td>
+            <td><span class="actor-tag">HR Operations</span></td>
+            <td>Configures shift timings, biometric geofence radius, and approval escalation tiers cached in memory for high-performance execution.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="subheading">Core REST Endpoints</div>
+      <div class="code-block">
+<span class="code-method">GET</span>  /api/v1/tenant/detect-domain?domain={corporateDomain}
+<span class="code-method">GET</span>  /api/v1/tenant/validate-company?code={companyCode}
+<span class="code-method">GET</span>  /api/v1/tenant/branding
+      </div>
+
+      <div class="rule-alert">
+        <strong>Security Perimeter Note:</strong> Cross-tenant database queries are blocked unconditionally at the repository layer. Direct attempts to pass another tenant's entity identifier return HTTP 403 Forbidden with security logging.
+      </div>
+    </div>
+
+    <!-- ════ FLOW 02: AUTH & SSO ════ -->
+    <div class="flow-section" id="flow-2">
+      <div class="flow-header">
+        <div>
+          <span class="flow-badge">Workflow 02 • Identity & Security</span>
+          <h2 class="flow-title">Identity Resolution, SSO & Cryptographic JWT Authentication</h2>
+          <div class="flow-tagline">Stateless token authentication with automated domain-to-organization resolution</div>
+        </div>
+      </div>
+      <div class="content-box">
+        <p>
+          Authentication requires validation of three security parameters: Organization Code, Corporate Work Email, and Password / SSO SAML Assertion. The system executes domain verification, evaluates BCrypt credential hashes against the tenant's user table, and issues signed JSON Web Tokens (JWT) containing company context and assigned authorization claims.
+        </p>
+      </div>
+
+      <div class="subheading">Execution Journey</div>
+      <table class="steps-table">
+        <thead>
+          <tr>
+            <th style="width: 20%;">Step</th>
+            <th style="width: 25%;">Actor</th>
+            <th style="width: 55%;">Technical Operations</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>1. Email Resolution</strong></td>
+            <td><span class="actor-tag">User</span></td>
+            <td>User inputs corporate email. UI analyzes the domain, matches it against known tenant domains or calls the detection API, and auto-populates the verified Organization Code.</td>
+          </tr>
+          <tr>
+            <td><strong>2. Credential Verification</strong></td>
+            <td><span class="actor-tag">Auth Engine</span></td>
+            <td>Evaluates password hash against tenant records. Verifies account status is active and not locked due to prior failed attempts.</td>
+          </tr>
+          <tr>
+            <td><strong>3. Token Generation</strong></td>
+            <td><span class="actor-tag">Gateway</span></td>
+            <td>Issues cryptographic HMAC-SHA512 JWT access token. User is routed to their role-specific dashboard.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="subheading">Security Specifications</div>
+      <div class="rule-alert">
+        <strong>Confidentiality Policy:</strong> SuperAdmin credentials and internal infrastructure tokens are never transmitted to client viewports. All administrative accounts require individual multi-factor authentication (MFA).
+      </div>
+    </div>
+
+    <!-- ════ FLOW 03: EMPLOYEE LIFECYCLE ════ -->
+    <div class="flow-section" id="flow-3">
+      <div class="flow-header">
+        <div>
+          <span class="flow-badge">Workflow 03 • Core HR</span>
+          <h2 class="flow-title">Employee Master Directory & Lifecycle Management</h2>
+          <div class="flow-tagline">Complete hire-to-retire records, organizational hierarchy & digital document vaults</div>
+        </div>
+      </div>
+      <div class="content-box">
+        <p>
+          Manages the complete employment lifecycle: digital offer letters, automatic sequential employee code generation (e.g. TCS-001), digital document vault storage (Aadhaar, PAN, Bank Details), probation tracking, confirmation reviews, and departmental organizational chart mapping.
+        </p>
+      </div>
+
+      <div class="subheading">Lifecycle State Progression</div>
+      <table class="steps-table">
+        <thead>
+          <tr>
+            <th>Status</th>
+            <th>Trigger</th>
+            <th>Unlocked Capabilities</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>ONBOARDING</strong></td>
+            <td>Candidate offer accepted</td>
+            <td>Access to document upload portal, bank account entry, emergency contact registration.</td>
+          </tr>
+          <tr>
+            <td><strong>PROBATION</strong></td>
+            <td>First day of joining</td>
+            <td>Biometric clock-in enabled, monthly payroll calculation active, probation leave balance.</td>
+          </tr>
+          <tr>
+            <td><strong>CONFIRMED</strong></td>
+            <td>Probation review signed off</td>
+            <td>Full privilege leave entitlement, annual appraisal eligibility, notice period rules.</td>
+          </tr>
+          <tr>
+            <td><strong>EXITED</strong></td>
+            <td>F&F settlement disbursed</td>
+            <td>Account converted to read-only alumni portal (past payslips, Form 16, relieving letters).</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ════ FLOW 04: ATTENDANCE & GEOFENCING ════ -->
+    <div class="flow-section" id="flow-4">
+      <div class="flow-header">
+        <div>
+          <span class="flow-badge">Workflow 04 • Workforce Operations</span>
+          <h2 class="flow-title">Biometric Attendance, Geofencing & Shift Rosters</h2>
+          <div class="flow-tagline">Hardware IoT synchronization and GPS perimeter validation</div>
+        </div>
+      </div>
+      <div class="content-box">
+        <p>
+          Dual-channel presence capture reconciles physical biometric terminals (ZKTeco, Essl) with mobile GPS clock-ins. Geofencing algorithms calculate Euclidean distance between the employee's coordinate and the company office center, validating punches within 50m to 500m perimeters.
+        </p>
+      </div>
+
+      <div class="subheading">Shift Rules & Regularization</div>
+      <div class="pillars-grid">
+        <div class="pillar-card">
+          <strong>Grace Period Tolerance</strong>
+          Default 15-minute grace period accommodates transit delays before logging late-in penalties.
+        </div>
+        <div class="pillar-card">
+          <strong>Shift Roster Mapping</strong>
+          Supports Morning, General, Night, and rotational shifts with automated night shift allowance calculations.
+        </div>
+        <div class="pillar-card">
+          <strong>Attendance Regularization</strong>
+          Employee submits justification for off-site client meetings; reporting manager approves with full audit logging.
+        </div>
+        <div class="pillar-card">
+          <strong>Continuous Daily Status</strong>
+          Instant classification into Present, Half-Day, Absent, or On-Duty reflected immediately in payroll.
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ FLOW 05: CONTINUOUS PAYROLL (CCE) ════ -->
+    <div class="flow-section" id="flow-5">
+      <div class="flow-header">
+        <div>
+          <span class="flow-badge">Workflow 05 • Compensation & Tax</span>
+          <h2 class="flow-title">Continuous Calculation Engine (CCE) & Statutory Indian Payroll</h2>
+          <div class="flow-tagline">Real-time gross-to-net computation with EPF, ESI, PT, and Section 115BAC TDS</div>
+        </div>
+      </div>
+      <div class="content-box">
+        <p>
+          The Priyex Continuous Calculation Engine (CCE) calculates earnings, statutory deductions, and income taxes continuously with every shift punch rather than in end-of-month batch runs. It guarantees 100% compliance with Indian labor and tax statutes.
+        </p>
+      </div>
+
+      <div class="subheading">Statutory Formula Engine</div>
+      <table class="steps-table">
+        <thead>
+          <tr>
+            <th>Statutory Component</th>
+            <th>Employee Share</th>
+            <th>Employer Share</th>
+            <th>Statutory Ceiling / Rules</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>EPF (Provident Fund)</strong></td>
+            <td>12% of Basic</td>
+            <td>12% (3.67% EPF + 8.33% EPS)</td>
+            <td>Wage ceiling ₹15,000/month for statutory minimum.</td>
+          </tr>
+          <tr>
+            <td><strong>ESIC (State Insurance)</strong></td>
+            <td>0.75% of Gross</td>
+            <td>3.25% of Gross</td>
+            <td>Applicable when gross wage ≤ ₹21,000/month.</td>
+          </tr>
+          <tr>
+            <td><strong>Professional Tax (PT)</strong></td>
+            <td>State Slab (e.g. ₹200)</td>
+            <td>Nil</td>
+            <td>State-specific slabs (e.g. Maharashtra ₹2,500/year, Karnataka ₹200/mo).</td>
+          </tr>
+          <tr>
+            <td><strong>Income Tax TDS</strong></td>
+            <td>Per Slab Calculation</td>
+            <td>Nil</td>
+            <td>Dual Engine: Section 115BAC (New Regime) vs Old Regime (80C/80D/HRA).</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="subheading">Key Payroll Outputs</div>
+      <div class="code-block">
+• Automated Electronic Challan cum Return (ECR) for EPFO portal upload
+• Bank NEFT/RTGS batch file formatting for 1-click corporate salary disbursement
+• Digitally signed PDF payslips delivered directly to employee mobile & web portals
+• Annual Form 16 Part A & Part B generation for income tax return filing
+      </div>
+    </div>
+
+    <!-- ════ FLOW 06: LEAVE MANAGEMENT ════ -->
+    <div class="flow-section" id="flow-6">
+      <div class="flow-header">
+        <div>
+          <span class="flow-badge">Workflow 06 • Time-Off</span>
+          <h2 class="flow-title">Leave Policies, Approvals & Carry-Forward Engine</h2>
+          <div class="flow-tagline">Customizable accruals, sandwich weekend rules, and multi-tier approval routing</div>
+        </div>
+      </div>
+      <div class="content-box">
+        <p>
+          Supports Casual Leave (CL), Sick Leave (SL), Privilege / Earned Leave (PL/EL), Maternity Leave (26 weeks per Maternity Benefit Act), and Compensatory Offs. Features flexible monthly or annual grants, carry-forward rules, and encashment at year-end.
+        </p>
+      </div>
+    </div>
+
+    <!-- ════ FLOW 07: PERFORMANCE & OKRS ════ -->
+    <div class="flow-section" id="flow-7">
+      <div class="flow-header">
+        <div>
+          <span class="flow-badge">Workflow 07 • Talent</span>
+          <h2 class="flow-title">Performance Appraisals, OKRs & 360° Review Engine</h2>
+          <div class="flow-tagline">Objective Key Results, multi-rater feedback, and committee bell-curve normalization</div>
+        </div>
+      </div>
+      <div class="content-box">
+        <p>
+          Aligns corporate objectives with individual goals through measurable milestones. Facilitates employee self-ratings, cross-functional peer reviews, and manager scorecards normalized against standard bell-curve distributions (e.g., top 10%, solid 70%, bottom 10%).
+        </p>
+      </div>
+    </div>
+
+    <!-- ════ FLOW 08: SEPARATION & F&F ════ -->
+    <div class="flow-section" id="flow-8">
+      <div class="flow-header">
+        <div>
+          <span class="flow-badge">Workflow 08 • Offboarding</span>
+          <h2 class="flow-title">Separation, Resignation & Full & Final (F&F) Settlement</h2>
+          <div class="flow-tagline">Digital clearance matrix, notice period calculation, and statutory gratuity engine</div>
+        </div>
+      </div>
+      <div class="content-box">
+        <p>
+          Governs employee departures with standardized cross-departmental clearances: IT hardware retrieval, Finance expense clearance, and Admin building access revocation. Automates statutory Gratuity calculation: <code>(15 × Last Drawn Basic × Years of Service) ÷ 26</code>.
+        </p>
+      </div>
+    </div>
+
+    <!-- ════ FLOW 09: RBAC & GOVERNANCE ════ -->
+    <div class="flow-section" id="flow-9">
+      <div class="flow-header">
+        <div>
+          <span class="flow-badge">Workflow 09 • Security & Compliance</span>
+          <h2 class="flow-title">Role-Based Access Control (RBAC) & Enterprise Governance</h2>
+          <div class="flow-tagline">Principle-of-least-privilege matrix, immutable audit trails, and SOC 2 alignment</div>
+        </div>
+      </div>
+      <div class="content-box">
+        <p>
+          Five discrete authorization tiers enforce least-privilege security across the platform:
+        </p>
+      </div>
+
+      <table class="steps-table">
+        <thead>
+          <tr>
+            <th>Role Identifier</th>
+            <th>Operational Scope</th>
+            <th>Primary Authorizations</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>SUPER_ADMIN</strong></td>
+            <td>Platform Infrastructure</td>
+            <td>Tenant provisioning, platform performance monitoring, global system health. No tenant confidential business inspection.</td>
+          </tr>
+          <tr>
+            <td><strong>ADMIN</strong></td>
+            <td>Tenant Executive</td>
+            <td>Organization settings, company-wide policy definitions, department setup, audit trail review.</td>
+          </tr>
+          <tr>
+            <td><strong>HR_ADMIN</strong></td>
+            <td>People Operations</td>
+            <td>Employee onboarding, leave approval escalations, payroll processing, statutory remittances.</td>
+          </tr>
+          <tr>
+            <td><strong>MANAGER</strong></td>
+            <td>Team Supervision</td>
+            <td>Direct report attendance approvals, leave request sign-offs, shift roster scheduling, performance reviews.</td>
+          </tr>
+          <tr>
+            <td><strong>EMPLOYEE</strong></td>
+            <td>Self-Service (ESS)</td>
+            <td>Personal profile updates, biometric punch logs, payslip downloads, leave applications, tax declarations.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="rule-alert">
+        <strong>Immutable Audit Logging:</strong> Every state alteration (salary revisions, profile updates, manual punches) generates an immutable audit record logging actor ID, source IP address, UTC timestamp, and before/after values for SOC 2 Type II compliance.
+      </div>
+    </div>
+
+    <!-- ════ DOCUMENT FOOTER ════ -->
+    <div class="doc-footer">
+      <div>
+        <strong>Priyex Technologies Private Limited</strong> • Continuous Cloud HCM
+      </div>
+      <div>
+        Confidential Enterprise Specification • <a href="https://priyex.com" target="_blank">priyex.com</a>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>

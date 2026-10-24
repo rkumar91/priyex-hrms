@@ -6,6 +6,7 @@ import { BrandLogo } from '../components/common/BrandLogo';
 import { BookDemoModal } from '../components/marketing/BookDemoModal';
 import { ContactSalesModal } from '../components/marketing/ContactSalesModal';
 import { ProductTourModal } from '../components/marketing/ProductTourModal';
+import { PlatformGuideModal } from '../components/marketing/PlatformGuideModal';
 import {
   Sparkles,
   ArrowRight,
@@ -49,7 +50,9 @@ import {
   Eye,
   EyeOff,
   AlertCircle,
-  Phone
+  Phone,
+  BookOpen,
+  Printer
 } from 'lucide-react';
 import { isSaasOwner } from '../utils/rbac';
 
@@ -71,6 +74,8 @@ export const LandingPage: React.FC = () => {
   const [isBookDemoOpen, setIsBookDemoOpen] = useState(false);
   const [isContactSalesOpen, setIsContactSalesOpen] = useState(false);
   const [isProductTourOpen, setIsProductTourOpen] = useState(false);
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
+  const [guideFlowId, setGuideFlowId] = useState<string>('multitenant');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [solutionsDropdownOpen, setSolutionsDropdownOpen] = useState(false);
 
@@ -725,6 +730,16 @@ export const LandingPage: React.FC = () => {
             >
               Plans & Pricing
             </a>
+            <button
+              onClick={() => {
+                setGuideFlowId('multitenant');
+                setIsGuideOpen(true);
+              }}
+              className="px-2.5 xl:px-3 py-1.5 rounded-xl text-indigo-700 bg-indigo-50/80 hover:bg-indigo-100 border border-indigo-200/80 transition flex items-center gap-1.5 cursor-pointer font-bold"
+            >
+              <BookOpen className="w-3.5 h-3.5 text-indigo-600" />
+              <span>Platform Guide (PDF)</span>
+            </button>
           </nav>
 
             {/* CTA Buttons */}
@@ -809,6 +824,20 @@ export const LandingPage: React.FC = () => {
                 <span>Plans & Pricing</span>
                 <ChevronRight className="w-4 h-4 text-slate-400" />
               </a>
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  setGuideFlowId('multitenant');
+                  setIsGuideOpen(true);
+                }}
+                className="py-2.5 px-3 rounded-xl bg-indigo-50 text-indigo-700 font-bold transition flex items-center justify-between text-left cursor-pointer border border-indigo-200"
+              >
+                <div className="flex items-center gap-2">
+                  <BookOpen className="w-4 h-4 text-indigo-600" />
+                  <span>Platform Guide & PDF Manual</span>
+                </div>
+                <ChevronRight className="w-4 h-4 text-indigo-400" />
+              </button>
             </nav>
             <div className="pt-3 border-t border-slate-100 flex flex-col gap-2.5">
               <button
@@ -825,6 +854,7 @@ export const LandingPage: React.FC = () => {
           </div>
         )}
       </header>
+
 
       {/* ─── 3. HERO SECTION (Page-Fitted, Enterprise Brand Aesthetics) ─── */}
       <section className="relative pt-10 pb-16 md:pt-16 md:pb-24 overflow-hidden bg-gradient-to-b from-slate-50/80 via-indigo-50/30 to-white">
@@ -3536,6 +3566,12 @@ export const LandingPage: React.FC = () => {
         isOpen={isProductTourOpen}
         onClose={() => setIsProductTourOpen(false)}
         onBookDemo={() => setIsBookDemoOpen(true)}
+      />
+
+      <PlatformGuideModal
+        isOpen={isGuideOpen}
+        onClose={() => setIsGuideOpen(false)}
+        initialFlowId={guideFlowId}
       />
     </div>
   );
