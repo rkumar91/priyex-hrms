@@ -60,17 +60,17 @@ export const LandingPage: React.FC = () => {
   // Hero interactive architectural demo state
   const [heroTenant, setHeroTenant] = useState<'HQ_GLOBAL' | 'TECH_SUBSIDIARY' | 'FINANCE_DIVISION' | 'REGIONAL_BRANCH'>('HQ_GLOBAL');
 
-  // Interactive Product Sandbox State (Includes Dayforce Continuous Engine & AI Assistant)
+  // Interactive Product Sandbox State (Includes Priyex Continuous Engine & AI Assistant)
   const [sandboxTab, setSandboxTab] = useState<'continuous-engine' | 'ai-assistant' | 'overview' | 'payroll' | 'attendance' | 'multitenant' | 'mobile'>('continuous-engine');
 
-  // Dayforce-style Continuous Calculation Engine State
+  // Priyex Continuous Calculation Engine State
   const [ceMonthlyBase, setCeMonthlyBase] = useState(85000);
   const [ceWorkHours, setCeWorkHours] = useState(9.5); // standard 8h + 1.5h OT
   const [ceOvertimeType, setCeOvertimeType] = useState<'regular' | 'holiday'>('regular');
   const [ceTaxRegime, setCeTaxRegime] = useState<'new' | 'old'>('new');
   const [ceEngineView, setCeEngineView] = useState<'continuous' | 'traditional'>('continuous');
 
-  // Dayforce-style AI Assistant State
+  // Priyex Intelligence AI Assistant State
   const [aiActivePromptId, setAiActivePromptId] = useState<number>(1);
   const [aiIsTyping, setAiIsTyping] = useState<boolean>(false);
   const [aiCustomInput, setAiCustomInput] = useState<string>('');
@@ -93,7 +93,7 @@ export const LandingPage: React.FC = () => {
     }
   ]);
 
-  // Top Announcement Ticker State (Dayforce inspired)
+  // Top Announcement Ticker State (Enterprise HCM)
   const [tickerIndex, setTickerIndex] = useState(0);
 
   // Sandbox: Payroll simulator
@@ -148,7 +148,7 @@ export const LandingPage: React.FC = () => {
   const hourlyRate = 650; // INR average hourly cost of HR specialist
   const annualSavingsInLakhs = ((annualHoursSaved * hourlyRate) / 100000).toFixed(1);
 
-  // Continuous Engine dynamic calculations (Dayforce style real-time calculation)
+  // Continuous Engine dynamic calculations (Real-time calculation)
   const ceDailyBase = Math.round(ceMonthlyBase / 26);
   const ceHourlyRate = Math.round(ceDailyBase / 8);
   const ceOvertimeHours = Math.max(0, ceWorkHours - 8);
@@ -165,10 +165,10 @@ export const LandingPage: React.FC = () => {
   const ceTotalDeductions = cePfEmployee + ceEsi + cePt + ceTds;
   const ceNetTakeHome = ceCalculatedGross - ceTotalDeductions;
 
-  // Dayforce Ticker Announcements
+  // Continuous Calculation Ticker Announcements
   const tickerAnnouncements = [
     {
-      badge: 'Dayforce Benchmark',
+      badge: 'Enterprise Benchmark',
       text: 'Continuous Calculation Engine Active — 0ms calculation latency across 100% of shift punches.',
       linkText: 'Explore Engine'
     },
@@ -398,10 +398,10 @@ export const LandingPage: React.FC = () => {
           </div>
         </div>
       ) : (
-        <div className="bg-slate-950 text-slate-300 px-4 py-2 text-xs font-medium border-b border-slate-800/80 safe-area-top relative overflow-hidden">
+        <div className="bg-gradient-to-r from-slate-950 via-indigo-950 to-slate-950 text-slate-300 px-4 py-2 text-xs font-medium border-b border-indigo-900/40 safe-area-top relative overflow-hidden">
           <div className="max-w-7xl xl:max-w-[1440px] mx-auto flex items-center justify-between gap-4">
             <div className="flex items-center gap-2.5 truncate">
-              <span className="bg-gradient-to-r from-emerald-500/20 to-teal-500/20 text-emerald-400 border border-emerald-500/30 font-bold text-[10px] px-2.5 py-0.5 rounded-full uppercase tracking-wider shrink-0 animate-pulse">
+              <span className="bg-gradient-to-r from-indigo-500/20 to-blue-500/20 text-cyan-300 border border-indigo-500/30 font-bold text-[10px] px-2.5 py-0.5 rounded-full uppercase tracking-wider shrink-0 animate-pulse">
                 {tickerAnnouncements[tickerIndex].badge}
               </span>
               <span className="text-slate-200 truncate text-[11px] sm:text-xs transition-opacity duration-300">
@@ -415,7 +415,7 @@ export const LandingPage: React.FC = () => {
                     key={i}
                     onClick={() => setTickerIndex(i)}
                     className={`w-1.5 h-1.5 rounded-full transition-all cursor-pointer ${
-                      tickerIndex === i ? 'w-4 bg-emerald-400' : 'bg-slate-700 hover:bg-slate-500'
+                      tickerIndex === i ? 'w-4 bg-cyan-400' : 'bg-slate-700 hover:bg-slate-500'
                     }`}
                   />
                 ))}
@@ -431,7 +431,7 @@ export const LandingPage: React.FC = () => {
                     document.getElementById('roi-calculator')?.scrollIntoView({ behavior: 'smooth' });
                   }
                 }}
-                className="hidden sm:inline-flex items-center gap-1 text-emerald-400 hover:text-emerald-300 font-semibold transition text-xs cursor-pointer group"
+                className="hidden sm:inline-flex items-center gap-1 text-cyan-400 hover:text-cyan-300 font-semibold transition text-xs cursor-pointer group"
               >
                 <span>{tickerAnnouncements[tickerIndex].linkText}</span>
                 <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
@@ -441,9 +441,9 @@ export const LandingPage: React.FC = () => {
         </div>
       )}
 
-      {/* ─── 2. STICKY NAVBAR ─── */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-xl border-b border-slate-200/90 shadow-2xs transition-all">
-        <div className="max-w-7xl xl:max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 h-[72px] flex items-center justify-between gap-6">
+      {/* ─── 2. STICKY NAVBAR (Page-Fitted & Responsive) ─── */}
+      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-xl border-b border-slate-200/80 shadow-2xs transition-all">
+        <div className="max-w-7xl xl:max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 h-[68px] sm:h-[72px] flex items-center justify-between gap-3 xl:gap-6">
           
           {/* Brand Logo */}
           <div className="flex items-center gap-3 shrink-0">
@@ -453,7 +453,7 @@ export const LandingPage: React.FC = () => {
           </div>
 
           {/* Desktop Nav Links */}
-          <nav className="hidden lg:flex items-center gap-1 xl:gap-1.5 text-[13px] font-semibold text-slate-600">
+          <nav className="hidden lg:flex items-center gap-0.5 xl:gap-1.5 text-xs xl:text-[13px] font-semibold text-slate-600">
             {/* Solutions Dropdown Menu */}
             <div
               className="relative"
@@ -462,7 +462,7 @@ export const LandingPage: React.FC = () => {
             >
               <a
                 href="#features"
-                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl transition ${
+                className={`flex items-center gap-1.5 px-2.5 xl:px-3.5 py-2 rounded-xl transition ${
                   solutionsDropdownOpen
                     ? 'text-slate-900 bg-slate-100/90'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'
@@ -558,42 +558,42 @@ export const LandingPage: React.FC = () => {
 
             <a
               href="#multitenant"
-              className="px-3.5 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 transition"
+              className="px-2.5 xl:px-3.5 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 transition"
             >
               Multi-Tenancy
             </a>
             <a
               href="#sandbox"
-              className="px-3.5 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 transition"
+              className="px-2.5 xl:px-3.5 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 transition"
             >
               Interactive Preview
             </a>
             <a
               href="#roi-calculator"
-              className="px-3.5 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 transition"
+              className="px-2.5 xl:px-3.5 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 transition"
             >
               ROI Calculator
             </a>
             <a
               href="#security"
-              className="px-3.5 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 transition"
+              className="px-2.5 xl:px-3.5 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 transition"
             >
               Enterprise Trust
             </a>
             <a
               href="#pricing"
-              className="px-3.5 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 transition"
+              className="px-2.5 xl:px-3.5 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 transition"
             >
               Plans & Pricing
             </a>
           </nav>
 
           {/* CTA Buttons */}
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-2 xl:gap-3 shrink-0">
             {isAuthenticated ? (
               <button
                 onClick={() => navigate('/dashboard')}
-                className="px-4.5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs sm:text-[13px] shadow-sm shadow-emerald-600/20 hover:shadow-md hover:shadow-emerald-600/30 transition flex items-center gap-1.5 cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white font-bold text-xs sm:text-[13px] shadow-sm shadow-indigo-600/20 hover:shadow-md transition flex items-center gap-1.5 cursor-pointer shrink-0"
               >
                 <span>Launch Portal</span>
                 <ArrowRight className="w-4 h-4" />
@@ -602,15 +602,16 @@ export const LandingPage: React.FC = () => {
               <>
                 <Link
                   to="/login"
-                  className="px-3.5 py-2 rounded-xl text-xs sm:text-[13px] font-semibold text-slate-700 hover:text-slate-950 hover:bg-slate-100 transition border border-slate-200/90 cursor-pointer"
+                  className="px-3 xl:px-3.5 py-2 rounded-xl text-xs xl:text-[13px] font-semibold text-slate-700 hover:text-slate-950 hover:bg-slate-100 transition border border-slate-200/90 cursor-pointer shrink-0"
                 >
-                  Client Portal Sign In
+                  <span className="hidden xl:inline">Client Portal Sign In</span>
+                  <span className="xl:hidden">Sign In</span>
                 </Link>
                 <button
                   onClick={() => setIsBookDemoOpen(true)}
-                  className="px-4.5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs sm:text-[13px] shadow-sm shadow-emerald-600/20 hover:shadow-md hover:shadow-emerald-600/30 hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center gap-1.5 cursor-pointer"
+                  className="px-3.5 xl:px-4.5 py-2 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white font-bold text-xs xl:text-[13px] shadow-sm shadow-indigo-600/20 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center gap-1.5 cursor-pointer shrink-0 whitespace-nowrap"
                 >
-                  <Sparkles className="w-3.5 h-3.5" />
+                  <Sparkles className="w-3.5 h-3.5 text-cyan-200" />
                   <span>Book a Demo</span>
                 </button>
               </>
@@ -628,65 +629,72 @@ export const LandingPage: React.FC = () => {
 
         {/* Mobile Navigation Drawer */}
         {mobileMenuOpen && (
-          <div className="lg:hidden bg-white border-b border-slate-200 px-5 py-4 space-y-3 animate-in slide-in-from-top-4 duration-200">
-            <nav className="flex flex-col space-y-2.5 text-sm font-semibold text-slate-700">
+          <div className="lg:hidden bg-white/95 backdrop-blur-2xl border-b border-slate-200 px-4 sm:px-5 py-4 space-y-3.5 animate-in slide-in-from-top-4 duration-200 shadow-xl">
+            <nav className="flex flex-col space-y-1 text-sm font-semibold text-slate-800">
               <a
                 href="#features"
                 onClick={() => setMobileMenuOpen(false)}
-                className="py-1.5 hover:text-emerald-600"
+                className="py-2.5 px-3 rounded-xl hover:bg-slate-50 hover:text-indigo-600 transition flex items-center justify-between"
               >
-                Solutions & Modules
+                <span>Solutions & Modules</span>
+                <ChevronRight className="w-4 h-4 text-slate-400" />
               </a>
               <a
                 href="#multitenant"
                 onClick={() => setMobileMenuOpen(false)}
-                className="py-1.5 hover:text-emerald-600"
+                className="py-2.5 px-3 rounded-xl hover:bg-slate-50 hover:text-indigo-600 transition flex items-center justify-between"
               >
-                Multi-Tenant Architecture
+                <span>Multi-Tenant Architecture</span>
+                <ChevronRight className="w-4 h-4 text-slate-400" />
               </a>
               <a
                 href="#sandbox"
                 onClick={() => setMobileMenuOpen(false)}
-                className="py-1.5 hover:text-emerald-600"
+                className="py-2.5 px-3 rounded-xl hover:bg-slate-50 hover:text-indigo-600 transition flex items-center justify-between"
               >
-                Interactive Preview
+                <span>Interactive Preview</span>
+                <ChevronRight className="w-4 h-4 text-slate-400" />
               </a>
               <a
                 href="#roi-calculator"
                 onClick={() => setMobileMenuOpen(false)}
-                className="py-1.5 hover:text-emerald-600"
+                className="py-2.5 px-3 rounded-xl hover:bg-slate-50 hover:text-indigo-600 transition flex items-center justify-between"
               >
-                ROI Calculator
+                <span>ROI Calculator</span>
+                <ChevronRight className="w-4 h-4 text-slate-400" />
               </a>
               <a
                 href="#security"
                 onClick={() => setMobileMenuOpen(false)}
-                className="py-1.5 hover:text-emerald-600"
+                className="py-2.5 px-3 rounded-xl hover:bg-slate-50 hover:text-indigo-600 transition flex items-center justify-between"
               >
-                Enterprise Security
+                <span>Enterprise Security</span>
+                <ChevronRight className="w-4 h-4 text-slate-400" />
               </a>
               <a
                 href="#pricing"
                 onClick={() => setMobileMenuOpen(false)}
-                className="py-1.5 hover:text-emerald-600"
+                className="py-2.5 px-3 rounded-xl hover:bg-slate-50 hover:text-indigo-600 transition flex items-center justify-between"
               >
-                Plans & Pricing
+                <span>Plans & Pricing</span>
+                <ChevronRight className="w-4 h-4 text-slate-400" />
               </a>
             </nav>
-            <div className="pt-3 border-t border-slate-100 flex flex-col gap-2">
+            <div className="pt-3 border-t border-slate-100 flex flex-col gap-2.5">
               <button
                 onClick={() => {
                   setMobileMenuOpen(false);
                   setIsBookDemoOpen(true);
                 }}
-                className="w-full py-2.5 rounded-xl bg-emerald-600 text-white font-bold text-xs text-center shadow-md cursor-pointer"
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-indigo-700 text-white font-bold text-sm text-center shadow-md shadow-indigo-600/20 active:scale-[0.98] transition cursor-pointer flex items-center justify-center gap-2"
               >
-                Schedule Live Demo
+                <Sparkles className="w-4 h-4 text-cyan-200" />
+                <span>Schedule a 1-on-1 Live Demo</span>
               </button>
               <Link
                 to="/login"
                 onClick={() => setMobileMenuOpen(false)}
-                className="w-full py-2.5 rounded-xl bg-slate-100 text-slate-800 font-bold text-xs text-center border border-slate-200 cursor-pointer"
+                className="w-full py-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-800 font-bold text-sm text-center border border-slate-200/90 active:scale-[0.98] transition cursor-pointer block"
               >
                 Client Portal Sign In
               </Link>
@@ -695,45 +703,54 @@ export const LandingPage: React.FC = () => {
         )}
       </header>
 
-      {/* ─── 3. HERO SECTION (High Impact & Sales Conversion) ─── */}
-      <section className="relative pt-12 pb-20 md:pt-20 md:pb-28 overflow-hidden bg-gradient-to-b from-slate-50 via-white to-slate-50/50">
-        {/* Ambient Gradient Glows */}
-        <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[700px] sm:w-[900px] h-[350px] bg-gradient-to-r from-emerald-400/15 via-teal-400/20 to-indigo-500/15 blur-[120px] rounded-full pointer-events-none" />
+      {/* ─── 3. HERO SECTION (Page-Fitted, Enterprise Brand Aesthetics) ─── */}
+      <section className="relative pt-10 pb-16 md:pt-16 md:pb-24 overflow-hidden bg-gradient-to-b from-slate-50/80 via-indigo-50/30 to-white">
+        {/* Subtle Technical Dot Matrix Background */}
+        <div
+          className="absolute inset-0 opacity-[0.35] pointer-events-none"
+          style={{
+            backgroundImage: `radial-gradient(circle at 1px 1px, #94a3b8 1px, transparent 0)`,
+            backgroundSize: '24px 24px'
+          }}
+        />
+
+        {/* Ambient Multi-Color Radial Mesh Glows */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] sm:w-[900px] h-[380px] bg-gradient-to-r from-blue-400/15 via-indigo-400/20 to-teal-400/15 blur-[120px] rounded-full pointer-events-none" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="text-center max-w-4xl mx-auto space-y-6">
+          <div className="text-center max-w-4xl mx-auto space-y-5 sm:space-y-6">
             
             {/* Eyebrow Badge */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 border border-emerald-200/90 shadow-2xs">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/90 backdrop-blur-md border border-indigo-200/80 shadow-2xs">
               <span className="flex h-2 w-2 relative">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-600" />
               </span>
-              <span className="text-[11px] font-black uppercase tracking-wider text-emerald-800">
+              <span className="text-[11px] font-black uppercase tracking-wider bg-gradient-to-r from-indigo-700 via-blue-700 to-teal-700 bg-clip-text text-transparent">
                 The Enterprise Multi-Tenant People Cloud
               </span>
             </div>
 
             {/* Main Headline */}
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-slate-950 leading-[1.12]">
+            <h1 className="text-[30px] xs:text-4xl sm:text-5xl lg:text-[56px] font-black tracking-tight text-slate-950 leading-[1.16] sm:leading-[1.12]">
               One Unified Platform to Power Your Entire{' '}
-              <span className="bg-gradient-to-r from-emerald-600 via-teal-600 to-indigo-600 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-teal-500 bg-clip-text text-transparent">
                 Workforce Lifecycle
               </span>
             </h1>
 
             {/* Subtitle */}
-            <p className="text-base sm:text-lg text-slate-600 max-w-3xl mx-auto leading-relaxed">
-              Priyex delivers modern SaaS HRMS with guaranteed multi-tenant data isolation, automated statutory payroll, real-time biometric attendance, and seamless employee self-service. Built for high-growth enterprises and multi-subsidiary conglomerates.
+            <p className="text-sm sm:text-base lg:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed font-normal">
+              Priyex delivers modern SaaS HRMS with guaranteed multi-tenant data isolation, automated statutory payroll, real-time biometric attendance, and seamless employee self-service. Built for high-growth enterprises and conglomerates.
             </p>
 
             {/* Dual CTAs & Secondary Triggers */}
-            <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3.5 sm:gap-4">
+            <div className="pt-2 flex flex-wrap items-center justify-center gap-3 sm:gap-4">
               <button
                 onClick={() => setIsBookDemoOpen(true)}
-                className="w-full sm:w-auto px-7 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black text-sm shadow-xl shadow-emerald-600/30 hover:shadow-emerald-600/40 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2.5 cursor-pointer"
+                className="w-full sm:w-auto px-6 sm:px-7 py-3 sm:py-3.5 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white font-black text-xs sm:text-sm shadow-xl shadow-indigo-600/25 hover:shadow-indigo-600/40 hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
-                <Sparkles className="w-4 h-4" />
+                <Sparkles className="w-4 h-4 text-cyan-200 animate-pulse" />
                 <span>Schedule a 1-on-1 Live Demo</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
@@ -743,45 +760,63 @@ export const LandingPage: React.FC = () => {
                   const el = document.getElementById('sandbox');
                   el?.scrollIntoView({ behavior: 'smooth' });
                 }}
-                className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-white hover:bg-slate-50 text-slate-800 font-bold text-sm border border-slate-200 shadow-sm hover:border-slate-300 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full sm:w-auto px-5 sm:px-6 py-3 sm:py-3.5 rounded-2xl bg-white/95 hover:bg-white text-slate-800 font-bold text-xs sm:text-sm border border-slate-200/90 shadow-2xs hover:border-indigo-300 hover:shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer backdrop-blur-xs"
               >
-                <Play className="w-4 h-4 text-emerald-600 fill-emerald-600" />
+                <Play className="w-4 h-4 text-indigo-600 fill-indigo-600" />
                 <span>Test-Drive Live Sandbox</span>
               </button>
 
               <Link
                 to="/login"
-                className="w-full sm:w-auto px-5 py-3.5 rounded-2xl text-slate-600 hover:text-slate-900 font-semibold text-xs transition flex items-center justify-center gap-1"
+                className="w-full sm:w-auto px-4 py-3 sm:py-3.5 rounded-2xl text-slate-600 hover:text-indigo-600 font-semibold text-xs sm:text-sm transition flex items-center justify-center gap-1 group"
               >
                 <span>Existing Client? Sign In</span>
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
               </Link>
             </div>
 
-            {/* Key Trust Counters */}
-            <div className="pt-8 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto border-t border-slate-200/80">
-              <div className="p-3 text-center">
-                <div className="text-2xl sm:text-3xl font-black text-slate-900">99.99%</div>
-                <div className="text-xs font-semibold text-slate-500 mt-0.5">Uptime SLA Guarantee</div>
+            {/* Key Trust Counters (Enterprise Glass Cards) */}
+            <div className="pt-6 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 max-w-5xl mx-auto">
+              <div className="p-3.5 sm:p-4 rounded-2xl bg-white/80 backdrop-blur-md border border-slate-200/80 shadow-2xs hover:shadow-sm hover:border-blue-300 transition-all text-center group">
+                <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 mx-auto flex items-center justify-center mb-1.5 group-hover:scale-105 transition-transform">
+                  <ShieldCheck className="w-4 h-4" />
+                </div>
+                <div className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">99.99%</div>
+                <div className="text-[11px] sm:text-xs font-semibold text-slate-500 mt-0.5">Uptime SLA Guarantee</div>
               </div>
-              <div className="p-3 text-center">
-                <div className="text-2xl sm:text-3xl font-black text-emerald-600">100%</div>
-                <div className="text-xs font-semibold text-slate-500 mt-0.5">Isolated Tenant Data</div>
+              
+              <div className="p-3.5 sm:p-4 rounded-2xl bg-white/80 backdrop-blur-md border border-slate-200/80 shadow-2xs hover:shadow-sm hover:border-emerald-300 transition-all text-center group">
+                <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 mx-auto flex items-center justify-center mb-1.5 group-hover:scale-105 transition-transform">
+                  <Lock className="w-4 h-4" />
+                </div>
+                <div className="text-2xl sm:text-3xl font-black text-emerald-600 tracking-tight">100%</div>
+                <div className="text-[11px] sm:text-xs font-semibold text-slate-500 mt-0.5">Isolated Tenant Data</div>
               </div>
-              <div className="p-3 text-center">
-                <div className="text-2xl sm:text-3xl font-black text-indigo-600">15x</div>
-                <div className="text-xs font-semibold text-slate-500 mt-0.5">Faster Payroll Cycles</div>
+
+              <div className="p-3.5 sm:p-4 rounded-2xl bg-white/80 backdrop-blur-md border border-slate-200/80 shadow-2xs hover:shadow-sm hover:border-indigo-300 transition-all text-center group">
+                <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 mx-auto flex items-center justify-center mb-1.5 group-hover:scale-105 transition-transform">
+                  <Zap className="w-4 h-4" />
+                </div>
+                <div className="text-2xl sm:text-3xl font-black text-indigo-600 tracking-tight">15x</div>
+                <div className="text-[11px] sm:text-xs font-semibold text-slate-500 mt-0.5">Faster Payroll Cycles</div>
               </div>
-              <div className="p-3 text-center">
-                <div className="text-2xl sm:text-3xl font-black text-slate-900">50,000+</div>
-                <div className="text-xs font-semibold text-slate-500 mt-0.5">Active Employees Managed</div>
+
+              <div className="p-3.5 sm:p-4 rounded-2xl bg-white/80 backdrop-blur-md border border-slate-200/80 shadow-2xs hover:shadow-sm hover:border-teal-300 transition-all text-center group">
+                <div className="w-8 h-8 rounded-xl bg-teal-50 text-teal-600 mx-auto flex items-center justify-center mb-1.5 group-hover:scale-105 transition-transform">
+                  <Users className="w-4 h-4" />
+                </div>
+                <div className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">50,000+</div>
+                <div className="text-[11px] sm:text-xs font-semibold text-slate-500 mt-0.5">Active Employees Managed</div>
               </div>
             </div>
           </div>
 
-          {/* ── Dynamic Hero Interactive Showcase Card (Dayforce Reference) ── */}
-          <div className="mt-14 max-w-5xl mx-auto">
-            <div className="bg-slate-900 rounded-3xl p-2 sm:p-3 shadow-2xl shadow-slate-900/40 border border-slate-800">
+          {/* ── Dynamic Hero Interactive Showcase Card (Enterprise Architecture) ── */}
+          <div className="relative mt-10 sm:mt-12 max-w-5xl mx-auto">
+            {/* Subtle Ambient Backlight Glow under Console */}
+            <div className="absolute -inset-1 bg-gradient-to-r from-blue-600/20 via-indigo-600/20 to-teal-500/20 rounded-3xl blur-xl -z-10 opacity-70 pointer-events-none" />
+
+            <div className="bg-gradient-to-b from-slate-900 via-slate-950 to-slate-950 rounded-3xl p-2 sm:p-3 shadow-2xl shadow-indigo-950/30 border border-slate-800/90 ring-1 ring-white/10">
               
               {/* Window Header with Multi-Tenant Switcher */}
               <div className="px-4 py-3 bg-slate-950/80 rounded-2xl border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
@@ -799,17 +834,17 @@ export const LandingPage: React.FC = () => {
                 </div>
 
                 {/* Tenant Switcher Simulator Pills */}
-                <div className="flex items-center gap-1.5 bg-slate-900 p-1 rounded-xl border border-slate-800">
-                  <span className="text-[10px] uppercase font-bold text-slate-500 px-2 hidden md:inline">
+                <div className="grid grid-cols-2 sm:flex sm:items-center gap-1 sm:gap-1.5 bg-slate-900 p-1 rounded-xl border border-slate-800 w-full sm:w-auto">
+                  <span className="text-[10px] uppercase font-bold text-slate-500 px-2 hidden md:inline shrink-0">
                     Simulate Multi-Tenant Workspace:
                   </span>
                   {(['HQ_GLOBAL', 'TECH_SUBSIDIARY', 'FINANCE_DIVISION', 'REGIONAL_BRANCH'] as const).map((t) => (
                     <button
                       key={t}
                       onClick={() => setHeroTenant(t)}
-                      className={`px-3 py-1 rounded-lg font-bold text-[11px] transition-all cursor-pointer ${
+                      className={`px-2.5 sm:px-3 py-1.5 sm:py-1 rounded-lg font-bold text-[11px] text-center transition-all cursor-pointer ${
                         heroTenant === t
-                          ? 'bg-emerald-500 text-slate-950 shadow-xs'
+                          ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-xs'
                           : 'text-slate-400 hover:text-white hover:bg-slate-800'
                       }`}
                     >
@@ -824,20 +859,20 @@ export const LandingPage: React.FC = () => {
                 
                 {/* Top Tenant Header in Simulator */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 border-b border-slate-800">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-slate-800 to-slate-700 border border-slate-700 flex items-center justify-center font-black text-lg text-emerald-400">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-950 to-blue-900 border border-indigo-700/50 flex items-center justify-center font-black text-lg text-cyan-300 shadow-inner shrink-0">
                       {heroTenantInfo[heroTenant].code}
                     </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-bold text-base text-white">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="font-bold text-base text-white truncate">
                           {heroTenantInfo[heroTenant].name}
                         </h3>
-                        <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+                        <span className="text-[10px] font-black uppercase tracking-wider bg-indigo-500/15 text-cyan-300 border border-indigo-500/30 px-2.5 py-0.5 rounded-full shrink-0">
                           {heroTenantInfo[heroTenant].badge}
                         </span>
                       </div>
-                      <p className="text-xs text-slate-400 mt-0.5">
+                      <p className="text-xs text-slate-400 mt-0.5 truncate">
                         Domain: <span className="font-mono text-slate-300">{heroTenantInfo[heroTenant].domain}</span> • Zero Cross-Tenant Data Leakage
                       </p>
                     </div>
@@ -965,7 +1000,7 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* ─── 5. INTERACTIVE LIVE PRODUCT SANDBOX (The Dayforce Reference Experience) ─── */}
+      {/* ─── 5. INTERACTIVE LIVE PRODUCT SANDBOX (The Priyex Continuum Experience) ─── */}
       <section id="sandbox" className="py-20 lg:py-28 bg-white relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
@@ -981,32 +1016,32 @@ export const LandingPage: React.FC = () => {
             </p>
           </div>
 
-          {/* Sandbox Module Tabs */}
-          <div className="flex flex-wrap items-center justify-center gap-2 mb-8">
+          {/* Sandbox Module Tabs (Horizontally swipeable on mobile/iPhone, neatly wrapped on desktop) */}
+          <div className="flex overflow-x-auto no-scrollbar sm:flex-wrap items-center sm:justify-center gap-2 mb-8 pb-2 sm:pb-0 px-1 -mx-1">
             <button
               onClick={() => setSandboxTab('continuous-engine')}
-              className={`px-4 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center gap-2 cursor-pointer ${
+              className={`shrink-0 whitespace-nowrap px-4 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center gap-2 cursor-pointer min-h-[42px] ${
                 sandboxTab === 'continuous-engine'
                   ? 'bg-gradient-to-r from-emerald-600 to-teal-700 text-white shadow-lg shadow-emerald-600/30 ring-2 ring-emerald-400'
                   : 'bg-slate-900 text-slate-200 hover:bg-slate-800'
               }`}
             >
-              <Zap className="w-4 h-4 text-emerald-400 animate-pulse" />
+              <Zap className="w-4 h-4 text-emerald-400 animate-pulse shrink-0" />
               <span>Continuous Pay Engine</span>
               <span className="text-[9px] bg-emerald-400/20 text-emerald-300 px-1.5 py-0.5 rounded uppercase font-black">
-                Dayforce Live
+                Priyex Live
               </span>
             </button>
 
             <button
               onClick={() => setSandboxTab('ai-assistant')}
-              className={`px-4 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center gap-2 cursor-pointer ${
+              className={`shrink-0 whitespace-nowrap px-4 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center gap-2 cursor-pointer min-h-[42px] ${
                 sandboxTab === 'ai-assistant'
                   ? 'bg-gradient-to-r from-cyan-600 to-blue-700 text-white shadow-lg shadow-cyan-600/30 ring-2 ring-cyan-400'
                   : 'bg-slate-900 text-slate-200 hover:bg-slate-800'
               }`}
             >
-              <Bot className="w-4 h-4 text-cyan-400" />
+              <Bot className="w-4 h-4 text-cyan-400 shrink-0" />
               <span>Priyex AI Copilot</span>
               <span className="text-[9px] bg-cyan-400/20 text-cyan-300 px-1.5 py-0.5 rounded uppercase font-black">
                 Interactive
@@ -1015,61 +1050,61 @@ export const LandingPage: React.FC = () => {
 
             <button
               onClick={() => setSandboxTab('overview')}
-              className={`px-4 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center gap-2 cursor-pointer ${
+              className={`shrink-0 whitespace-nowrap px-4 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center gap-2 cursor-pointer min-h-[42px] ${
                 sandboxTab === 'overview'
                   ? 'bg-slate-900 text-white shadow-md'
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
-              <BarChart3 className="w-4 h-4 text-emerald-400" />
+              <BarChart3 className="w-4 h-4 text-emerald-400 shrink-0" />
               <span>Executive Dashboard</span>
             </button>
 
             <button
               onClick={() => setSandboxTab('payroll')}
-              className={`px-4 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center gap-2 cursor-pointer ${
+              className={`shrink-0 whitespace-nowrap px-4 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center gap-2 cursor-pointer min-h-[42px] ${
                 sandboxTab === 'payroll'
                   ? 'bg-slate-900 text-white shadow-md'
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
-              <CircleDollarSign className="w-4 h-4 text-purple-400" />
+              <CircleDollarSign className="w-4 h-4 text-purple-400 shrink-0" />
               <span>Automated Payroll Simulator</span>
             </button>
 
             <button
               onClick={() => setSandboxTab('attendance')}
-              className={`px-4 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center gap-2 cursor-pointer ${
+              className={`shrink-0 whitespace-nowrap px-4 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center gap-2 cursor-pointer min-h-[42px] ${
                 sandboxTab === 'attendance'
                   ? 'bg-slate-900 text-white shadow-md'
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
-              <CalendarCheck className="w-4 h-4 text-teal-400" />
+              <CalendarCheck className="w-4 h-4 text-teal-400 shrink-0" />
               <span>Biometric & Geofenced Time Clock</span>
             </button>
 
             <button
               onClick={() => setSandboxTab('multitenant')}
-              className={`px-4 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center gap-2 cursor-pointer ${
+              className={`shrink-0 whitespace-nowrap px-4 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center gap-2 cursor-pointer min-h-[42px] ${
                 sandboxTab === 'multitenant'
                   ? 'bg-slate-900 text-white shadow-md'
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
-              <Building2 className="w-4 h-4 text-blue-400" />
+              <Building2 className="w-4 h-4 text-blue-400 shrink-0" />
               <span>Multi-Tenant Policy Engine</span>
             </button>
 
             <button
               onClick={() => setSandboxTab('mobile')}
-              className={`px-4 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center gap-2 cursor-pointer ${
+              className={`shrink-0 whitespace-nowrap px-4 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center gap-2 cursor-pointer min-h-[42px] ${
                 sandboxTab === 'mobile'
                   ? 'bg-slate-900 text-white shadow-md'
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
-              <Smartphone className="w-4 h-4 text-rose-400" />
+              <Smartphone className="w-4 h-4 text-rose-400 shrink-0" />
               <span>Mobile Self-Service View</span>
             </button>
           </div>
@@ -1077,7 +1112,7 @@ export const LandingPage: React.FC = () => {
           {/* Sandbox Interactive Stage */}
           <div className="bg-slate-50 border border-slate-200/90 rounded-3xl p-6 sm:p-8 shadow-xl min-h-[440px]">
             
-            {/* TAB: CONTINUOUS CALCULATION ENGINE (Dayforce Style) */}
+            {/* TAB: CONTINUOUS CALCULATION ENGINE (Priyex Real-Time) */}
             {sandboxTab === 'continuous-engine' && (
               <div className="space-y-6 animate-in fade-in duration-300">
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-slate-200">
@@ -1352,7 +1387,7 @@ export const LandingPage: React.FC = () => {
               </div>
             )}
 
-            {/* TAB: DAYFORCE-STYLE AI COPILOT INTERACTIVE PLAYGROUND */}
+            {/* TAB: PRIYEX AI COPILOT INTERACTIVE PLAYGROUND */}
             {sandboxTab === 'ai-assistant' && (
               <div className="space-y-6 animate-in fade-in duration-300">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
@@ -1367,7 +1402,7 @@ export const LandingPage: React.FC = () => {
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-[11px] font-mono font-bold bg-cyan-50 text-cyan-800 px-3 py-1 rounded-full border border-cyan-200">
-                      Dayforce Assistant Experience
+                      Priyex Copilot Experience
                     </span>
                   </div>
                 </div>
@@ -2086,7 +2121,7 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* ─── 6. CORE FEATURE SUITES (Dayforce-Style Deep Dive) ─── */}
+      {/* ─── 6. CORE FEATURE SUITES (Enterprise Deep Dive) ─── */}
       <section id="features" className="py-20 lg:py-28 bg-slate-50 border-t border-slate-200/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
@@ -2269,7 +2304,7 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* ─── 7. INTERACTIVE BUSINESS VALUE & ROI CALCULATOR (Dayforce-Style) ─── */}
+      {/* ─── 7. INTERACTIVE BUSINESS VALUE & ROI CALCULATOR (Enterprise Suite) ─── */}
       <section id="roi-calculator" className="py-20 lg:py-28 bg-white border-t border-slate-200/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
@@ -2909,76 +2944,154 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* ─── 14. COMPREHENSIVE DAYFORCE-STYLE FOOTER ─── */}
-      <footer className="bg-slate-950 text-slate-400 border-t border-slate-800 text-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-8 lg:gap-12">
+      {/* ─── 14. MINIMALIST MODERN ENTERPRISE FOOTER (EMERGENT-STYLE CLEAN WHITE) ─── */}
+      <footer className="bg-white text-slate-900 border-t border-slate-200">
+        <div className="max-w-7xl xl:max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-16 sm:pt-20 pb-12">
+          <div className="grid grid-cols-2 md:grid-cols-6 lg:grid-cols-12 gap-8 lg:gap-10">
             
-            {/* Col 1: Brand Info */}
-            <div className="col-span-2 space-y-4">
-              <BrandLogo size="md" layout="row" showTagline={true} useTenantContext={false} />
-              <p className="text-slate-400 text-xs leading-relaxed max-w-sm">
-                Priyex is an intelligent, multi-tenant Human Capital Management (HCM) SaaS platform engineered for enterprise scalability, automated compliance, and seamless employee experience.
-              </p>
-              <div className="flex items-center gap-3 pt-2">
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                  Systems Operational (99.99%)
+            {/* Brand Wordmark & Mission Description */}
+            <div className="col-span-2 md:col-span-6 lg:col-span-4 space-y-5">
+              <Link to="/" className="inline-flex items-center gap-2 group">
+                <span className="text-2xl font-black tracking-tight text-slate-900 flex items-center gap-2.5">
+                  <span className="w-8 h-8 rounded-lg bg-gradient-to-tr from-slate-900 via-blue-900 to-blue-600 text-white shadow-xs flex items-center justify-center">
+                    <Users className="w-4 h-4 text-white" strokeWidth={2.4} />
+                  </span>
+                  priyex
                 </span>
-                <span className="text-[11px] text-slate-500">ISO 27001 • SOC 2 Ready</span>
+              </Link>
+              <p className="text-slate-500 text-[14px] leading-relaxed max-w-sm font-normal">
+                Build production-ready HRMS & payroll operations through unified intelligence. Automate statutory compliance, biometric time tracking, and tenant data isolation from start to finish.
+              </p>
+              <div className="pt-1">
+                <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  All Systems Operational (99.99%)
+                </span>
               </div>
             </div>
 
+            {/* Col 1: Product */}
+            <div className="col-span-1 md:col-span-3 lg:col-span-2 space-y-3.5">
+              <h4 className="font-bold text-slate-900 text-[15px]">Product</h4>
+              <ul className="space-y-3 text-[14px] text-slate-500 font-normal">
+                <li><a href="#features" className="hover:text-slate-900 transition-colors">Build</a></li>
+                <li><a href="#pricing" className="hover:text-slate-900 transition-colors">Pricing</a></li>
+                <li><a href="#features" className="hover:text-slate-900 transition-colors">Integrations</a></li>
+                <li><a href="#features" className="hover:text-slate-900 transition-colors">Biometric Time</a></li>
+                <li><a href="#features" className="hover:text-slate-900 transition-colors">Expense Desk</a></li>
+                <li><Link to="/login" className="text-blue-600 hover:text-blue-800 font-semibold transition-colors">Client Portal</Link></li>
+              </ul>
+            </div>
+
             {/* Col 2: Solutions */}
-            <div className="space-y-3">
-              <h4 className="font-bold text-slate-200 text-xs uppercase tracking-wider">Solutions</h4>
-              <ul className="space-y-2 text-slate-400">
-                <li><a href="#features" className="hover:text-white transition">Core HR & Directory</a></li>
-                <li><a href="#features" className="hover:text-white transition">Statutory Payroll & Tax</a></li>
-                <li><a href="#features" className="hover:text-white transition">Biometric Attendance</a></li>
-                <li><a href="#features" className="hover:text-white transition">Geofenced Time Clock</a></li>
-                <li><a href="#features" className="hover:text-white transition">Expense Management</a></li>
-                <li><a href="#features" className="hover:text-white transition">In-App Live HR Desk</a></li>
+            <div className="col-span-1 md:col-span-3 lg:col-span-2 space-y-3.5">
+              <h4 className="font-bold text-slate-900 text-[15px]">Solutions</h4>
+              <ul className="space-y-3 text-[14px] text-slate-500 font-normal">
+                <li><a href="#multitenant" className="hover:text-slate-900 transition-colors">Enterprise</a></li>
+                <li><a href="#features" className="hover:text-slate-900 transition-colors">SMB Owners</a></li>
+                <li><a href="#multitenant" className="hover:text-slate-900 transition-colors">IT Agencies</a></li>
+                <li><a href="#features" className="hover:text-slate-900 transition-colors">Product Managers</a></li>
+                <li><a href="#features" className="hover:text-slate-900 transition-colors">Operations Team</a></li>
+                <li><a href="#roi-calculator" className="hover:text-slate-900 transition-colors">ROI Calculator</a></li>
               </ul>
             </div>
 
-            {/* Col 3: Platform & Architecture */}
-            <div className="space-y-3">
-              <h4 className="font-bold text-slate-200 text-xs uppercase tracking-wider">Platform</h4>
-              <ul className="space-y-2 text-slate-400">
-                <li><a href="#multitenant" className="hover:text-white transition">Multi-Tenancy Cloud</a></li>
-                <li><a href="#sandbox" className="hover:text-white transition">Interactive Preview</a></li>
-                <li><a href="#roi-calculator" className="hover:text-white transition">ROI Calculator</a></li>
-                <li><a href="#security" className="hover:text-white transition">Data Isolation & Security</a></li>
-                <li><a href="#pricing" className="hover:text-white transition">Enterprise Pricing</a></li>
-                <li><Link to="/login" className="hover:text-white transition text-emerald-400 font-semibold">Client Portal Login</Link></li>
+            {/* Col 3: Resources */}
+            <div className="col-span-1 md:col-span-3 lg:col-span-2 space-y-3.5">
+              <h4 className="font-bold text-slate-900 text-[15px]">Resources</h4>
+              <ul className="space-y-3 text-[14px] text-slate-500 font-normal">
+                <li><a href="#features" className="hover:text-slate-900 transition-colors">Docs</a></li>
+                <li><a href="#sandbox" className="hover:text-slate-900 transition-colors">Tutorials</a></li>
+                <li><a href="#features" className="hover:text-slate-900 transition-colors">Case Studies</a></li>
+                <li><a href="#features" className="hover:text-slate-900 transition-colors">Blog</a></li>
+                <li><a href="#security" className="hover:text-slate-900 transition-colors">Security Center</a></li>
+                <li><a href="#security" className="hover:text-slate-900 transition-colors">Compliance Guide</a></li>
               </ul>
             </div>
 
-            {/* Col 4: Corporate & Trust */}
-            <div className="space-y-3">
-              <h4 className="font-bold text-slate-200 text-xs uppercase tracking-wider">Enterprise Trust</h4>
-              <ul className="space-y-2 text-slate-400">
-                <li><button onClick={() => setIsBookDemoOpen(true)} className="hover:text-white transition text-left cursor-pointer">Schedule Live Demo</button></li>
-                <li><button onClick={() => setIsContactSalesOpen(true)} className="hover:text-white transition text-left cursor-pointer">Contact Enterprise Sales</button></li>
-                <li><a href="#security" className="hover:text-white transition">SOC 2 Compliance</a></li>
-                <li><a href="#security" className="hover:text-white transition">Security Architecture</a></li>
-                <li><span className="text-slate-500">Bangalore • Global Cloud</span></li>
+            {/* Col 4: Company */}
+            <div className="col-span-1 md:col-span-3 lg:col-span-2 space-y-3.5">
+              <h4 className="font-bold text-slate-900 text-[15px]">Company</h4>
+              <ul className="space-y-3 text-[14px] text-slate-500 font-normal">
+                <li><button onClick={() => setIsBookDemoOpen(true)} className="hover:text-slate-900 transition-colors text-left cursor-pointer">Affiliates</button></li>
+                <li><button onClick={() => setIsContactSalesOpen(true)} className="hover:text-slate-900 transition-colors text-left cursor-pointer">Careers</button></li>
+                <li><a href="#multitenant" className="hover:text-slate-900 transition-colors">Company Info</a></li>
+                <li><span className="hover:text-slate-900 transition-colors cursor-pointer">Terms of Service</span></li>
+                <li><span className="hover:text-slate-900 transition-colors cursor-pointer">Privacy Policy</span></li>
+                <li><span className="hover:text-slate-900 transition-colors cursor-pointer">Cookie Policy</span></li>
+                <li><span className="hover:text-slate-900 transition-colors cursor-pointer">Data Processing Agreement</span></li>
+                <li><span className="hover:text-slate-900 transition-colors cursor-pointer">Sub-processors</span></li>
+                <li><span className="hover:text-slate-900 transition-colors cursor-pointer">Cookie preferences</span></li>
               </ul>
             </div>
           </div>
 
-          <div className="pt-12 mt-12 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-slate-500">
-            <div>
-              © 2026 Priyex Technologies Private Limited. All rights reserved.
+          {/* Emergent-Style Minimalist Bottom Bar */}
+          <div className="border-t border-slate-200/90 pt-8 mt-14 sm:mt-16 flex flex-col md:flex-row items-center justify-between gap-4 text-xs">
+            {/* Copyright */}
+            <div className="font-mono text-xs uppercase tracking-wider text-slate-400 font-semibold order-2 md:order-1">
+              COPYRIGHT ⓒ PRIYEXLABS {new Date().getFullYear()}
             </div>
-            <div className="flex items-center gap-6">
-              <span className="hover:text-slate-300 transition cursor-pointer">Privacy Policy</span>
-              <span className="hover:text-slate-300 transition cursor-pointer">Terms of Service</span>
-              <span className="hover:text-slate-300 transition cursor-pointer">Security Center</span>
-              <Link to="/login" className="text-emerald-400 font-bold hover:underline">
-                Portal Sign In &rarr;
-              </Link>
+
+            {/* Center Heartline */}
+            <div className="font-mono text-xs uppercase tracking-wider text-slate-500 font-semibold flex items-center justify-center gap-1 order-1 md:order-2">
+              <span>DESIGNED AND BUILT BY THE AWESOME PEOPLE OF PRIYEX</span>
+              <span className="text-sky-500 text-sm">💙</span>
+            </div>
+
+            {/* Social Icons */}
+            <div className="flex items-center gap-5 text-slate-500 order-3">
+              {/* LinkedIn */}
+              <a
+                href="https://linkedin.com"
+                target="_blank"
+                rel="noreferrer"
+                aria-label="LinkedIn"
+                className="hover:text-slate-900 transition-colors"
+              >
+                <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                  <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
+                </svg>
+              </a>
+
+              {/* X (formerly Twitter) */}
+              <a
+                href="https://x.com"
+                target="_blank"
+                rel="noreferrer"
+                aria-label="X (Twitter)"
+                className="hover:text-slate-900 transition-colors"
+              >
+                <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                </svg>
+              </a>
+
+              {/* YouTube */}
+              <a
+                href="https://youtube.com"
+                target="_blank"
+                rel="noreferrer"
+                aria-label="YouTube"
+                className="hover:text-slate-900 transition-colors"
+              >
+                <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+                </svg>
+              </a>
+
+              {/* Instagram */}
+              <a
+                href="https://instagram.com"
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Instagram"
+                className="hover:text-slate-900 transition-colors"
+              >
+                <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+                </svg>
+              </a>
             </div>
           </div>
         </div>

@@ -12,6 +12,7 @@ interface BrandLogoProps {
   customBrandName?: string | null;
   customLegalName?: string | null;
   useTenantContext?: boolean;
+  inverted?: boolean;
 }
 
 export const BrandLogo: React.FC<BrandLogoProps> = ({
@@ -23,6 +24,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
   customBrandName,
   customLegalName,
   useTenantContext = true,
+  inverted = false,
 }) => {
   const { user } = useAuth();
   const [imgError, setImgError] = useState(false);
@@ -210,12 +212,18 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
           <div
             className={`${
               isLarge
-                ? 'text-2xl sm:text-[26px] font-black tracking-tight text-slate-900'
-                : 'text-[15px] font-black tracking-tight text-slate-900 leading-none whitespace-nowrap'
-            }`}
+                ? 'text-2xl sm:text-[26px] font-black tracking-tight'
+                : 'text-base font-black tracking-tight leading-none whitespace-nowrap'
+            } ${inverted ? 'text-white' : 'text-slate-900'}`}
           >
             Priyex{' '}
-            <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent font-black">
+            <span
+              className={
+                inverted
+                  ? 'bg-gradient-to-r from-cyan-400 via-sky-300 to-blue-400 bg-clip-text text-transparent font-black'
+                  : 'bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent font-black'
+              }
+            >
               People
             </span>
           </div>
@@ -224,12 +232,24 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
             <div
               className={`flex items-center gap-1.5 uppercase font-bold whitespace-nowrap ${
                 isLarge
-                  ? 'text-[11px] text-blue-600 font-extrabold tracking-widest mt-1.5'
-                  : 'text-[9.5px] text-slate-400 tracking-wider mt-1'
+                  ? 'text-xs tracking-widest mt-1.5'
+                  : 'text-[10px] tracking-wider mt-1'
               }`}
             >
-              {!isLarge && <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"></span>}
-              <span className={isLarge ? 'text-blue-700' : 'text-slate-500 font-semibold truncate'}>
+              <span
+                className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                  inverted ? 'bg-cyan-400' : 'bg-blue-500'
+                }`}
+              ></span>
+              <span
+                className={
+                  inverted
+                    ? 'text-slate-300 font-semibold truncate'
+                    : isLarge
+                    ? 'text-blue-700 font-extrabold'
+                    : 'text-slate-500 font-semibold truncate'
+                }
+              >
                 {isLarge ? 'Intelligent Workforce Cloud' : 'Workforce Cloud'}
               </span>
             </div>

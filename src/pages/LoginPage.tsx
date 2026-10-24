@@ -57,7 +57,7 @@ const getClientBadgeStyle = (code: string) => {
 };
 
 export const LoginPage: React.FC = () => {
-  // 2-Step Login State (Dayforce pattern)
+  // 2-Step Login State (Enterprise Multi-Tenant pattern)
   const [loginStep, setLoginStep] = useState<'company' | 'credentials'>('company');
   const [companyIdInput, setCompanyIdInput] = useState('');
   const [validatedCompany, setValidatedCompany] = useState<ValidatedCompany | null>(null);
@@ -368,7 +368,7 @@ export const LoginPage: React.FC = () => {
           )}
 
           {/* ═══════════════════════════════════════════════════════════ */}
-          {/* PART 1: ENTER COMPANY ID (Dayforce Multi-Tenant Workflow)  */}
+          {/* PART 1: ENTER COMPANY ID (Enterprise Multi-Tenant Workflow) */}
           {/* ═══════════════════════════════════════════════════════════ */}
           {loginStep === 'company' && (
             <div className="animate-in fade-in duration-200">
@@ -586,10 +586,10 @@ export const LoginPage: React.FC = () => {
             <span>256-bit Encrypted Multi-Tenant Isolation • SOC-2 Type II Certified</span>
           </div>
 
-          {/* Dayforce-Style Copyright & Legal Links */}
+          {/* Priyex Copyright & Legal Links */}
           <div className="mt-8 pt-4 border-t border-slate-100 text-center text-xs text-slate-500 space-y-1.5">
             <p className="text-[12px] text-slate-500">
-              © {new Date().getFullYear()} Dayforce. Built on {new Date().toLocaleDateString('en-US')} {new Date().toLocaleTimeString('en-US')}
+              © {new Date().getFullYear()} Priyex HCM Cloud. All rights reserved.
             </p>
             <div className="flex items-center justify-center gap-4 text-xs font-medium text-slate-600">
               <Link to="/" className="hover:text-[#0062cc] underline underline-offset-2 transition flex items-center gap-1">

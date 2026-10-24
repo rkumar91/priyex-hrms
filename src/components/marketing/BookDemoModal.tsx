@@ -120,10 +120,10 @@ export const BookDemoModal: React.FC<BookDemoModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-md animate-in fade-in duration-200 overflow-y-auto">
-      <div className={`bg-white rounded-3xl ${confirmationData ? 'max-w-md' : 'max-w-2xl'} w-full shadow-2xl border border-slate-200 overflow-hidden my-auto animate-in zoom-in-95 duration-200 transition-all`}>
+      <div className={`bg-white rounded-3xl ${confirmationData ? 'max-w-md' : 'max-w-2xl'} w-full shadow-2xl border border-slate-200 overflow-hidden my-auto animate-in zoom-in-95 duration-200 transition-all flex flex-col max-h-[92vh] max-h-[92dvh]`}>
         
         {/* Modal Top Header Bar */}
-        <div className="px-5 py-4 bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 text-white flex items-center justify-between">
+        <div className="px-5 py-4 bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 text-white flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-white shadow-md shadow-emerald-500/20">
               <Sparkles className="w-4 h-4" />
@@ -146,7 +146,7 @@ export const BookDemoModal: React.FC<BookDemoModalProps> = ({
         </div>
 
         {/* Content Area */}
-        <div className={confirmationData ? "p-5 sm:p-6" : "p-6 sm:p-7"}>
+        <div className={`overflow-y-auto overscroll-contain ${confirmationData ? "p-5 sm:p-6" : "p-5 sm:p-7"}`}>
           {confirmationData ? (
             /* Compact Enterprise Confirmation Screen */
             <div className="text-center space-y-4 animate-in fade-in duration-300">

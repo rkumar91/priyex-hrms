@@ -567,7 +567,7 @@ export const SaasConsolePage: React.FC = () => {
             </p>
           </div>
 
-          <div className="flex items-center gap-2.5 shrink-0">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
             <button
               onClick={loadConsoleData}
               disabled={isLoading}
@@ -1563,9 +1563,9 @@ export const SaasConsolePage: React.FC = () => {
 
       {/* MODAL: CREATE COMMERCIAL ACCOUNT */}
       {showAccountModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="bg-white rounded-2xl max-w-lg w-full border border-slate-200 shadow-2xl overflow-hidden">
-            <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-lg w-full border border-slate-200 shadow-2xl overflow-hidden my-auto flex flex-col max-h-[92vh] max-h-[92dvh]">
+            <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50 shrink-0">
               <div className="flex items-center gap-2">
                 <Building2 className="w-5 h-5 text-indigo-600" />
                 <h3 className="font-bold text-slate-900 text-sm">Provision Commercial Account</h3>
@@ -1578,7 +1578,7 @@ export const SaasConsolePage: React.FC = () => {
               </button>
             </div>
 
-            <form onSubmit={handleCreateAccount} className="p-6 space-y-4 text-xs">
+            <form onSubmit={handleCreateAccount} className="p-4 sm:p-6 overflow-y-auto space-y-4 text-xs">
               <div>
                 <label className="block font-bold text-slate-700 mb-1">Company / Organization Legal Name *</label>
                 <input
@@ -1591,7 +1591,7 @@ export const SaasConsolePage: React.FC = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block font-bold text-slate-700 mb-1">Tenant Slug (Identifier) *</label>
                   <input
@@ -1618,7 +1618,7 @@ export const SaasConsolePage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block font-bold text-slate-700 mb-1">Primary Contact Name</label>
                   <input
@@ -1641,7 +1641,7 @@ export const SaasConsolePage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block font-bold text-slate-700 mb-1">Phone Number</label>
                   <input
@@ -1664,7 +1664,7 @@ export const SaasConsolePage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2 shrink-0">
                 <button
                   type="button"
                   onClick={() => setShowAccountModal(false)}
@@ -1686,9 +1686,9 @@ export const SaasConsolePage: React.FC = () => {
 
       {/* MODAL: CREATE PLAN TIER */}
       {showPlanModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="bg-white rounded-2xl max-w-md w-full border border-slate-200 shadow-2xl overflow-hidden">
-            <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-md w-full border border-slate-200 shadow-2xl overflow-hidden my-auto flex flex-col max-h-[92vh] max-h-[92dvh]">
+            <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50 shrink-0">
               <div className="flex items-center gap-2">
                 <CreditCard className="w-5 h-5 text-indigo-600" />
                 <h3 className="font-bold text-slate-900 text-sm">Add SaaS Plan Tier</h3>
@@ -1701,7 +1701,7 @@ export const SaasConsolePage: React.FC = () => {
               </button>
             </div>
 
-            <form onSubmit={handleCreatePlan} className="p-6 space-y-4 text-xs">
+            <form onSubmit={handleCreatePlan} className="p-4 sm:p-6 overflow-y-auto space-y-4 text-xs">
               <div>
                 <label className="block font-bold text-slate-700 mb-1">Plan Name *</label>
                 <input
@@ -1714,7 +1714,7 @@ export const SaasConsolePage: React.FC = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block font-bold text-slate-700 mb-1">Plan Code *</label>
                   <input
@@ -1740,7 +1740,7 @@ export const SaasConsolePage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block font-bold text-slate-700 mb-1">Base Platform Fee (₹)</label>
                   <input
@@ -1761,7 +1761,7 @@ export const SaasConsolePage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block font-bold text-slate-700 mb-1">Included Seats</label>
                   <input
@@ -1782,7 +1782,7 @@ export const SaasConsolePage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2 shrink-0">
                 <button
                   type="button"
                   onClick={() => setShowPlanModal(false)}
@@ -1804,9 +1804,9 @@ export const SaasConsolePage: React.FC = () => {
 
       {/* MODAL: ASSIGN SUBSCRIPTION */}
       {showSubscriptionModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="bg-white rounded-2xl max-w-md w-full border border-slate-200 shadow-2xl overflow-hidden">
-            <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-md w-full border border-slate-200 shadow-2xl overflow-hidden my-auto flex flex-col max-h-[92vh] max-h-[92dvh]">
+            <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50 shrink-0">
               <div className="flex items-center gap-2">
                 <CreditCard className="w-5 h-5 text-indigo-600" />
                 <h3 className="font-bold text-slate-900 text-sm">Assign Customer Subscription</h3>
@@ -1819,7 +1819,7 @@ export const SaasConsolePage: React.FC = () => {
               </button>
             </div>
 
-            <form onSubmit={handleCreateSubscription} className="p-6 space-y-4 text-xs">
+            <form onSubmit={handleCreateSubscription} className="p-4 sm:p-6 overflow-y-auto space-y-4 text-xs">
               <div>
                 <label className="block font-bold text-slate-700 mb-1">Select Commercial Account *</label>
                 <select
@@ -1854,7 +1854,7 @@ export const SaasConsolePage: React.FC = () => {
                 </select>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block font-bold text-slate-700 mb-1">Allocated Seats</label>
                   <input
@@ -1889,7 +1889,7 @@ export const SaasConsolePage: React.FC = () => {
                 </label>
               </div>
 
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2 shrink-0">
                 <button
                   type="button"
                   onClick={() => setShowSubscriptionModal(false)}
@@ -1911,9 +1911,9 @@ export const SaasConsolePage: React.FC = () => {
 
       {/* MODAL: CREATE SETUP / AMC CONTRACT */}
       {showContractModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="bg-white rounded-2xl max-w-md w-full border border-slate-200 shadow-2xl overflow-hidden">
-            <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-md w-full border border-slate-200 shadow-2xl overflow-hidden my-auto flex flex-col max-h-[92vh] max-h-[92dvh]">
+            <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50 shrink-0">
               <div className="flex items-center gap-2">
                 <FileSignature className="w-5 h-5 text-indigo-600" />
                 <h3 className="font-bold text-slate-900 text-sm">Add Setup Fee or AMC Agreement</h3>
@@ -1926,7 +1926,7 @@ export const SaasConsolePage: React.FC = () => {
               </button>
             </div>
 
-            <form onSubmit={handleCreateContract} className="p-6 space-y-4 text-xs">
+            <form onSubmit={handleCreateContract} className="p-4 sm:p-6 overflow-y-auto space-y-4 text-xs">
               <div>
                 <label className="block font-bold text-slate-700 mb-1">Select Account *</label>
                 <select
@@ -1944,7 +1944,7 @@ export const SaasConsolePage: React.FC = () => {
                 </select>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block font-bold text-slate-700 mb-1">Contract Type</label>
                   <select
@@ -1981,7 +1981,7 @@ export const SaasConsolePage: React.FC = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block font-bold text-slate-700 mb-1">SLA Target (Hours)</label>
                   <input
@@ -2017,7 +2017,7 @@ export const SaasConsolePage: React.FC = () => {
                 />
               </div>
 
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2 shrink-0">
                 <button
                   type="button"
                   onClick={() => setShowContractModal(false)}
@@ -2039,9 +2039,9 @@ export const SaasConsolePage: React.FC = () => {
 
       {/* MODAL: GENERATE INVOICE */}
       {showInvoiceModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="bg-white rounded-2xl max-w-md w-full border border-slate-200 shadow-2xl overflow-hidden">
-            <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-md w-full border border-slate-200 shadow-2xl overflow-hidden my-auto flex flex-col max-h-[92vh] max-h-[92dvh]">
+            <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50 shrink-0">
               <div className="flex items-center gap-2">
                 <Receipt className="w-5 h-5 text-indigo-600" />
                 <h3 className="font-bold text-slate-900 text-sm">Generate Commercial Invoice</h3>
@@ -2054,7 +2054,7 @@ export const SaasConsolePage: React.FC = () => {
               </button>
             </div>
 
-            <form onSubmit={handleCreateInvoice} className="p-6 space-y-4 text-xs">
+            <form onSubmit={handleCreateInvoice} className="p-4 sm:p-6 overflow-y-auto space-y-4 text-xs">
               <div>
                 <label className="block font-bold text-slate-700 mb-1">Select Customer Account *</label>
                 <select
@@ -2098,7 +2098,7 @@ export const SaasConsolePage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block font-bold text-slate-700 mb-1">Due Date</label>
                   <input
@@ -2122,7 +2122,7 @@ export const SaasConsolePage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2 shrink-0">
                 <button
                   type="button"
                   onClick={() => setShowInvoiceModal(false)}
@@ -2144,9 +2144,9 @@ export const SaasConsolePage: React.FC = () => {
 
       {/* MODAL: DROP / DISQUALIFY LEAD INQUIRY */}
       {showDropLeadModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="bg-white rounded-2xl max-w-md w-full border border-slate-200 shadow-2xl overflow-hidden">
-            <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-md w-full border border-slate-200 shadow-2xl overflow-hidden my-auto flex flex-col max-h-[92vh] max-h-[92dvh]">
+            <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50 shrink-0">
               <div className="flex items-center gap-2">
                 <Archive className="w-5 h-5 text-rose-600" />
                 <h3 className="font-bold text-slate-900 text-sm">Drop Sales Inquiry (Mark Lost)</h3>
@@ -2159,7 +2159,7 @@ export const SaasConsolePage: React.FC = () => {
               </button>
             </div>
 
-            <div className="p-6 space-y-4 text-xs">
+            <div className="p-4 sm:p-6 overflow-y-auto space-y-4 text-xs">
               <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
                 <div className="font-bold text-slate-900">{showDropLeadModal.fullName}</div>
                 <div className="text-slate-500">{showDropLeadModal.companyName} &bull; {showDropLeadModal.workEmail}</div>
@@ -2193,7 +2193,7 @@ export const SaasConsolePage: React.FC = () => {
                 />
               </div>
 
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2 shrink-0">
                 <button
                   type="button"
                   onClick={() => setShowDropLeadModal(null)}
@@ -2216,9 +2216,9 @@ export const SaasConsolePage: React.FC = () => {
 
       {/* MODAL: TENANT OFFBOARDING & WORKSPACE DEACTIVATION WIZARD */}
       {showOffboardModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="bg-white rounded-2xl max-w-lg w-full border border-rose-200 shadow-2xl overflow-hidden">
-            <div className="p-5 border-b border-rose-100 flex items-center justify-between bg-rose-50/70">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-lg w-full border border-rose-200 shadow-2xl overflow-hidden my-auto flex flex-col max-h-[92vh] max-h-[92dvh]">
+            <div className="p-4 sm:p-5 border-b border-rose-100 flex items-center justify-between bg-rose-50/70 shrink-0">
               <div className="flex items-center gap-2">
                 <Ban className="w-5 h-5 text-rose-600" />
                 <h3 className="font-bold text-rose-900 text-sm">Client Offboarding & Tenant Deactivation</h3>
@@ -2231,7 +2231,7 @@ export const SaasConsolePage: React.FC = () => {
               </button>
             </div>
 
-            <div className="p-6 space-y-4 text-xs">
+            <div className="p-4 sm:p-6 overflow-y-auto space-y-4 text-xs">
               <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
                 <div className="font-bold text-slate-900 text-sm">{showOffboardModal.accountName}</div>
                 <div className="text-slate-500 font-mono text-[11px]">
@@ -2300,7 +2300,7 @@ export const SaasConsolePage: React.FC = () => {
                 />
               </div>
 
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2 shrink-0">
                 <button
                   type="button"
                   onClick={() => setShowOffboardModal(null)}

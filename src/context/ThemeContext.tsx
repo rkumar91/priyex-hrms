@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-export type ThemeId = 'dayforce' | 'sapphire' | 'indigo' | 'emerald' | 'violet' | 'teal' | 'rose' | 'amber' | 'blue' | 'dark';
+export type ThemeId = 'obsidian' | 'sapphire' | 'indigo' | 'emerald' | 'violet' | 'teal' | 'rose' | 'amber' | 'blue' | 'dark';
 
 export interface ThemeOption {
   id: ThemeId;
@@ -19,8 +19,8 @@ export interface ThemeOption {
 
 export const THEME_OPTIONS: ThemeOption[] = [
   {
-    id: 'dayforce',
-    name: 'Dayforce Obsidian',
+    id: 'obsidian',
+    name: 'Priyex Obsidian',
     subtitle: 'High-contrast midnight navy, electric cyan & precision emerald',
     previewColor: '#06b6d4',
     primaryColor: '#06b6d4',
@@ -153,7 +153,7 @@ export const THEME_OPTIONS: ThemeOption[] = [
 ];
 
 const THEME_SCALES: Record<ThemeId, Record<string, string>> = {
-  dayforce: {
+  obsidian: {
     '--brand-50': '#ecfeff',
     '--brand-100': '#cffafe',
     '--brand-200': '#a5f3fc',

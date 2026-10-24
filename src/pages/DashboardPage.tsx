@@ -48,7 +48,7 @@ export const DashboardPage: React.FC = () => {
   const { currentThemeOption, setTheme } = useTheme();
   const isManagerOrAdmin = canManageEmployees(user);
 
-  // Live ticking digital clock for Dayforce terminal
+  // Live ticking digital clock for biometric terminal
   const [liveClock, setLiveClock] = useState(() =>
     new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
   );
@@ -733,7 +733,7 @@ export const DashboardPage: React.FC = () => {
         </div>
       </div>
 
-      {/* ── Dayforce-Style Interactive Workforce Terminal & Continuous Calculation Bar ── */}
+      {/* ── Priyex Interactive Workforce Terminal & Continuous Calculation Bar ── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* Left (7 cols): Live Biometric Punch Terminal & Geofence Radar */}
         <div className="lg:col-span-7 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 text-white p-5 sm:p-6 border border-slate-800 shadow-xl relative overflow-hidden">
@@ -824,7 +824,7 @@ export const DashboardPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Right (5 cols): Dayforce Continuous Calculation Engine Radar */}
+        {/* Right (5 cols): Priyex Continuous Calculation Engine Radar */}
         <div className="lg:col-span-5 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-950 to-indigo-950 text-white p-5 sm:p-6 border border-slate-800 shadow-xl flex flex-col justify-between space-y-4">
           <div className="space-y-3">
             <div className="flex items-center justify-between">
@@ -863,18 +863,18 @@ export const DashboardPage: React.FC = () => {
 
           {/* Quick Theme Toggle Pill */}
           <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-xs">
-            <span className="text-[11px] text-slate-400">Current Theme: <strong className="text-white">{currentThemeOption.name}</strong></span>
-            {currentThemeOption.id !== 'dayforce' ? (
+            <span className="text-xs text-slate-400">Current Theme: <strong className="text-white">{currentThemeOption.name}</strong></span>
+            {currentThemeOption.id !== 'obsidian' ? (
               <button
                 type="button"
-                onClick={() => setTheme('dayforce')}
-                className="px-3 py-1 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 font-bold text-[11px] transition cursor-pointer"
+                onClick={() => setTheme('obsidian')}
+                className="px-3 py-1.5 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 font-bold text-xs transition cursor-pointer"
               >
-                Switch to Dayforce Theme →
+                Switch to Priyex Obsidian Theme →
               </button>
             ) : (
-              <span className="text-[10px] text-emerald-400 font-bold">
-                ✓ Dayforce Obsidian Active
+              <span className="text-xs text-emerald-400 font-bold">
+                ✓ Priyex Obsidian Active
               </span>
             )}
           </div>

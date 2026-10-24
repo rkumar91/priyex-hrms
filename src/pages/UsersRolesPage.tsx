@@ -566,34 +566,34 @@ export const UsersRolesPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
         <div>
           <div className="flex flex-wrap items-center gap-2.5">
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
-              <UserCog className="w-6 h-6 text-indigo-600" />
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
+              <UserCog className="w-6 h-6 text-indigo-600 shrink-0" />
               <span>User & Role Governance</span>
             </h1>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200/80 shadow-2xs">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs sm:text-sm font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200/80 shadow-2xs">
               <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></span>
               Organization Scope
             </span>
           </div>
-          <p className="text-sm text-slate-500 mt-1 font-normal">
+          <p className="text-sm sm:text-base text-slate-500 mt-1 font-normal">
             Configure multi-role user privileges and tabular role feature policies in real-time.
           </p>
         </div>
 
-        {/* Navigation Tabs */}
-        <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-2xl text-xs font-semibold self-start sm:self-auto shrink-0">
+        {/* Navigation Tabs (Swipeable on mobile/iPhone, compact on desktop) */}
+        <div className="flex overflow-x-auto no-scrollbar sm:flex-wrap items-center gap-1.5 p-1 bg-slate-100 rounded-2xl text-sm font-semibold max-w-full">
           <button
             type="button"
             onClick={() => handleTabChange('EMPLOYEE_ROLES')}
-            className={`px-3.5 py-2 rounded-xl transition cursor-pointer flex items-center gap-1.5 ${
+            className={`shrink-0 whitespace-nowrap px-4 py-2.5 rounded-xl transition cursor-pointer flex items-center gap-2 min-h-[42px] ${
               activeTab === 'EMPLOYEE_ROLES'
                 ? 'bg-white text-indigo-700 shadow-xs font-bold'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <Users className="w-4 h-4" />
-            <span>User Roles Roster</span>
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-200 text-slate-700">
+            <Users className="w-4.5 h-4.5 shrink-0" />
+            <span className="text-sm font-bold">User Roles Roster</span>
+            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-slate-200 text-slate-700">
               {employeeRoles.length}
             </span>
           </button>
@@ -601,14 +601,14 @@ export const UsersRolesPage: React.FC = () => {
           <button
             type="button"
             onClick={() => handleTabChange('ROLE_POLICIES')}
-            className={`px-3.5 py-2 rounded-xl transition cursor-pointer flex items-center gap-1.5 ${
+            className={`shrink-0 whitespace-nowrap px-4 py-2.5 rounded-xl transition cursor-pointer flex items-center gap-2 min-h-[42px] ${
               activeTab === 'ROLE_POLICIES'
                 ? 'bg-white text-indigo-700 shadow-xs font-bold'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <Sliders className="w-4 h-4" />
-            <span>Role Feature Matrix</span>
+            <Sliders className="w-4.5 h-4.5 shrink-0" />
+            <span className="text-sm font-bold">Role Feature Matrix</span>
             {isPolicyDirty && (
               <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" title="Unsaved policy changes" />
             )}
@@ -617,15 +617,15 @@ export const UsersRolesPage: React.FC = () => {
           <button
             type="button"
             onClick={() => handleTabChange('SYSTEM_ACCOUNTS')}
-            className={`px-3.5 py-2 rounded-xl transition cursor-pointer flex items-center gap-1.5 ${
+            className={`shrink-0 whitespace-nowrap px-4 py-2.5 rounded-xl transition cursor-pointer flex items-center gap-2 min-h-[42px] ${
               activeTab === 'SYSTEM_ACCOUNTS'
                 ? 'bg-white text-indigo-700 shadow-xs font-bold'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <ShieldCheck className="w-4 h-4" />
-            <span>System Logins</span>
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-200 text-slate-700">
+            <ShieldCheck className="w-4.5 h-4.5 shrink-0" />
+            <span className="text-sm font-bold">System Logins</span>
+            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-slate-200 text-slate-700">
               {usersList.length}
             </span>
           </button>
@@ -634,11 +634,11 @@ export const UsersRolesPage: React.FC = () => {
 
       {/* Global Alerts / Messages */}
       {message && (
-        <div className={`p-4 rounded-2xl text-xs font-semibold flex items-center justify-between animate-in fade-in duration-200 ${
+        <div className={`p-4 rounded-2xl text-sm font-semibold flex items-center justify-between animate-in fade-in duration-200 ${
           message.type === 'success' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-rose-50 text-rose-800 border border-rose-200'
         }`}>
           <div className="flex items-center gap-2">
-            {message.type === 'success' ? <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" /> : <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />}
+            {message.type === 'success' ? <CheckCircle2 className="w-4.5 h-4.5 text-emerald-600 shrink-0" /> : <AlertCircle className="w-4.5 h-4.5 text-rose-600 shrink-0" />}
             <span>{message.text}</span>
           </div>
           <button onClick={() => setMessage(null)} className="cursor-pointer text-slate-400 hover:text-slate-700 p-1">
@@ -649,35 +649,35 @@ export const UsersRolesPage: React.FC = () => {
 
       {/* Overview Statistics Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="bg-white p-4.5 rounded-2xl border border-slate-200 shadow-xs">
-          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Staff Mapped</span>
-          <div className="text-2xl font-extrabold text-slate-900 mt-1">{regularEmployeeCount}</div>
-          <span className="text-[11px] text-slate-500 mt-0.5 block">Every active employee</span>
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Staff Mapped</span>
+          <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">{regularEmployeeCount}</div>
+          <span className="text-xs text-slate-500 mt-1 block">Every active employee</span>
         </div>
 
-        <div className="bg-white p-4.5 rounded-2xl border border-slate-200 shadow-xs">
-          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Reporting Managers</span>
-          <div className="text-2xl font-extrabold text-indigo-600 mt-1">{managerCount}</div>
-          <span className="text-[11px] text-indigo-600/80 mt-0.5 block">Team review & Tier 1 approval</span>
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Reporting Managers</span>
+          <div className="text-2xl sm:text-3xl font-extrabold text-indigo-600 mt-1">{managerCount}</div>
+          <span className="text-xs text-indigo-600/90 mt-1 block font-medium">Team review & Tier 1 approval</span>
         </div>
 
-        <div className="bg-white p-4.5 rounded-2xl border border-slate-200 shadow-xs">
-          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">HR Administrators</span>
-          <div className="text-2xl font-extrabold text-amber-600 mt-1">{hrAdminCount}</div>
-          <span className="text-[11px] text-amber-600/80 mt-0.5 block">Auditor & compliance signoff</span>
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">HR Administrators</span>
+          <div className="text-2xl sm:text-3xl font-extrabold text-amber-600 mt-1">{hrAdminCount}</div>
+          <span className="text-xs text-amber-600/90 mt-1 block font-medium">Auditor & compliance signoff</span>
         </div>
 
-        <div className="bg-white p-4.5 rounded-2xl border border-slate-200 shadow-xs">
-          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Org Administrators</span>
-          <div className="text-2xl font-extrabold text-emerald-600 mt-1">{adminCount}</div>
-          <span className="text-[11px] text-emerald-600/80 mt-0.5 block">Full governance control</span>
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Org Administrators</span>
+          <div className="text-2xl sm:text-3xl font-extrabold text-emerald-600 mt-1">{adminCount}</div>
+          <span className="text-xs text-emerald-600/90 mt-1 block font-medium">Full governance control</span>
         </div>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+      <div className="bg-white rounded-2xl p-4.5 border border-slate-200 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3.5">
         <div className="relative flex-1 max-w-md">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search className="w-4.5 h-4.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
             value={searchTerm}
@@ -689,19 +689,19 @@ export const UsersRolesPage: React.FC = () => {
                 ? "Search capability, feature code, or description..."
                 : "Search system logins by name or email..."
             }
-            className="w-full bg-slate-50 text-xs text-slate-900 placeholder-slate-400 rounded-xl pl-10 pr-4 py-2 border border-slate-200 focus:bg-white focus:outline-none focus:border-indigo-500 font-medium"
+            className="w-full bg-slate-50 text-sm text-slate-900 placeholder:text-slate-400 rounded-xl pl-10 pr-4 py-2.5 border border-slate-200 focus:bg-white focus:outline-none focus:border-indigo-500 font-medium"
           />
         </div>
 
         {activeTab === 'ROLE_POLICIES' && (
-          <div className="flex items-center gap-2 flex-wrap">
-            <div className="flex items-center gap-1.5 text-xs text-slate-500">
-              <Filter className="w-3.5 h-3.5" />
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <div className="flex items-center gap-1.5 text-xs sm:text-sm text-slate-600 font-medium">
+              <Filter className="w-4 h-4 text-slate-500" />
               <span>Module:</span>
               <select
                 value={policyModuleFilter}
                 onChange={(e) => setPolicyModuleFilter(e.target.value)}
-                className="bg-slate-50 border border-slate-200 text-slate-800 text-xs rounded-xl px-2.5 py-1.5 focus:outline-none font-semibold cursor-pointer"
+                className="bg-slate-50 border border-slate-200 text-slate-800 text-xs sm:text-sm rounded-xl px-3 py-2 focus:outline-none font-semibold cursor-pointer"
               >
                 <option value="ALL">All Modules</option>
                 <option value="EXPENSES">Expenses & Reimbursements</option>
@@ -715,10 +715,10 @@ export const UsersRolesPage: React.FC = () => {
             <button
               type="button"
               onClick={handleResetPolicyMatrix}
-              className="px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer"
+              className="px-3.5 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-semibold flex items-center gap-1.5 transition cursor-pointer"
               title="Reset all feature policies to standard industry defaults"
             >
-              <RotateCcw className="w-3 h-3 text-slate-500" />
+              <RotateCcw className="w-3.5 h-3.5 text-slate-500" />
               <span>Reset Defaults</span>
             </button>
 
@@ -726,13 +726,13 @@ export const UsersRolesPage: React.FC = () => {
               type="button"
               onClick={handleSavePolicyMatrix}
               disabled={isUpdating || !isPolicyDirty}
-              className={`px-4 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition cursor-pointer shadow-xs ${
+              className={`px-4.5 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 transition cursor-pointer shadow-xs ${
                 isPolicyDirty
                   ? 'bg-indigo-600 hover:bg-indigo-700 text-white active:scale-95'
                   : 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'
               }`}
             >
-              <Save className="w-3.5 h-3.5" />
+              <Save className="w-4 h-4" />
               <span>{isUpdating ? 'Saving...' : 'Deploy Policy'}</span>
             </button>
           </div>
