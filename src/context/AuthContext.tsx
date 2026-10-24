@@ -28,7 +28,7 @@ interface AuthContextType {
   user: UserProfile | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (credentials: { email: string; password: string }) => Promise<UserProfile | null>;
+  login: (credentials: { email: string; password: string; companyId?: number; companyCode?: string }) => Promise<UserProfile | null>;
   logout: () => Promise<void>;
   updateUser: (partial: Partial<UserProfile>) => void;
 }
@@ -125,10 +125,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     checkAuth();
   }, []);
 
-  const login = async (credentials: { email: string; password: string }) => {
+  const login = async (credentials: {
+    email: string;
+    password: string;
+    companyId?: number;
+    companyCode?: string;
+  }) => {
     const res: any = await api.post('/auth/login', {
       email: credentials.email,
       password: credentials.password,
+      companyId: credentials.companyId,
+      companyCode: credentials.companyCode,
     });
     if (res.success && res.data) {
       const { accessToken, user: userProfile } = res.data;

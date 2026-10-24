@@ -282,10 +282,19 @@ export const LoginPage: React.FC = () => {
       setError('Please provide both your work email and password.');
       return;
     }
+    if (isMismatch) {
+      setError(`Workspace Mismatch: "${email}" belongs to ${detection?.company?.brandName || detection?.company?.code}. Please switch workspace to sign in.`);
+      return;
+    }
     setError(null);
     setIsSubmitting(true);
     try {
-      const loggedInUser: any = await login({ email: email.trim(), password });
+      const loggedInUser: any = await login({
+        email: email.trim(),
+        password,
+        companyId: validatedCompany?.companyId,
+        companyCode: validatedCompany?.companyCode,
+      });
       if (isSaasOwner(loggedInUser)) {
         navigate('/saas-console?tab=overview');
       } else {
@@ -299,6 +308,13 @@ export const LoginPage: React.FC = () => {
       setIsSubmitting(false);
     }
   };
+
+  const isMismatch = Boolean(
+    detection?.identified &&
+    detection.company &&
+    validatedCompany &&
+    detection.company.code.toUpperCase() !== validatedCompany.companyCode.toUpperCase()
+  );
 
   const detectedBadge = detection?.company ? getClientBadgeStyle(detection.company.code) : null;
 
@@ -506,6 +522,40 @@ export const LoginPage: React.FC = () => {
                     </button>
                   </div>
                 </div>
+
+                {/* Workspace Mismatch Warning & One-Click Switcher */}
+                {isMismatch && (
+                  <div className="p-3 bg-amber-50 border border-amber-300 rounded-xl text-xs space-y-2 animate-in fade-in duration-150">
+                    <div className="flex items-start gap-2 text-amber-900">
+                      <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                      <div className="leading-snug">
+                        <span className="font-bold">Workspace Mismatch: </span>
+                        <span>
+                          This email belongs to <strong>{detection?.company?.brandName || detection?.company?.code}</strong>, but your selected workspace is <strong>{validatedCompany?.brandName}</strong>.
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (detection?.company) {
+                          setValidatedCompany({
+                            companyId: detection.company.id,
+                            companyCode: detection.company.code,
+                            brandName: detection.company.brandName || detection.company.legalName,
+                            legalName: detection.company.legalName,
+                            logoUrl: detection.company.logoUrl
+                          });
+                          setError(null);
+                        }
+                      }}
+                      className="w-full py-2 px-3 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg transition flex items-center justify-center gap-1.5 cursor-pointer shadow-xs active:scale-[0.98]"
+                    >
+                      <span>Switch to {detection?.company?.brandName || detection?.company?.code} Workspace</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
 
                 <button
                   type="submit"
