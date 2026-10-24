@@ -159,7 +159,7 @@ export const SaasConsolePage: React.FC = () => {
         leadsRes,
         requestsRes,
         auditRes
-      ] = await Promise.all([
+      ]: any[] = await Promise.all([
         api.get('/saas-console/overview').catch(() => null),
         api.get('/saas-console/accounts').catch(() => null),
         api.get('/saas-console/plans').catch(() => null),
@@ -168,18 +168,42 @@ export const SaasConsolePage: React.FC = () => {
         api.get('/saas-console/invoices').catch(() => null),
         api.get('/saas-console/leads').catch(() => null),
         api.get('/saas-console/requests').catch(() => null),
-        api.get('/saas-console/audit-events').catch(() => null)
+        api.get('/saas-console/audit-logs').catch(() => null)
       ]);
 
-      if (overviewRes?.data?.data) setOverview(overviewRes.data.data);
-      if (accountsRes?.data?.data) setAccounts(accountsRes.data.data);
-      if (plansRes?.data?.data) setPlans(plansRes.data.data);
-      if (subsRes?.data?.data) setSubscriptions(subsRes.data.data);
-      if (contractsRes?.data?.data) setContracts(contractsRes.data.data);
-      if (invoicesRes?.data?.data) setInvoices(invoicesRes.data.data);
-      if (leadsRes?.data?.data) setLeads(leadsRes.data.data);
-      if (requestsRes?.data?.data) setRequests(requestsRes.data.data);
-      if (auditRes?.data?.data) setAuditEvents(auditRes.data.data);
+      const unpack = (res: any) => {
+        if (!res) return null;
+        if (res?.data?.data !== undefined) return res.data.data;
+        if (res?.data !== undefined) return res.data;
+        return res;
+      };
+
+      const ov = unpack(overviewRes);
+      if (ov) setOverview(ov);
+
+      const accs = unpack(accountsRes);
+      if (Array.isArray(accs)) setAccounts(accs);
+
+      const pls = unpack(plansRes);
+      if (Array.isArray(pls)) setPlans(pls);
+
+      const subs = unpack(subsRes);
+      if (Array.isArray(subs)) setSubscriptions(subs);
+
+      const cnts = unpack(contractsRes);
+      if (Array.isArray(cnts)) setContracts(cnts);
+
+      const invs = unpack(invoicesRes);
+      if (Array.isArray(invs)) setInvoices(invs);
+
+      const lds = unpack(leadsRes);
+      if (Array.isArray(lds)) setLeads(lds);
+
+      const reqs = unpack(requestsRes);
+      if (Array.isArray(reqs)) setRequests(reqs);
+
+      const audits = unpack(auditRes);
+      if (Array.isArray(audits)) setAuditEvents(audits);
     } catch (err) {
       console.error('Failed to load SaaS console data:', err);
       showToast('Error syncing with Priyex Control Plane', 'error');
@@ -246,7 +270,7 @@ export const SaasConsolePage: React.FC = () => {
     e.preventDefault();
     try {
       const res: any = await api.post('/saas-console/accounts', newAccount);
-      if (res?.data?.success) {
+      if (res?.success || res?.data) {
         showToast('Commercial account provisioned successfully!');
         setShowAccountModal(false);
         setNewAccount({
@@ -271,7 +295,7 @@ export const SaasConsolePage: React.FC = () => {
     e.preventDefault();
     try {
       const res: any = await api.post('/saas-console/plans', newPlan);
-      if (res?.data?.success) {
+      if (res?.success || res?.data) {
         showToast('New SaaS plan tier published!');
         setShowPlanModal(false);
         loadConsoleData();
@@ -290,7 +314,7 @@ export const SaasConsolePage: React.FC = () => {
     }
     try {
       const res: any = await api.post('/saas-console/subscriptions', newSub);
-      if (res?.data?.success) {
+      if (res?.success || res?.data) {
         showToast('Subscription assigned successfully!');
         setShowSubscriptionModal(false);
         loadConsoleData();
@@ -309,7 +333,7 @@ export const SaasConsolePage: React.FC = () => {
     }
     try {
       const res: any = await api.post('/saas-console/contracts', newContract);
-      if (res?.data?.success) {
+      if (res?.success || res?.data) {
         showToast('Setup/AMC contract recorded!');
         setShowContractModal(false);
         loadConsoleData();
@@ -328,7 +352,7 @@ export const SaasConsolePage: React.FC = () => {
     }
     try {
       const res: any = await api.post('/saas-console/invoices', newInvoice);
-      if (res?.data?.success) {
+      if (res?.success || res?.data) {
         showToast('Commercial invoice generated!');
         setShowInvoiceModal(false);
         loadConsoleData();
@@ -346,7 +370,7 @@ export const SaasConsolePage: React.FC = () => {
         dropReason,
         notes: dropNotes
       });
-      if (res?.data?.success) {
+      if (res?.success || res?.data) {
         showToast(`Lead inquiry marked as LOST (${dropReason})`);
         setShowDropLeadModal(null);
         setDropNotes('');
@@ -361,7 +385,7 @@ export const SaasConsolePage: React.FC = () => {
   const handleUpdateLeadStatus = async (id: number, status: string) => {
     try {
       const res: any = await api.put(`/saas-console/leads/${id}/status`, { status });
-      if (res?.data?.success) {
+      if (res?.success || res?.data) {
         showToast(`Lead pipeline stage moved to ${status}`);
         loadConsoleData();
       }
@@ -383,7 +407,7 @@ export const SaasConsolePage: React.FC = () => {
         notes: offboardNotes,
         deactivateTenantNow
       });
-      if (res?.data?.success) {
+      if (res?.success || res?.data) {
         showToast(`Client ${showOffboardModal.accountName} has been offboarded.`);
         setShowOffboardModal(null);
         setConfirmOffboardKeyword('');
@@ -402,7 +426,7 @@ export const SaasConsolePage: React.FC = () => {
         status,
         paymentReference: paymentReference || `TXN-${Date.now()}`
       });
-      if (res?.data?.success) {
+      if (res?.success || res?.data) {
         showToast(`Invoice updated to ${status}`);
         loadConsoleData();
       }
