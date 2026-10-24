@@ -870,6 +870,62 @@
           Supports Casual Leave (CL), Sick Leave (SL), Privilege / Earned Leave (PL/EL), Maternity Leave (26 weeks per Maternity Benefit Act), and Compensatory Offs. Features flexible monthly or annual grants, carry-forward rules, and encashment at year-end.
         </p>
       </div>
+
+      <div class="subheading">Architectural Pillars</div>
+      <div class="pillars-grid">
+        <div class="pillar-card">
+          <strong>1. Configurable Quota Engine</strong>
+          Dynamic quota assignment by department, employment tenure, and location with sandwich weekend rules.
+        </div>
+        <div class="pillar-card">
+          <strong>2. Multi-Tier Escalation Routing</strong>
+          Multi-level approval chains (Reporting Manager &rarr; Department Head &rarr; HR Ops) with auto-delegation for absent managers.
+        </div>
+        <div class="pillar-card">
+          <strong>3. Real-Time Balance Validation</strong>
+          Instant verification against accrued balances prevents negative quotas and flags department blackout dates.
+        </div>
+        <div class="pillar-card">
+          <strong>4. Year-End Carry-Forward & Encashment</strong>
+          Automated annual cron carries forward eligible days (e.g. up to 15 days PL) and calculates basic pay encashment.
+        </div>
+      </div>
+
+      <div class="subheading">Operational Execution Sequence</div>
+      <table class="steps-table">
+        <thead>
+          <tr>
+            <th style="width: 20%;">Phase</th>
+            <th style="width: 25%;">Primary Actor</th>
+            <th style="width: 55%;">Execution & System Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>1. Leave Application</strong></td>
+            <td><span class="actor-tag">Employee</span></td>
+            <td>Submits request with date range and leave type. Engine checks balance and verifies team coverage constraints.</td>
+          </tr>
+          <tr>
+            <td><strong>2. Manager Approval</strong></td>
+            <td><span class="actor-tag">Reporting Manager</span></td>
+            <td>Manager evaluates request against team schedule and approves or rejects with mandatory justification.</td>
+          </tr>
+          <tr>
+            <td><strong>3. Balance Adjustment</strong></td>
+            <td><span class="actor-tag">Automated Engine</span></td>
+            <td>Deducts approved days, updates attendance status to LEAVE, and locks the dates against duplicate clock-in attempts.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="subheading">Core REST Endpoints</div>
+      <div class="code-block">
+<span class="code-method">GET</span>   /api/v1/leaves/balances
+<span class="code-method">POST</span>  /api/v1/leaves/apply
+<span class="code-method">PUT</span>   /api/v1/leaves/{id}/approve
+<span class="code-method">PUT</span>   /api/v1/leaves/{id}/reject
+      </div>
     </div>
 
     <!-- ════ FLOW 07: PERFORMANCE & OKRS ════ -->
@@ -886,6 +942,62 @@
           Aligns corporate objectives with individual goals through measurable milestones. Facilitates employee self-ratings, cross-functional peer reviews, and manager scorecards normalized against standard bell-curve distributions (e.g., top 10%, solid 70%, bottom 10%).
         </p>
       </div>
+
+      <div class="subheading">Architectural Pillars</div>
+      <div class="pillars-grid">
+        <div class="pillar-card">
+          <strong>1. Cascading OKR Alignment</strong>
+          Corporate annual key results cascade to functional departments and individual quantitative quarterly targets.
+        </div>
+        <div class="pillar-card">
+          <strong>2. Multi-Rater 360° Assessment</strong>
+          Aggregates anonymous feedback from cross-functional peers, direct subordinates, and reporting supervisors.
+        </div>
+        <div class="pillar-card">
+          <strong>3. Bell-Curve Normalization</strong>
+          Committee scoring console distributes ratings across standard deviations (10% Top, 70% Core, 20% Improvement).
+        </div>
+        <div class="pillar-card">
+          <strong>4. Compensation Sync</strong>
+          Approved performance multipliers automatically feed into annual merit increase and variable bonus calculations.
+        </div>
+      </div>
+
+      <div class="subheading">Operational Execution Sequence</div>
+      <table class="steps-table">
+        <thead>
+          <tr>
+            <th style="width: 20%;">Phase</th>
+            <th style="width: 25%;">Primary Actor</th>
+            <th style="width: 55%;">Execution & System Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>1. Goal Initialization</strong></td>
+            <td><span class="actor-tag">Manager & Employee</span></td>
+            <td>Agrees upon 3 to 5 key objectives with quantifiable metric targets and percentage weights at cycle start.</td>
+          </tr>
+          <tr>
+            <td><strong>2. Evaluation Review</strong></td>
+            <td><span class="actor-tag">Employee & Peers</span></td>
+            <td>Submits self-assessment and milestone proof. Selected peer evaluators submit 360-degree competency ratings.</td>
+          </tr>
+          <tr>
+            <td><strong>3. Calibration & Sign-Off</strong></td>
+            <td><span class="actor-tag">HR Committee</span></td>
+            <td>Reviews departmental distributions, calibrates rating variances, and issues final performance scores.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="subheading">Core REST Endpoints</div>
+      <div class="code-block">
+<span class="code-method">GET</span>   /api/v1/performance/my-goals
+<span class="code-method">POST</span>  /api/v1/performance/goals
+<span class="code-method">POST</span>  /api/v1/performance/appraisals/submit-review
+<span class="code-method">GET</span>   /api/v1/performance/normalization-curve
+      </div>
     </div>
 
     <!-- ════ FLOW 08: SEPARATION & F&F ════ -->
@@ -901,6 +1013,62 @@
         <p>
           Governs employee departures with standardized cross-departmental clearances: IT hardware retrieval, Finance expense clearance, and Admin building access revocation. Automates statutory Gratuity calculation: <code>(15 × Last Drawn Basic × Years of Service) ÷ 26</code>.
         </p>
+      </div>
+
+      <div class="subheading">Architectural Pillars</div>
+      <div class="pillars-grid">
+        <div class="pillar-card">
+          <strong>1. Notice Period Calculation</strong>
+          Calculates contractual notice requirement, shortfalls, buyout costs, and proposed Last Working Day (LWD).
+        </div>
+        <div class="pillar-card">
+          <strong>2. Cross-Departmental NOC</strong>
+          Mandatory sign-offs from IT (Hardware/Accounts), Finance (Advances/Loans), and Facilities (ID/Keys).
+        </div>
+        <div class="pillar-card">
+          <strong>3. Statutory Gratuity Formula</strong>
+          Automated computation under the Payment of Gratuity Act 1972 for employees with &ge; 5 years of tenure.
+        </div>
+        <div class="pillar-card">
+          <strong>4. Automated Relieving Packet</strong>
+          Generates digitally signed Relieving Letters, Experience Certificates, and comprehensive F&F payout slips.
+        </div>
+      </div>
+
+      <div class="subheading">Operational Execution Sequence</div>
+      <table class="steps-table">
+        <thead>
+          <tr>
+            <th style="width: 20%;">Phase</th>
+            <th style="width: 25%;">Primary Actor</th>
+            <th style="width: 55%;">Execution & System Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>1. Resignation Initiation</strong></td>
+            <td><span class="actor-tag">Employee</span></td>
+            <td>Submits formal resignation via portal. System triggers notification to manager and initiates notice period countdown.</td>
+          </tr>
+          <tr>
+            <td><strong>2. Clearance (NOC) Matrix</strong></td>
+            <td><span class="actor-tag">IT, Finance, Admin</span></td>
+            <td>Each department verifies asset recovery and financial dues. System blocks final payment until 100% sign-off.</td>
+          </tr>
+          <tr>
+            <td><strong>3. Settlement Disbursal</strong></td>
+            <td><span class="actor-tag">Payroll Finance</span></td>
+            <td>Calculates unpaid salary + leave encashment + gratuity - notice buyout. Releases funds and issues relieving certificates.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="subheading">Core REST Endpoints</div>
+      <div class="code-block">
+<span class="code-method">POST</span>  /api/v1/separation/resign
+<span class="code-method">GET</span>   /api/v1/separation/clearance-status/{employeeId}
+<span class="code-method">POST</span>  /api/v1/separation/calculate-fnf/{employeeId}
+<span class="code-method">GET</span>   /api/v1/separation/relieving-letter/{employeeId}
       </div>
     </div>
 

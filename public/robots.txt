@@ -1,0 +1,16 @@
+# Priyex HRMS Enterprise SaaS Platform Robots Configuration
+# https://www.priyex.com
+
+User-agent: *
+Allow: /
+Allow: /login
+Allow: /docs/priyex-platform-guide.html
+
+# Disallow private operational dashboards from public indexing
+Disallow: /dashboard
+Disallow: /saas-console
+Disallow: /api/
+
+# Host and Sitemap Declarations for Search Engines & AI Crawlers
+Host: https://www.priyex.com
+Sitemap: https://www.priyex.com/sitemap.xml
