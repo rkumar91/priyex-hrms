@@ -379,9 +379,10 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu, onAnnouncement
                   </Link>
                   <button
                     type="button"
-                    onClick={() => {
+                    onClick={async () => {
                       setIsProfileOpen(false);
-                      logout();
+                      await logout();
+                      navigate('/', { replace: true });
                     }}
                     className="w-full py-2 px-3 rounded-lg bg-slate-50 hover:bg-rose-50 text-slate-500 hover:text-rose-600 text-[11px] font-bold transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer border border-slate-200/80 hover:border-rose-200 group/btn"
                   >

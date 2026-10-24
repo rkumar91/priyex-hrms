@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import api from '../api/client';
 import { BrandLogo } from '../components/common/BrandLogo';
 import { BookDemoModal } from '../components/marketing/BookDemoModal';
 import { ContactSalesModal } from '../components/marketing/ContactSalesModal';
@@ -43,11 +44,27 @@ import {
   Radio,
   SlidersHorizontal,
   Send,
-  Activity
+  Activity,
+  Mail,
+  Eye,
+  EyeOff,
+  AlertCircle,
+  Phone
 } from 'lucide-react';
+import { isSaasOwner } from '../utils/rbac';
+
+// Catalog of known enterprise domains for instant client-side resolution
+const KNOWN_TENANT_DOMAINS: Record<string, { code: string; brandName: string }> = {
+  'priyex.com': { code: 'PRIYEX', brandName: 'Priyex Technologies' },
+  'tcs.com': { code: 'TCS', brandName: 'Tata Consultancy Services' },
+  'wipro.com': { code: 'WIPRO', brandName: 'Wipro Limited' },
+  'infosys.com': { code: 'INFOSYS', brandName: 'Infosys Limited' },
+  'gpn.com': { code: 'GPN', brandName: 'Global Payments (GPN)' },
+  'globalpayments.com': { code: 'GPN', brandName: 'Global Payments (GPN)' },
+};
 
 export const LandingPage: React.FC = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, login } = useAuth();
   const navigate = useNavigate();
 
   // Modals
@@ -59,6 +76,128 @@ export const LandingPage: React.FC = () => {
 
   // Hero interactive architectural demo state
   const [heroTenant, setHeroTenant] = useState<'HQ_GLOBAL' | 'TECH_SUBSIDIARY' | 'FINANCE_DIVISION' | 'REGIONAL_BRANCH'>('HQ_GLOBAL');
+
+  // Embedded Hero Live Login State
+  const [heroCompanyCode, setHeroCompanyCode] = useState('');
+  const [heroEmail, setHeroEmail] = useState('');
+  const [heroPassword, setHeroPassword] = useState('');
+  const [heroShowPassword, setHeroShowPassword] = useState(false);
+  const [heroRememberOrg, setHeroRememberOrg] = useState(true);
+  const [heroLoginError, setHeroLoginError] = useState<string | null>(null);
+  const [heroIsSubmitting, setHeroIsSubmitting] = useState(false);
+
+  // Email Domain Auto-Detection & Mismatch State
+  const [heroDetectedCompany, setHeroDetectedCompany] = useState<{ code: string; brandName: string } | null>(null);
+  const heroDebounceRef = useRef<any>(null);
+
+  // Real-time email change handler with automatic tenant detection
+  const handleHeroEmailChange = (val: string) => {
+    setHeroEmail(val);
+    setHeroLoginError(null);
+
+    if (heroDebounceRef.current) {
+      clearTimeout(heroDebounceRef.current);
+    }
+
+    if (!val || !val.includes('@')) {
+      setHeroDetectedCompany(null);
+      return;
+    }
+
+    const domain = val.substring(val.indexOf('@') + 1).trim().toLowerCase();
+    if (!domain || !domain.includes('.')) {
+      setHeroDetectedCompany(null);
+      return;
+    }
+
+    // 1. Instant resolution from known tenant catalog
+    if (KNOWN_TENANT_DOMAINS[domain]) {
+      const match = KNOWN_TENANT_DOMAINS[domain];
+      setHeroDetectedCompany(match);
+      if (!heroCompanyCode.trim()) {
+        setHeroCompanyCode(match.code);
+      }
+      return;
+    }
+
+    // 2. Debounced query to backend domain resolver
+    heroDebounceRef.current = setTimeout(async () => {
+      try {
+        const res: any = await api.get(`/tenant/detect-domain?email=${encodeURIComponent(val.trim())}`);
+        if (res.success && res.data?.identified && res.data?.company) {
+          const match = {
+            code: res.data.company.code,
+            brandName: res.data.company.brandName || res.data.company.legalName || res.data.company.code,
+          };
+          setHeroDetectedCompany(match);
+          if (!heroCompanyCode.trim()) {
+            setHeroCompanyCode(match.code);
+          }
+        }
+      } catch (e) {
+        // Fallback silently if domain detection fails
+      }
+    }, 250);
+  };
+
+  // Check if there is an organization code mismatch between input and detected email domain
+  const isHeroMismatch = Boolean(
+    heroDetectedCompany &&
+    heroCompanyCode.trim() &&
+    heroDetectedCompany.code.toUpperCase() !== heroCompanyCode.trim().toUpperCase()
+  );
+
+  const handleHeroLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!heroCompanyCode.trim()) {
+      setHeroLoginError('Organization / Company Code is required. Please enter your Organization ID.');
+      return;
+    }
+
+    if (!heroEmail.trim() || !heroPassword) {
+      setHeroLoginError('Please enter both your work email/username and password.');
+      return;
+    }
+
+    // Pre-flight check: Warn and block explicit workspace domain mismatches
+    if (isHeroMismatch && heroDetectedCompany) {
+      setHeroLoginError(
+        `Workspace Mismatch: "${heroEmail.trim()}" belongs to ${heroDetectedCompany.brandName} (${heroDetectedCompany.code}), not ${heroCompanyCode.trim().toUpperCase()}. Please switch your Organization Code to "${heroDetectedCompany.code}" to sign in.`
+      );
+      return;
+    }
+
+    setHeroLoginError(null);
+    setHeroIsSubmitting(true);
+
+    try {
+      const loggedUser = await login({
+        email: heroEmail.trim(),
+        password: heroPassword,
+        companyCode: heroCompanyCode ? heroCompanyCode.trim().toUpperCase() : undefined,
+      });
+
+      if (loggedUser) {
+        if (isSaasOwner(loggedUser)) {
+          navigate('/saas-console?tab=overview', { replace: true });
+        } else {
+          navigate('/dashboard', { replace: true });
+        }
+      } else {
+        setHeroLoginError('Invalid credentials. Please verify your company code, email, and password.');
+      }
+    } catch (err: any) {
+      console.error('Hero login error:', err);
+      const msg =
+        err?.message ||
+        err?.response?.data?.message ||
+        (typeof err === 'string' ? err : 'Login failed. Please verify credentials.');
+      setHeroLoginError(msg);
+    } finally {
+      setHeroIsSubmitting(false);
+    }
+  };
 
   // Interactive Product Sandbox State (Includes Priyex Continuous Engine & AI Assistant)
   const [sandboxTab, setSandboxTab] = useState<'continuous-engine' | 'ai-assistant' | 'overview' | 'payroll' | 'attendance' | 'multitenant' | 'mobile'>('continuous-engine');
@@ -588,7 +727,7 @@ export const LandingPage: React.FC = () => {
             </a>
           </nav>
 
-          {/* CTA Buttons */}
+            {/* CTA Buttons */}
           <div className="flex items-center gap-2 xl:gap-3 shrink-0">
             {isAuthenticated ? (
               <button
@@ -599,22 +738,13 @@ export const LandingPage: React.FC = () => {
                 <ArrowRight className="w-4 h-4" />
               </button>
             ) : (
-              <>
-                <Link
-                  to="/login"
-                  className="px-3 xl:px-3.5 py-2 rounded-xl text-xs xl:text-[13px] font-semibold text-slate-700 hover:text-slate-950 hover:bg-slate-100 transition border border-slate-200/90 cursor-pointer shrink-0"
-                >
-                  <span className="hidden xl:inline">Client Portal Sign In</span>
-                  <span className="xl:hidden">Sign In</span>
-                </Link>
-                <button
-                  onClick={() => setIsBookDemoOpen(true)}
-                  className="px-3.5 xl:px-4.5 py-2 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white font-bold text-xs xl:text-[13px] shadow-sm shadow-indigo-600/20 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center gap-1.5 cursor-pointer shrink-0 whitespace-nowrap"
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-cyan-200" />
-                  <span>Book a Demo</span>
-                </button>
-              </>
+              <button
+                onClick={() => setIsBookDemoOpen(true)}
+                className="px-3.5 xl:px-4.5 py-2 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white font-bold text-xs xl:text-[13px] shadow-sm shadow-indigo-600/20 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center gap-1.5 cursor-pointer shrink-0 whitespace-nowrap"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-cyan-200" />
+                <span>Book a Demo</span>
+              </button>
             )}
 
             {/* Mobile Hamburger Toggle */}
@@ -691,13 +821,6 @@ export const LandingPage: React.FC = () => {
                 <Sparkles className="w-4 h-4 text-cyan-200" />
                 <span>Schedule a 1-on-1 Live Demo</span>
               </button>
-              <Link
-                to="/login"
-                onClick={() => setMobileMenuOpen(false)}
-                className="w-full py-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-800 font-bold text-sm text-center border border-slate-200/90 active:scale-[0.98] transition cursor-pointer block"
-              >
-                Client Portal Sign In
-              </Link>
             </div>
           </div>
         )}
@@ -717,102 +840,402 @@ export const LandingPage: React.FC = () => {
         {/* Ambient Multi-Color Radial Mesh Glows */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] sm:w-[900px] h-[380px] bg-gradient-to-r from-blue-400/15 via-indigo-400/20 to-teal-400/15 blur-[120px] rounded-full pointer-events-none" />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="text-center max-w-4xl mx-auto space-y-5 sm:space-y-6">
+        <div className="max-w-7xl xl:max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          
+          {/* ── 2-Column Split Hero: Left Enterprise Value & Helpdesk + Right Live Login Form ── */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 xl:gap-12 items-center pt-2 sm:pt-4">
             
-            {/* Eyebrow Badge */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/90 backdrop-blur-md border border-indigo-200/80 shadow-2xs">
-              <span className="flex h-2 w-2 relative">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-600" />
-              </span>
-              <span className="text-[11px] font-black uppercase tracking-wider bg-gradient-to-r from-indigo-700 via-blue-700 to-teal-700 bg-clip-text text-transparent">
-                The Enterprise Multi-Tenant People Cloud
-              </span>
-            </div>
-
-            {/* Main Headline */}
-            <h1 className="text-[30px] xs:text-4xl sm:text-5xl lg:text-[56px] font-black tracking-tight text-slate-950 leading-[1.16] sm:leading-[1.12]">
-              One Unified Platform to Power Your Entire{' '}
-              <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-teal-500 bg-clip-text text-transparent">
-                Workforce Lifecycle
-              </span>
-            </h1>
-
-            {/* Subtitle */}
-            <p className="text-sm sm:text-base lg:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed font-normal">
-              Priyex delivers modern SaaS HRMS with guaranteed multi-tenant data isolation, automated statutory payroll, real-time biometric attendance, and seamless employee self-service. Built for high-growth enterprises and conglomerates.
-            </p>
-
-            {/* Dual CTAs & Secondary Triggers */}
-            <div className="pt-2 flex flex-wrap items-center justify-center gap-3 sm:gap-4">
-              <button
-                onClick={() => setIsBookDemoOpen(true)}
-                className="w-full sm:w-auto px-6 sm:px-7 py-3 sm:py-3.5 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white font-black text-xs sm:text-sm shadow-xl shadow-indigo-600/25 hover:shadow-indigo-600/40 hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <Sparkles className="w-4 h-4 text-cyan-200 animate-pulse" />
-                <span>Schedule a 1-on-1 Live Demo</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-
-              <button
-                onClick={() => {
-                  const el = document.getElementById('sandbox');
-                  el?.scrollIntoView({ behavior: 'smooth' });
-                }}
-                className="w-full sm:w-auto px-5 sm:px-6 py-3 sm:py-3.5 rounded-2xl bg-white/95 hover:bg-white text-slate-800 font-bold text-xs sm:text-sm border border-slate-200/90 shadow-2xs hover:border-indigo-300 hover:shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer backdrop-blur-xs"
-              >
-                <Play className="w-4 h-4 text-indigo-600 fill-indigo-600" />
-                <span>Test-Drive Live Sandbox</span>
-              </button>
-
-              <Link
-                to="/login"
-                className="w-full sm:w-auto px-4 py-3 sm:py-3.5 rounded-2xl text-slate-600 hover:text-indigo-600 font-semibold text-xs sm:text-sm transition flex items-center justify-center gap-1 group"
-              >
-                <span>Existing Client? Sign In</span>
-                <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-              </Link>
-            </div>
-
-            {/* Key Trust Counters (Enterprise Glass Cards) */}
-            <div className="pt-6 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 max-w-5xl mx-auto">
-              <div className="p-3.5 sm:p-4 rounded-2xl bg-white/80 backdrop-blur-md border border-slate-200/80 shadow-2xs hover:shadow-sm hover:border-blue-300 transition-all text-center group">
-                <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 mx-auto flex items-center justify-center mb-1.5 group-hover:scale-105 transition-transform">
-                  <ShieldCheck className="w-4 h-4" />
-                </div>
-                <div className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">99.99%</div>
-                <div className="text-[11px] sm:text-xs font-semibold text-slate-500 mt-0.5">Uptime SLA Guarantee</div>
-              </div>
+            {/* ── LEFT COLUMN (7 Cols): Brand, Value Proposition & Helpdesk Widget ── */}
+            <div className="lg:col-span-7 xl:col-span-7 space-y-6 sm:space-y-7 text-left">
               
-              <div className="p-3.5 sm:p-4 rounded-2xl bg-white/80 backdrop-blur-md border border-slate-200/80 shadow-2xs hover:shadow-sm hover:border-emerald-300 transition-all text-center group">
-                <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 mx-auto flex items-center justify-center mb-1.5 group-hover:scale-105 transition-transform">
-                  <Lock className="w-4 h-4" />
-                </div>
-                <div className="text-2xl sm:text-3xl font-black text-emerald-600 tracking-tight">100%</div>
-                <div className="text-[11px] sm:text-xs font-semibold text-slate-500 mt-0.5">Isolated Tenant Data</div>
+              {/* Eyebrow Badge */}
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/95 backdrop-blur-md border border-indigo-200/80 shadow-2xs">
+                <span className="flex h-2 w-2 relative">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-600" />
+                </span>
+                <span className="text-[11px] font-black uppercase tracking-wider bg-gradient-to-r from-indigo-700 via-blue-700 to-teal-700 bg-clip-text text-transparent">
+                  The Enterprise Multi-Tenant People Cloud
+                </span>
               </div>
 
-              <div className="p-3.5 sm:p-4 rounded-2xl bg-white/80 backdrop-blur-md border border-slate-200/80 shadow-2xs hover:shadow-sm hover:border-indigo-300 transition-all text-center group">
-                <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 mx-auto flex items-center justify-center mb-1.5 group-hover:scale-105 transition-transform">
-                  <Zap className="w-4 h-4" />
-                </div>
-                <div className="text-2xl sm:text-3xl font-black text-indigo-600 tracking-tight">15x</div>
-                <div className="text-[11px] sm:text-xs font-semibold text-slate-500 mt-0.5">Faster Payroll Cycles</div>
+              {/* Main Headline */}
+              <h1 className="text-3xl xs:text-4xl sm:text-5xl lg:text-[44px] xl:text-[50px] font-black tracking-tight text-slate-950 leading-[1.14]">
+                One Unified Platform to Power Your Entire{' '}
+                <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-teal-500 bg-clip-text text-transparent">
+                  Workforce Lifecycle
+                </span>
+              </h1>
+
+              {/* Subtitle */}
+              <p className="text-sm sm:text-base text-slate-600 max-w-2xl leading-relaxed font-normal">
+                Priyex delivers modern SaaS HRMS with guaranteed multi-tenant data perimeters, automated statutory payroll, real-time biometric attendance, and seamless employee self-service. Built for high-growth enterprises and conglomerates.
+              </p>
+
+              {/* Action Buttons & Triggers */}
+              <div className="flex flex-wrap items-center gap-3 pt-2">
+                <button
+                  onClick={() => setIsBookDemoOpen(true)}
+                  className="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white font-bold text-xs sm:text-sm shadow-lg shadow-indigo-600/25 hover:shadow-indigo-600/40 hover:-translate-y-0.5 transition-all flex items-center gap-2 cursor-pointer"
+                >
+                  <Sparkles className="w-4 h-4 text-cyan-200" />
+                  <span>Schedule a 1-on-1 Live Demo</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+
+                <a
+                  href="#sandbox"
+                  className="px-5 py-3.5 rounded-2xl bg-white hover:bg-slate-50 text-slate-800 font-bold text-xs sm:text-sm border border-slate-200/90 shadow-2xs hover:border-indigo-300 transition-all flex items-center gap-2 cursor-pointer"
+                >
+                  <Play className="w-3.5 h-3.5 text-indigo-600 fill-indigo-600" />
+                  <span>Test-Drive Live Sandbox</span>
+                </a>
               </div>
 
-              <div className="p-3.5 sm:p-4 rounded-2xl bg-white/80 backdrop-blur-md border border-slate-200/80 shadow-2xs hover:shadow-sm hover:border-teal-300 transition-all text-center group">
-                <div className="w-8 h-8 rounded-xl bg-teal-50 text-teal-600 mx-auto flex items-center justify-center mb-1.5 group-hover:scale-105 transition-transform">
-                  <Users className="w-4 h-4" />
+              {/* Trust Badges Row */}
+              <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-slate-500 font-medium pt-1">
+                <span className="flex items-center gap-1.5 text-slate-700 font-semibold">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                  SOC 2 Type II
+                </span>
+                <span className="flex items-center gap-1.5 text-slate-700 font-semibold">
+                  <Lock className="w-4 h-4 text-blue-600" />
+                  ISO 27001 Certified
+                </span>
+                <span className="flex items-center gap-1.5 text-slate-700 font-semibold">
+                  <CheckCircle2 className="w-4 h-4 text-teal-600" />
+                  100% Tenant Isolation
+                </span>
+                <span className="flex items-center gap-1.5 text-slate-700 font-semibold">
+                  <Activity className="w-4 h-4 text-indigo-600" />
+                  99.99% Uptime SLA
+                </span>
+              </div>
+            </div>
+
+            {/* ── RIGHT COLUMN (5 Cols): Embedded Interactive Client Portal Sign-In Card ── */}
+            <div id="login-hero" className="lg:col-span-5 xl:col-span-5 w-full flex justify-center lg:justify-end">
+              {isAuthenticated ? (
+                /* Authenticated State Card */
+                <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/80 border border-slate-200/90 p-7 text-center space-y-5 relative overflow-hidden">
+                  <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-500 to-teal-500" />
+                  <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 mx-auto flex items-center justify-center shadow-xs">
+                    <CheckCircle2 className="w-7 h-7" />
+                  </div>
+                  <div>
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 mb-2">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                      Portal Session Active
+                    </span>
+                    <h3 className="text-xl font-black text-slate-900 tracking-tight">
+                      Welcome Back!
+                    </h3>
+                    <p className="text-xs text-slate-500 mt-1 font-medium">
+                      Signed in as <strong className="text-slate-800">{user?.fullName || user?.email}</strong>
+                    </p>
+                    <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-blue-50 text-blue-700 font-bold text-xs border border-blue-100">
+                      <Building2 className="w-3.5 h-3.5" />
+                      <span>{user?.company?.brandName || user?.company?.code || 'Priyex Platform'}</span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => navigate('/dashboard')}
+                    className="w-full py-3.5 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-indigo-700 hover:from-blue-700 text-white font-bold text-sm shadow-md flex items-center justify-center gap-2 cursor-pointer transition"
+                  >
+                    <span>Launch Workspace Portal</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
                 </div>
-                <div className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">50,000+</div>
-                <div className="text-[11px] sm:text-xs font-semibold text-slate-500 mt-0.5">Active Employees Managed</div>
+              ) : (
+                /* Interactive Direct Sign-In Form (Compact, Secure, No Public User Details) */
+                <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/80 border border-slate-200/90 p-5 sm:p-6 relative overflow-hidden max-w-[420px] mx-auto lg:ml-auto lg:mr-0">
+                  {/* Top ambient color bar */}
+                  <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-teal-500" />
+
+                  {/* Header */}
+                  <div className="flex items-start justify-between pb-3 border-b border-slate-100">
+                    <div>
+                      <h2 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
+                        Client Portal Sign In
+                      </h2>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        Access your organization's workspace
+                      </p>
+                    </div>
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 shrink-0">
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
+                      Multi-Tenant SSO
+                    </span>
+                  </div>
+
+                  {/* Form */}
+                  <form onSubmit={handleHeroLogin} className="space-y-3.5 pt-3.5">
+                    {heroLoginError && (
+                      <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-start gap-2 animate-in fade-in duration-150">
+                        <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-600" />
+                        <div className="flex-1 font-medium leading-relaxed">{heroLoginError}</div>
+                      </div>
+                    )}
+
+                    {/* Organization & Domain Mismatch Interactive Warning Banner */}
+                    {isHeroMismatch && heroDetectedCompany && (
+                      <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex flex-col gap-1.5 animate-in fade-in duration-150">
+                        <div className="flex items-start gap-2">
+                          <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                          <div className="flex-1 font-medium leading-relaxed">
+                            <span className="font-bold">Workspace Mismatch:</span> Your email (<strong className="text-slate-900">{heroEmail}</strong>) is associated with <strong>{heroDetectedCompany.brandName} ({heroDetectedCompany.code})</strong>, but Organization Code is set to <strong>{heroCompanyCode}</strong>.
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 pl-6 pt-0.5">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setHeroCompanyCode(heroDetectedCompany.code);
+                              setHeroLoginError(null);
+                            }}
+                            className="px-2.5 py-1 rounded-lg bg-amber-600 hover:bg-amber-700 active:scale-[0.98] text-white font-bold text-[11px] transition shadow-2xs cursor-pointer"
+                          >
+                            Switch Organization to {heroDetectedCompany.code}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setHeroCompanyCode('');
+                              setHeroLoginError(null);
+                            }}
+                            className="text-[11px] text-amber-700 hover:underline font-medium cursor-pointer"
+                          >
+                            Clear Code
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Company Code / Tenant Identifier */}
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">
+                        Organization / Company Code <span className="text-rose-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                          <Building2 className="w-4 h-4" />
+                        </div>
+                        <input
+                          type="text"
+                          value={heroCompanyCode}
+                          onChange={(e) => {
+                            setHeroCompanyCode(e.target.value.toUpperCase());
+                            setHeroLoginError(null);
+                          }}
+                          placeholder="Enter your Organization ID / Code"
+                          className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-900 tracking-wider placeholder:text-slate-400 placeholder:font-normal placeholder:tracking-normal focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition uppercase"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Username / Email */}
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">
+                        Username or Work Email <span className="text-rose-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                          <Mail className="w-4 h-4" />
+                        </div>
+                        <input
+                          id="hero-email-input"
+                          type="text"
+                          value={heroEmail}
+                          onChange={(e) => handleHeroEmailChange(e.target.value)}
+                          placeholder="Enter your work email or username"
+                          className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                          autoComplete="username"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Password */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="block text-xs font-bold text-slate-700">
+                          Password
+                        </label>
+                        <span className="text-[11px] text-blue-600 hover:underline cursor-pointer font-medium">
+                          Forgot Password?
+                        </span>
+                      </div>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                          <Lock className="w-4 h-4" />
+                        </div>
+                        <input
+                          type={heroShowPassword ? 'text' : 'password'}
+                          value={heroPassword}
+                          onChange={(e) => setHeroPassword(e.target.value)}
+                          placeholder="••••••••••••"
+                          className="w-full pl-9 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                          autoComplete="current-password"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setHeroShowPassword(!heroShowPassword)}
+                          className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
+                        >
+                          {heroShowPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Remember me & Notice */}
+                    <div className="flex items-center justify-between pt-0.5">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={heroRememberOrg}
+                          onChange={(e) => setHeroRememberOrg(e.target.checked)}
+                          className="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500"
+                        />
+                        <span className="text-xs text-slate-600 font-medium">Remember Organization</span>
+                      </label>
+                      <span className="text-[10px] text-slate-400 font-mono">256-bit TLS</span>
+                    </div>
+
+                    {/* Submit Button */}
+                    <button
+                      type="submit"
+                      disabled={heroIsSubmitting}
+                      className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 active:scale-[0.99] text-white font-bold text-sm shadow-md shadow-indigo-600/25 hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed mt-1"
+                    >
+                      {heroIsSubmitting ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          <span>Authenticating Workspace...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>Sign In to Portal</span>
+                          <ArrowRight className="w-4 h-4" />
+                        </>
+                      )}
+                    </button>
+
+                    {/* Notice line */}
+                    <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+                      <span className="flex items-center gap-1 text-emerald-600 font-semibold truncate">
+                        <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                        <span>Form 16 & Tax Window Live</span>
+                      </span>
+                      <span className="text-slate-400 text-[10px] font-mono">
+                        v3.3 Cloud
+                      </span>
+                    </div>
+                  </form>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* ── Enterprise Solutions & Sales Desk Banner (Centered, Spanning Hero Width) ── */}
+          <div className="mt-8 sm:mt-10 max-w-5xl mx-auto">
+            <div className="bg-white/95 backdrop-blur-md rounded-2xl border border-blue-100/90 shadow-md p-4 sm:p-5 relative overflow-hidden">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 mb-3 border-b border-slate-100">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-xs shrink-0">
+                    <Mail className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900 tracking-tight">
+                      Enterprise Solutions & Sales Desk
+                    </h3>
+                    <p className="text-[11px] text-slate-500">
+                      Custom Implementation, RFPs & Multi-Tenant Procurement
+                    </p>
+                  </div>
+                </div>
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 self-start sm:self-auto">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span>Response SLA &lt; 2h</span>
+                </div>
+              </div>
+
+              {/* 4 Inquiries Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 text-xs">
+                {/* 1. Direct Tech & Sales Email */}
+                <a
+                  href="mailto:tech.priyex@gmail.com?subject=Enterprise%20HRMS%20Sales%20Inquiry"
+                  className="p-3 rounded-xl bg-slate-50 hover:bg-blue-50/70 border border-slate-200/80 hover:border-blue-200 transition group block"
+                >
+                  <div className="flex items-center gap-2 text-slate-700 group-hover:text-blue-700 font-bold text-xs truncate">
+                    <Mail className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                    <span className="truncate">tech.priyex@gmail.com</span>
+                  </div>
+                  <div className="text-[11px] text-slate-500 mt-1 truncate">
+                    Enterprise RFPs, bids & security questionnaires
+                  </div>
+                </a>
+
+                {/* 2. Schedule Live Architecture Tour */}
+                <button
+                  type="button"
+                  onClick={() => setIsBookDemoOpen(true)}
+                  className="p-3 rounded-xl bg-slate-50 hover:bg-indigo-50/70 border border-slate-200/80 hover:border-indigo-200 transition group text-left cursor-pointer"
+                >
+                  <div className="flex items-center gap-2 text-slate-700 group-hover:text-indigo-700 font-bold text-xs truncate">
+                    <Sparkles className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                    <span className="truncate">Schedule Live Tour</span>
+                  </div>
+                  <div className="text-[11px] text-slate-500 mt-1 truncate">
+                    30-minute customized tenant walkthrough
+                  </div>
+                </button>
+
+                {/* 3. Custom Enterprise Pricing */}
+                <button
+                  type="button"
+                  onClick={() => setIsContactSalesOpen(true)}
+                  className="p-3 rounded-xl bg-slate-50 hover:bg-teal-50/70 border border-slate-200/80 hover:border-teal-200 transition group text-left cursor-pointer"
+                >
+                  <div className="flex items-center gap-2 text-slate-700 group-hover:text-teal-700 font-bold text-xs truncate">
+                    <Building2 className="w-3.5 h-3.5 text-teal-600 shrink-0" />
+                    <span className="truncate">Enterprise Pricing</span>
+                  </div>
+                  <div className="text-[11px] text-slate-500 mt-1 truncate">
+                    Volume discounts for 500+ employees
+                  </div>
+                </button>
+
+                {/* 4. Digital In-App Helpdesk */}
+                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
+                  <div className="flex items-center gap-2 text-slate-700 font-bold text-xs truncate">
+                    <Headphones className="w-3.5 h-3.5 text-purple-600 shrink-0" />
+                    <span className="truncate">Digital In-App Helpdesk</span>
+                  </div>
+                  <div className="text-[11px] text-slate-500 mt-1 truncate">
+                    Active tenant support tickets & SLA desk
+                  </div>
+                </div>
+              </div>
+
+              {/* Bottom bar */}
+              <div className="mt-3 pt-2.5 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] text-slate-500">
+                <span className="flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span>Mutual NDA signed on request • 100% tenant data privacy</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setIsContactSalesOpen(true)}
+                  className="text-blue-600 hover:text-blue-700 font-bold hover:underline inline-flex items-center gap-1 self-start sm:self-auto cursor-pointer"
+                >
+                  <span>Open Sales Inquiry Form</span>
+                  <ArrowRight className="w-3 h-3" />
+                </button>
               </div>
             </div>
           </div>
 
           {/* ── Dynamic Hero Interactive Showcase Card (Enterprise Architecture) ── */}
-          <div className="relative mt-10 sm:mt-12 max-w-5xl mx-auto">
+          <div className="relative mt-8 sm:mt-10 max-w-5xl mx-auto">
             {/* Subtle Ambient Backlight Glow under Console */}
             <div className="absolute -inset-1 bg-gradient-to-r from-blue-600/20 via-indigo-600/20 to-teal-500/20 rounded-3xl blur-xl -z-10 opacity-70 pointer-events-none" />
 
