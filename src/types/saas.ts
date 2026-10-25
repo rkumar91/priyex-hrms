@@ -166,9 +166,40 @@ export interface LeadInquiry {
   companySize?: number;
   employeeCount?: string | number;
   city?: string;
+  interestModule?: string;
   inquiryType?: string;
+  preferredDate?: string;
+  preferredTimeSlot?: string;
+  assignedConsultant?: string;
+  emailStatus?: string;
+  whatsappStatus?: string;
   status?: string;
   leadStatus?: string;
   message?: string;
+  nextFollowUpAt?: string | null;
+  lastContactedAt?: string | null;
+  dropReason?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export type LeadActivityType =
+  | 'NOTE'
+  | 'CALL'
+  | 'EMAIL'
+  | 'WHATSAPP'
+  | 'MEETING'
+  | 'STAGE_CHANGE'
+  | 'DROPPED';
+
+export interface LeadActivity {
+  id: number;
+  leadId: number;
+  activityType: LeadActivityType;
+  fromStatus?: string | null;
+  toStatus?: string | null;
+  note?: string | null;
+  nextFollowUpAt?: string | null;
+  createdBy?: string;
   createdAt?: string;
 }

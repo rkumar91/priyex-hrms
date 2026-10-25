@@ -11,7 +11,8 @@ import {
   SaasInvoice,
   SaasCustomerRequest,
   SaasAuditEvent,
-  LeadInquiry
+  LeadInquiry,
+  LeadActivity
 } from '../types/saas';
 import {
   LayoutDashboard,
@@ -43,8 +44,85 @@ import {
   Archive,
   Calendar,
   Layers,
-  HelpCircle
+  HelpCircle,
+  Eye,
+  Phone,
+  Mail,
+  MessageCircle,
+  StickyNote,
+  Video,
+  ArrowRight
 } from 'lucide-react';
+
+// ── Sales pipeline helpers ──────────────────────────────────────────────
+const LEAD_STAGE_OPTIONS = [
+  { value: 'NEW', label: 'New' },
+  { value: 'CONTACTED', label: 'Contacted' },
+  { value: 'QUALIFIED', label: 'Qualified' },
+  { value: 'DEMO_SCHEDULED', label: 'Demo Scheduled' },
+  { value: 'PROPOSAL_SENT', label: 'Proposal Sent' },
+  { value: 'NEGOTIATION', label: 'Negotiation' },
+  { value: 'CONVERTED', label: 'Converted (Won)' }
+];
+
+const LEAD_TERMINAL_STAGES = ['CONVERTED', 'LOST', 'CLOSED'];
+
+const stageLabel = (stage?: string) =>
+  LEAD_STAGE_OPTIONS.find((s) => s.value === stage)?.label ||
+  (stage === 'LOST' ? 'Lost' : stage === 'CLOSED' ? 'Closed' : (stage || 'New').replace(/_/g, ' '));
+
+// The API returns `status`; older UI code read `leadStatus`. Accept both.
+const leadStage = (l?: LeadInquiry | null) => (l?.status || l?.leadStatus || 'NEW').toUpperCase();
+const leadPhone = (l?: LeadInquiry | null) => (l?.phoneNumber || l?.phone || '').trim();
+const leadTeamSize = (l?: LeadInquiry | null) =>
+  l?.employeeCount !== undefined && l?.employeeCount !== null && String(l.employeeCount).trim() !== ''
+    ? String(l.employeeCount)
+    : l?.companySize
+    ? String(l.companySize)
+    : '';
+
+const formatDateTime = (iso?: string | null) =>
+  iso
+    ? new Date(iso).toLocaleString('en-IN', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    : '—';
+
+const isFollowUpOverdue = (l?: LeadInquiry | null) =>
+  !!l?.nextFollowUpAt &&
+  new Date(l.nextFollowUpAt).getTime() < Date.now() &&
+  !LEAD_TERMINAL_STAGES.includes(leadStage(l));
+
+/** wa.me needs digits only with country code; assume India for bare 10-digit numbers. */
+const whatsappLink = (phone: string) => {
+  const digits = phone.replace(/\D/g, '');
+  if (!digits) return '';
+  return `https://wa.me/${digits.length === 10 ? '91' + digits : digits}`;
+};
+
+/** Converts a <input type="datetime-local"> value to the ISO string the API expects. */
+const localToIso = (local: string) => (local ? new Date(local).toISOString() : undefined);
+
+const unwrapApi = (res: any) => {
+  if (!res) return null;
+  if (res?.data?.data !== undefined) return res.data.data;
+  if (res?.data !== undefined) return res.data;
+  return res;
+};
+
+const ACTIVITY_META: Record<string, { label: string; icon: React.ElementType; cls: string }> = {
+  NOTE: { label: 'Note', icon: StickyNote, cls: 'bg-slate-100 text-slate-600 border-slate-200' },
+  CALL: { label: 'Phone call', icon: Phone, cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+  EMAIL: { label: 'Email', icon: Mail, cls: 'bg-blue-50 text-blue-700 border-blue-200' },
+  WHATSAPP: { label: 'WhatsApp', icon: MessageCircle, cls: 'bg-green-50 text-green-700 border-green-200' },
+  MEETING: { label: 'Meeting / Demo', icon: Video, cls: 'bg-violet-50 text-violet-700 border-violet-200' },
+  STAGE_CHANGE: { label: 'Stage change', icon: ArrowRight, cls: 'bg-indigo-50 text-indigo-700 border-indigo-200' },
+  DROPPED: { label: 'Dropped', icon: Archive, cls: 'bg-rose-50 text-rose-700 border-rose-200' }
+};
 
 export const SaasConsolePage: React.FC = () => {
   const { user } = useAuth();
@@ -132,6 +210,21 @@ export const SaasConsolePage: React.FC = () => {
   // Form State: Drop Lead
   const [dropReason, setDropReason] = useState('Budget Unaligned');
   const [dropNotes, setDropNotes] = useState('');
+
+  // Lead details drawer & conversation history
+  const [selectedLeadId, setSelectedLeadId] = useState<number | null>(null);
+  const [leadActivities, setLeadActivities] = useState<LeadActivity[]>([]);
+  const [activitiesLoading, setActivitiesLoading] = useState(false);
+  const [activityType, setActivityType] = useState<'NOTE' | 'CALL' | 'EMAIL' | 'WHATSAPP' | 'MEETING'>('NOTE');
+  const [activityNote, setActivityNote] = useState('');
+  const [activityFollowUp, setActivityFollowUp] = useState('');
+  const [isSavingActivity, setIsSavingActivity] = useState(false);
+
+  // Stage change: asks for a conversation note so the history is preserved
+  const [stageChange, setStageChange] = useState<{ lead: LeadInquiry; toStatus: string } | null>(null);
+  const [stageNote, setStageNote] = useState('');
+  const [stageFollowUp, setStageFollowUp] = useState('');
+  const [isSavingStage, setIsSavingStage] = useState(false);
 
   // Form State: Offboard Client
   const [offboardReason, setOffboardReason] = useState('Contract Expired');
@@ -255,10 +348,13 @@ export const SaasConsolePage: React.FC = () => {
         return 'bg-emerald-50 text-emerald-700 border-emerald-200';
       case 'DEMO_SCHEDULED':
       case 'PROPOSAL_SENT':
+      case 'NEGOTIATION':
         return 'bg-indigo-50 text-indigo-700 border-indigo-200';
       case 'CONTACTED':
+      case 'QUALIFIED':
         return 'bg-amber-50 text-amber-700 border-amber-200';
       case 'LOST':
+      case 'CLOSED':
         return 'bg-slate-100 text-slate-600 border-slate-300 line-through';
       default:
         return 'bg-blue-50 text-blue-700 border-blue-200';
@@ -365,8 +461,9 @@ export const SaasConsolePage: React.FC = () => {
   // Handler: Drop Lead
   const handleDropLead = async () => {
     if (!showDropLeadModal) return;
+    const droppedId = showDropLeadModal.id;
     try {
-      const res: any = await api.post(`/saas-console/leads/${showDropLeadModal.id}/drop`, {
+      const res: any = await api.post(`/saas-console/leads/${droppedId}/drop`, {
         dropReason,
         notes: dropNotes
       });
@@ -375,22 +472,116 @@ export const SaasConsolePage: React.FC = () => {
         setShowDropLeadModal(null);
         setDropNotes('');
         loadConsoleData();
+        if (selectedLeadId === droppedId) loadLeadActivities(droppedId);
       }
     } catch (err: any) {
       showToast('Failed to drop lead', 'error');
     }
   };
 
-  // Handler: Update Lead Status
-  const handleUpdateLeadStatus = async (id: number, status: string) => {
+  // Refresh only leads + overview counters (avoids the full-page loading state)
+  const refreshLeads = async () => {
     try {
-      const res: any = await api.put(`/saas-console/leads/${id}/status`, { status });
+      const [leadsRes, overviewRes]: any[] = await Promise.all([
+        api.get('/saas-console/leads').catch(() => null),
+        api.get('/saas-console/overview').catch(() => null)
+      ]);
+      const lds = unwrapApi(leadsRes);
+      if (Array.isArray(lds)) setLeads(lds);
+      const ov = unwrapApi(overviewRes);
+      if (ov) setOverview(ov);
+    } catch (err) {
+      console.error('Failed to refresh leads:', err);
+    }
+  };
+
+  // Handler: Load a lead's conversation history
+  const loadLeadActivities = async (leadId: number) => {
+    setActivitiesLoading(true);
+    try {
+      const res: any = await api.get(`/saas-console/leads/${leadId}/activities`);
+      const list = unwrapApi(res);
+      setLeadActivities(Array.isArray(list) ? list : []);
+    } catch (err) {
+      setLeadActivities([]);
+      showToast('Could not load conversation history', 'error');
+    } finally {
+      setActivitiesLoading(false);
+    }
+  };
+
+  // Handler: Open the "View Details" drawer
+  const openLeadDetails = (lead: LeadInquiry) => {
+    setSelectedLeadId(lead.id);
+    setLeadActivities([]);
+    setActivityType('NOTE');
+    setActivityNote('');
+    setActivityFollowUp('');
+    loadLeadActivities(lead.id);
+  };
+
+  // Handler: Start a stage change (asks for a note before saving)
+  const openStageChange = (lead: LeadInquiry, toStatus: string) => {
+    if (toStatus === leadStage(lead)) return;
+    setStageChange({ lead, toStatus });
+    setStageNote('');
+    setStageFollowUp('');
+  };
+
+  // Handler: Save a stage change together with the conversation note
+  const confirmStageChange = async () => {
+    if (!stageChange) return;
+    if (!stageNote.trim()) {
+      showToast('Please add a note about the conversation', 'error');
+      return;
+    }
+    const leadId = stageChange.lead.id;
+    setIsSavingStage(true);
+    try {
+      const res: any = await api.put(`/saas-console/leads/${leadId}/status`, {
+        status: stageChange.toStatus,
+        note: stageNote.trim(),
+        nextFollowUpAt: localToIso(stageFollowUp)
+      });
       if (res?.success || res?.data) {
-        showToast(`Lead pipeline stage moved to ${status}`);
-        loadConsoleData();
+        showToast(`Lead moved to ${stageLabel(stageChange.toStatus)}`);
+        setStageChange(null);
+        await refreshLeads();
+        if (selectedLeadId === leadId) loadLeadActivities(leadId);
       }
     } catch (err: any) {
-      showToast('Failed to update lead status', 'error');
+      showToast(err?.response?.data?.message || 'Failed to update lead status', 'error');
+    } finally {
+      setIsSavingStage(false);
+    }
+  };
+
+  // Handler: Log a call / note / email / WhatsApp / meeting against the open lead
+  const handleAddActivity = async () => {
+    if (!selectedLeadId) return;
+    if (!activityNote.trim()) {
+      showToast('Write a short summary of the conversation first', 'error');
+      return;
+    }
+    setIsSavingActivity(true);
+    try {
+      const res: any = await api.post(`/saas-console/leads/${selectedLeadId}/activities`, {
+        activityType,
+        note: activityNote.trim(),
+        nextFollowUpAt: localToIso(activityFollowUp)
+      });
+      if (res?.success || res?.data) {
+        showToast('Conversation logged');
+        setActivityNote('');
+        setActivityFollowUp('');
+        setActivityType('NOTE');
+        await Promise.all([loadLeadActivities(selectedLeadId), refreshLeads()]);
+      }
+    } catch (err: any) {
+      showToast(err?.response?.data?.message || 'Failed to save note', 'error');
+    }
+    finally {
+      setIsSavingActivity(false);
     }
   };
 
@@ -444,6 +635,12 @@ export const SaasConsolePage: React.FC = () => {
         l.workEmail?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [leads, searchTerm]);
+
+  // The lead currently open in the details drawer (derived so it stays fresh after refreshes)
+  const activeLead = useMemo(
+    () => (selectedLeadId !== null ? leads.find((l) => l.id === selectedLeadId) || null : null),
+    [leads, selectedLeadId]
+  );
 
   // Filtered Accounts
   const filteredAccounts = useMemo(() => {
@@ -812,10 +1009,10 @@ export const SaasConsolePage: React.FC = () => {
                     </div>
                     <span
                       className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${getLeadBadge(
-                        lead.leadStatus
+                        leadStage(lead)
                       )}`}
                     >
-                      {lead.leadStatus}
+                      {stageLabel(leadStage(lead))}
                     </span>
                   </div>
                 ))}
@@ -1273,80 +1470,127 @@ export const SaasConsolePage: React.FC = () => {
                     <th className="p-4">Contact & Company</th>
                     <th className="p-4">Contact Info</th>
                     <th className="p-4">Team Size</th>
-                    <th className="p-4">City</th>
+                    <th className="p-4">Requirement</th>
                     <th className="p-4">Pipeline Stage</th>
-                    <th className="p-4 text-right">Stage Actions</th>
+                    <th className="p-4 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
-                  {filteredLeads.map((lead) => (
-                    <tr key={lead.id} className="hover:bg-slate-50/80 transition">
-                      <td className="p-4">
-                        <div className="font-bold text-slate-900">{lead.fullName}</div>
-                        <div className="text-indigo-600 font-semibold">{lead.companyName}</div>
-                      </td>
-                      <td className="p-4">
-                        <div className="text-slate-800">{lead.workEmail}</div>
-                        <div className="text-slate-400 text-[11px]">{lead.phone || '—'}</div>
-                      </td>
-                      <td className="p-4 font-bold text-slate-700">
-                        {lead.companySize ? `${lead.companySize} employees` : '—'}
-                      </td>
-                      <td className="p-4 text-slate-600">
-                        {lead.city || '—'}
-                      </td>
-                      <td className="p-4">
-                        <span
-                          className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${getLeadBadge(
-                            lead.leadStatus
-                          )}`}
-                        >
-                          {lead.leadStatus}
-                        </span>
-                      </td>
-                      <td className="p-4 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          {lead.leadStatus !== 'CONVERTED' && lead.leadStatus !== 'LOST' && (
-                            <>
-                              <select
-                                value={lead.leadStatus}
-                                onChange={(e) => handleUpdateLeadStatus(lead.id, e.target.value)}
-                                className="bg-slate-50 border border-slate-200 text-[11px] rounded-lg px-2 py-1 font-semibold text-slate-700 cursor-pointer"
-                              >
-                                <option value="NEW">New</option>
-                                <option value="CONTACTED">Contacted</option>
-                                <option value="DEMO_SCHEDULED">Demo Scheduled</option>
-                                <option value="PROPOSAL_SENT">Proposal Sent</option>
-                                <option value="CONVERTED">Converted</option>
-                              </select>
+                  {filteredLeads.map((lead) => {
+                    const stage = leadStage(lead);
+                    const isClosed = LEAD_TERMINAL_STAGES.includes(stage);
+                    const phone = leadPhone(lead);
+                    const teamSize = leadTeamSize(lead);
+                    return (
+                      <tr key={lead.id} className="hover:bg-slate-50/80 transition align-top">
+                        <td className="p-4">
+                          <button
+                            type="button"
+                            onClick={() => openLeadDetails(lead)}
+                            className="font-bold text-slate-900 hover:text-indigo-700 text-left cursor-pointer"
+                          >
+                            {lead.fullName}
+                          </button>
+                          <div className="text-indigo-600 font-semibold">{lead.companyName}</div>
+                          <div className="flex items-center gap-1.5 mt-1">
+                            <span className="font-mono text-[10px] text-slate-400">{lead.inquiryRef}</span>
+                            <span className="text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">
+                              {lead.inquiryType === 'DEMO_REQUEST' ? 'Demo' : 'Sales'}
+                            </span>
+                          </div>
+                          <div className="text-[10px] text-slate-400 mt-0.5">Received {formatDateTime(lead.createdAt)}</div>
+                        </td>
+                        <td className="p-4">
+                          <div className="text-slate-800">{lead.workEmail}</div>
+                          <div className="text-slate-500 text-[11px] flex items-center gap-1 mt-0.5">
+                            <Phone className="w-3 h-3 text-slate-400" />
+                            {phone || 'No phone provided'}
+                          </div>
+                        </td>
+                        <td className="p-4 font-bold text-slate-700">
+                          {teamSize ? `${teamSize} employees` : '—'}
+                        </td>
+                        <td className="p-4 max-w-[240px]">
+                          {lead.interestModule && (
+                            <div className="text-[10px] font-bold text-indigo-600 uppercase tracking-wide mb-0.5">
+                              {lead.interestModule}
+                            </div>
+                          )}
+                          <div className="text-slate-600 line-clamp-2 leading-snug">
+                            {lead.message ? lead.message : <span className="text-slate-400 italic">No message provided</span>}
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <span
+                            className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${getLeadBadge(stage)}`}
+                          >
+                            {stageLabel(stage)}
+                          </span>
+                          {lead.nextFollowUpAt && !isClosed && (
+                            <div
+                              className={`text-[10px] font-semibold mt-1.5 flex items-center gap-1 ${
+                                isFollowUpOverdue(lead) ? 'text-rose-600' : 'text-slate-500'
+                              }`}
+                            >
+                              <Clock className="w-3 h-3" />
+                              {isFollowUpOverdue(lead) ? 'Overdue: ' : 'Follow-up: '}
+                              {formatDateTime(lead.nextFollowUpAt)}
+                            </div>
+                          )}
+                          {stage === 'LOST' && lead.dropReason && (
+                            <div className="text-[10px] text-rose-600 mt-1 italic">Dropped: {lead.dropReason}</div>
+                          )}
+                        </td>
+                        <td className="p-4 text-right">
+                          <div className="flex items-center justify-end gap-1.5 flex-wrap">
+                            <button
+                              type="button"
+                              onClick={() => openLeadDetails(lead)}
+                              className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition cursor-pointer flex items-center gap-1"
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                              View Details
+                            </button>
+                            {!isClosed && (
+                              <>
+                                <select
+                                  value={stage}
+                                  onChange={(e) => openStageChange(lead, e.target.value)}
+                                  className="bg-slate-50 border border-slate-200 text-[11px] rounded-lg px-2 py-1 font-semibold text-slate-700 cursor-pointer"
+                                >
+                                  {LEAD_STAGE_OPTIONS.map((opt) => (
+                                    <option key={opt.value} value={opt.value}>
+                                      {opt.label}
+                                    </option>
+                                  ))}
+                                </select>
 
-                              <button
-                                onClick={() => {
-                                  setShowDropLeadModal(lead);
-                                  setDropReason('Budget Unaligned');
-                                  setDropNotes('');
-                                }}
-                                className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-rose-50 text-rose-700 hover:bg-rose-100 transition cursor-pointer"
-                              >
-                                Drop
-                              </button>
-                            </>
-                          )}
-                          {lead.leadStatus === 'CONVERTED' && (
-                            <span className="text-emerald-700 font-bold flex items-center gap-1">
-                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-                              Customer Won
-                            </span>
-                          )}
-                          {lead.leadStatus === 'LOST' && (
-                            <span className="text-slate-400 text-[11px] italic">
-                              Archived / Lost
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                                <button
+                                  onClick={() => {
+                                    setShowDropLeadModal(lead);
+                                    setDropReason('Budget Unaligned');
+                                    setDropNotes('');
+                                  }}
+                                  className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-rose-50 text-rose-700 hover:bg-rose-100 transition cursor-pointer"
+                                >
+                                  Drop
+                                </button>
+                              </>
+                            )}
+                            {stage === 'CONVERTED' && (
+                              <span className="text-emerald-700 font-bold flex items-center gap-1">
+                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                                Customer Won
+                              </span>
+                            )}
+                            {(stage === 'LOST' || stage === 'CLOSED') && (
+                              <span className="text-slate-400 text-[11px] italic">Archived / Lost</span>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                   {filteredLeads.length === 0 && (
                     <tr>
                       <td colSpan={6} className="p-8 text-center text-slate-400">
@@ -2207,6 +2451,357 @@ export const SaasConsolePage: React.FC = () => {
                   className="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold cursor-pointer"
                 >
                   Confirm Drop Lead
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* DRAWER: LEAD DETAILS & CONVERSATION HISTORY */}
+      {activeLead && (() => {
+        const stage = leadStage(activeLead);
+        const isClosed = LEAD_TERMINAL_STAGES.includes(stage);
+        const phone = leadPhone(activeLead);
+        const teamSize = leadTeamSize(activeLead);
+        const waLink = whatsappLink(phone);
+        const initials = (activeLead.fullName || '?')
+          .split(' ')
+          .filter(Boolean)
+          .slice(0, 2)
+          .map((p) => p[0]?.toUpperCase())
+          .join('');
+        return (
+          <div
+            className="fixed inset-0 z-50 flex justify-end bg-slate-900/50 backdrop-blur-xs animate-in fade-in duration-150"
+            onClick={() => setSelectedLeadId(null)}
+          >
+            <aside
+              className="bg-white w-full max-w-xl h-full shadow-2xl border-l border-slate-200 flex flex-col animate-in slide-in-from-right duration-200"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="p-4 sm:p-5 border-b border-slate-100 bg-slate-50 shrink-0">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-11 h-11 rounded-2xl bg-indigo-600 text-white font-bold flex items-center justify-center shrink-0">
+                      {initials}
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="font-bold text-slate-900 text-base truncate">{activeLead.fullName}</h3>
+                      <div className="text-xs text-indigo-600 font-semibold truncate">{activeLead.companyName}</div>
+                      <div className="font-mono text-[10px] text-slate-400">{activeLead.inquiryRef}</div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setSelectedLeadId(null)}
+                    className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200 cursor-pointer"
+                    aria-label="Close lead details"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2 mt-3">
+                  <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${getLeadBadge(stage)}`}>
+                    {stageLabel(stage)}
+                  </span>
+                  {!isClosed && (
+                    <select
+                      value={stage}
+                      onChange={(e) => openStageChange(activeLead, e.target.value)}
+                      className="bg-white border border-slate-200 text-[11px] rounded-lg px-2 py-1 font-semibold text-slate-700 cursor-pointer"
+                      aria-label="Change pipeline stage"
+                    >
+                      {LEAD_STAGE_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                  <div className="flex items-center gap-1.5 ml-auto">
+                    {phone && (
+                      <a
+                        href={`tel:${phone}`}
+                        className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition flex items-center gap-1"
+                      >
+                        <Phone className="w-3.5 h-3.5" /> Call
+                      </a>
+                    )}
+                    {waLink && (
+                      <a
+                        href={waLink}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-green-50 text-green-700 hover:bg-green-100 transition flex items-center gap-1"
+                      >
+                        <MessageCircle className="w-3.5 h-3.5" /> WhatsApp
+                      </a>
+                    )}
+                    <a
+                      href={`mailto:${activeLead.workEmail}`}
+                      className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-blue-50 text-blue-700 hover:bg-blue-100 transition flex items-center gap-1"
+                    >
+                      <Mail className="w-3.5 h-3.5" /> Email
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              {/* Scrollable body */}
+              <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-5 text-xs">
+                {/* Follow-up banner */}
+                {activeLead.nextFollowUpAt && !isClosed && (
+                  <div
+                    className={`p-3 rounded-xl border flex items-center gap-2 font-semibold ${
+                      isFollowUpOverdue(activeLead)
+                        ? 'bg-rose-50 border-rose-200 text-rose-700'
+                        : 'bg-amber-50 border-amber-200 text-amber-800'
+                    }`}
+                  >
+                    <Clock className="w-4 h-4 shrink-0" />
+                    {isFollowUpOverdue(activeLead) ? 'Follow-up overdue since ' : 'Next follow-up: '}
+                    {formatDateTime(activeLead.nextFollowUpAt)}
+                  </div>
+                )}
+                {stage === 'LOST' && activeLead.dropReason && (
+                  <div className="p-3 rounded-xl border bg-rose-50 border-rose-200 text-rose-700 font-semibold">
+                    Dropped &mdash; {activeLead.dropReason}
+                  </div>
+                )}
+
+                {/* Contact & enquiry details */}
+                <section>
+                  <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">Enquiry Details</h4>
+                  <dl className="grid grid-cols-2 gap-x-4 gap-y-3 p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
+                    {[
+                      ['Work Email', activeLead.workEmail],
+                      ['Phone', phone || 'Not provided'],
+                      ['Team Size', teamSize ? `${teamSize} employees` : '\u2014'],
+                      ['Interested In', activeLead.interestModule || '\u2014'],
+                      ['Enquiry Type', (activeLead.inquiryType || '\u2014').replace(/_/g, ' ')],
+                      [
+                        'Preferred Demo Slot',
+                        activeLead.preferredDate
+                          ? `${activeLead.preferredDate}${activeLead.preferredTimeSlot ? ' (' + activeLead.preferredTimeSlot + ')' : ''}`
+                          : '\u2014'
+                      ],
+                      ['Received', formatDateTime(activeLead.createdAt)],
+                      ['Last Contacted', formatDateTime(activeLead.lastContactedAt)],
+                      ['Assigned To', activeLead.assignedConsultant || '\u2014'],
+                      [
+                        'Auto-Reply Sent',
+                        `Email: ${activeLead.emailStatus || '\u2014'} \u2022 WhatsApp: ${activeLead.whatsappStatus || '\u2014'}`
+                      ]
+                    ].map(([label, value]) => (
+                      <div key={label} className="min-w-0">
+                        <dt className="text-[10px] font-bold uppercase tracking-wide text-slate-400">{label}</dt>
+                        <dd className="text-slate-800 font-semibold break-words">{value}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </section>
+
+                {/* Full message */}
+                <section>
+                  <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">Their Message</h4>
+                  <div className="p-4 rounded-2xl bg-indigo-50/50 border border-indigo-100 text-slate-700 leading-relaxed whitespace-pre-wrap">
+                    {activeLead.message || <span className="italic text-slate-400">No message provided.</span>}
+                  </div>
+                </section>
+
+                {/* Log a conversation */}
+                <section>
+                  <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">Log a Conversation</h4>
+                  <div className="p-4 rounded-2xl border border-slate-200 space-y-3">
+                    <div className="flex flex-wrap gap-1.5">
+                      {(['NOTE', 'CALL', 'EMAIL', 'WHATSAPP', 'MEETING'] as const).map((t) => {
+                        const meta = ACTIVITY_META[t];
+                        const Icon = meta.icon;
+                        return (
+                          <button
+                            key={t}
+                            type="button"
+                            onClick={() => setActivityType(t)}
+                            className={`px-2.5 py-1 rounded-lg border text-[11px] font-semibold flex items-center gap-1 cursor-pointer transition ${
+                              activityType === t
+                                ? 'bg-indigo-600 border-indigo-600 text-white'
+                                : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                            }`}
+                          >
+                            <Icon className="w-3.5 h-3.5" />
+                            {meta.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <textarea
+                      rows={3}
+                      placeholder="What was discussed? e.g. Spoke to HR head, wants payroll demo next Tuesday, budget approx 3L/yr..."
+                      value={activityNote}
+                      onChange={(e) => setActivityNote(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                    />
+                    <div className="flex flex-col sm:flex-row sm:items-end gap-3">
+                      <div className="flex-1">
+                        <label className="block font-bold text-slate-600 mb-1">Next follow-up (optional)</label>
+                        <input
+                          type="datetime-local"
+                          value={activityFollowUp}
+                          onChange={(e) => setActivityFollowUp(e.target.value)}
+                          className="w-full px-3 py-2 rounded-xl border border-slate-200"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        disabled={isSavingActivity}
+                        onClick={handleAddActivity}
+                        className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-bold cursor-pointer shadow-sm"
+                      >
+                        {isSavingActivity ? 'Saving...' : 'Save to History'}
+                      </button>
+                    </div>
+                  </div>
+                </section>
+
+                {/* Timeline */}
+                <section>
+                  <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-3">
+                    Conversation History
+                  </h4>
+                  {activitiesLoading && <p className="text-slate-400 py-4 text-center">Loading history...</p>}
+                  <ol className="relative border-l-2 border-slate-100 ml-3 space-y-5">
+                    {leadActivities.map((a) => {
+                      const meta = ACTIVITY_META[a.activityType] || ACTIVITY_META.NOTE;
+                      const Icon = meta.icon;
+                      return (
+                        <li key={a.id} className="ml-5">
+                          <span
+                            className={`absolute -left-[13px] w-6 h-6 rounded-full border flex items-center justify-center bg-white ${meta.cls}`}
+                          >
+                            <Icon className="w-3 h-3" />
+                          </span>
+                          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                            <span className="font-bold text-slate-900">{meta.label}</span>
+                            {a.fromStatus && a.toStatus && (
+                              <span className="text-[10px] font-semibold text-slate-500">
+                                {stageLabel(a.fromStatus)} &rarr; {stageLabel(a.toStatus)}
+                              </span>
+                            )}
+                            <span className="text-[10px] text-slate-400 ml-auto">{formatDateTime(a.createdAt)}</span>
+                          </div>
+                          {a.note && <p className="text-slate-600 mt-1 whitespace-pre-wrap leading-relaxed">{a.note}</p>}
+                          <div className="text-[10px] text-slate-400 mt-1 flex flex-wrap gap-x-3">
+                            <span>by {a.createdBy || 'system'}</span>
+                            {a.nextFollowUpAt && (
+                              <span className="text-amber-700 font-semibold flex items-center gap-1">
+                                <Clock className="w-3 h-3" /> Follow-up set: {formatDateTime(a.nextFollowUpAt)}
+                              </span>
+                            )}
+                          </div>
+                        </li>
+                      );
+                    })}
+
+                    {/* The original enquiry is always the first event in the history */}
+                    <li className="ml-5">
+                      <span className="absolute -left-[13px] w-6 h-6 rounded-full border flex items-center justify-center bg-white bg-blue-50 text-blue-700 border-blue-200">
+                        <Sparkles className="w-3 h-3" />
+                      </span>
+                      <div className="flex flex-wrap items-center gap-x-2">
+                        <span className="font-bold text-slate-900">Enquiry received</span>
+                        <span className="text-[10px] text-slate-400 ml-auto">{formatDateTime(activeLead.createdAt)}</span>
+                      </div>
+                      <p className="text-slate-500 mt-1">
+                        Submitted via website ({(activeLead.inquiryType || 'SALES').replace(/_/g, ' ').toLowerCase()}).
+                      </p>
+                    </li>
+                  </ol>
+                  {!activitiesLoading && leadActivities.length === 0 && (
+                    <p className="text-slate-400 text-center pt-4">
+                      No conversations logged yet. Log your first call or note above.
+                    </p>
+                  )}
+                </section>
+              </div>
+            </aside>
+          </div>
+        );
+      })()}
+
+      {/* MODAL: CHANGE LEAD STAGE (note required so history is preserved) */}
+      {stageChange && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-md w-full border border-slate-200 shadow-2xl overflow-hidden my-auto flex flex-col max-h-[92vh] max-h-[92dvh]">
+            <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50 shrink-0">
+              <div className="flex items-center gap-2">
+                <ArrowRight className="w-5 h-5 text-indigo-600" />
+                <h3 className="font-bold text-slate-900 text-sm">Move Lead to a New Stage</h3>
+              </div>
+              <button
+                onClick={() => setStageChange(null)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200 cursor-pointer"
+                aria-label="Cancel stage change"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-4 sm:p-6 overflow-y-auto space-y-4 text-xs">
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
+                <div className="font-bold text-slate-900">{stageChange.lead.fullName}</div>
+                <div className="text-slate-500">{stageChange.lead.companyName}</div>
+                <div className="flex items-center gap-2 mt-2">
+                  <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${getLeadBadge(leadStage(stageChange.lead))}`}>
+                    {stageLabel(leadStage(stageChange.lead))}
+                  </span>
+                  <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
+                  <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${getLeadBadge(stageChange.toStatus)}`}>
+                    {stageLabel(stageChange.toStatus)}
+                  </span>
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">What happened? (saved to conversation history) *</label>
+                <textarea
+                  rows={4}
+                  autoFocus
+                  placeholder="e.g. Called Prisha, she confirmed 300 employees and wants a payroll + attendance demo. Sending proposal tomorrow."
+                  value={stageNote}
+                  onChange={(e) => setStageNote(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                />
+              </div>
+
+              {stageChange.toStatus !== 'CONVERTED' && (
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Next follow-up (optional)</label>
+                  <input
+                    type="datetime-local"
+                    value={stageFollowUp}
+                    onChange={(e) => setStageFollowUp(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200"
+                  />
+                </div>
+              )}
+
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setStageChange(null)}
+                  className="px-4 py-2 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-600 font-semibold cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={isSavingStage || !stageNote.trim()}
+                  onClick={confirmStageChange}
+                  className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold cursor-pointer shadow-sm"
+                >
+                  {isSavingStage ? 'Saving...' : 'Move & Save Note'}
                 </button>
               </div>
             </div>
